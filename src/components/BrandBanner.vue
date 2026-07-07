@@ -1,42 +1,54 @@
-<template>
-    <div class="marquee-container">
-        <div class="marquee-track">
-            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo.png"></a></div>
-            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo.png"></a></div>
-            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo.png"></a></div>
-            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo.png"></a></div>
-            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo.png"></a></div>
-
-            
-        </div>
-    </div>
-</template>
-
 <script setup>
 
 </script>
+
+
+<template>
+  <div>
+    <div class="marquee-container">
+        <div class="marquee-track">
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/marvel-logo-115x50.png"></a></div>
+            <div class="marquee-item"><a><img src="/src/assets/brand_images/kool-aid-115x50.png"></a></div>
+            
+        </div>
+    </div>
+  </div>
+    
+</template>
+
+
 
 <style scoped>
 
 .marquee-container {
   overflow: hidden;
-  width: 100%;
-  background-color: #ffcc00; /* Your banner color */
+  width: 95%;
+  background-color: #FAD141;
   white-space: nowrap;
 }
 
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: scroll 15s linear infinite;
+  animation: scroll 45s linear infinite;
 }
 
-.marquee-track:hover {
-  animation-play-state: paused; /* Pauses when users hover */
-}
+
 
 .marquee-item {
-  padding: 15px 50px;
+  padding: 15px 0px;
   font-weight: bold;
 }
 
