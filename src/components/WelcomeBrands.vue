@@ -1,71 +1,161 @@
-
 <script setup>
-import BrandBanner from './BrandBanner.vue'
+
 </script>
 
 <template>
-  <section
-    class="welcome-section"
-    aria-label="Candyrific Loud Mouth Bites award hero image"
-  >
+  <section class="welcome-section">
     <div class="inner-welcome">
       <h2 class="brand-heading">
-        Name Brands.
+        Brands
       </h2>
+      
+      <div class="brand-display">
+        <div class="logo-display" style="grid-column: 1; grid-row: 1;">
+  <a>
+    <img
+      src="/src/assets/brand_images/disney_600x600.png"
+      alt="Disney"
+    />
+  </a>
+</div>
 
-      <div class="brand-banner-wrap">
-        <BrandBanner />
+<div class="logo-display" style="grid-column: 2; grid-row: 1;">
+  <a>
+    <img
+      src="/src/assets/brand_images/disney_stitch_600x600.png"
+      alt="Disney Stitch"
+    />
+  </a>
+</div>
+
+<div class="logo-display" style="grid-column: 3; grid-row: 1;">
+  <a>
+    <img
+      src="/src/assets/brand_images/elf_on_the_shelf_600x600.png"
+      alt="Elf on the Shelf"
+    />
+  </a>
+</div>
+
+<div class="logo-display" style="grid-column: 1; grid-row: 2;">
+  <a>
+    <img
+      src="/src/assets/brand_images/nightmare_before_christmas_600x600.png"
+      alt="The Nightmare Before Christmas"
+    />
+  </a>
+</div>
+
+<div class="logo-display" style="grid-column: 2; grid-row: 2;">
+  <a>
+    <img
+      src="/src/assets/brand_images/shrek_600x600.png"
+      alt="Shrek"
+    />
+  </a>
+</div>
+
+<div class="logo-display" style="grid-column: 3; grid-row: 2;">
+  <a>
+    <img
+      src="/src/assets/brand_images/spongebob_squarepants_600x600.png"
+      alt="SpongeBob SquarePants"
+    />
+  </a>
+</div>
       </div>
 
-      
-      <div>
-        <button class="button-style">Shop by brand</button>
-        <button class="button-style">View all brands</button>
+      <div class="minion">
+        <img src="/src/assets/brand_images/evil-minions-png-24.png" alt="Candyrific Brand Banner" />
+      </div>
+      <div class="troll">
+        <img src="/src/assets/brand_images/trolls_lady-removebg-preview.png" alt="Candyrific Brand Banner" />
       </div>
     </div>
+
+
+    
+
   </section>
 </template>
 
 <style scoped>
-.button-style {
-    border-radius: 25px;
-    /* Soft gloss gradient layered on top of your #fad141 yellow */
-    background: linear-gradient(
-        to bottom, 
-        rgba(255, 255, 255, 0.4) 0%, 
-        rgba(255, 255, 255, 0) 50%, 
-        rgba(0, 0, 0, 0.05) 50%, 
-        rgba(0, 0, 0, 0.1) 100%
-    ), #fad141;
-    border: 2px solid #000000;
-    color: #000000;
-    font-weight: bold; /* Improves readability on bright yellow */
-    padding: 1rem 2rem;
-    margin: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    transition: all 0.2s ease; /* Makes the hover transition smooth */
+
+  .minion {
+  position: absolute;
+  top: 66%;
+  right: 0;
+  transform: translate(50%, -50%);
+  z-index: 1;
+
 }
 
-.button-style:hover {
-    /* Maintains the black border structure while darkening the background */
-    background: linear-gradient(
-        to bottom, 
-        rgba(255, 255, 255, 0.5) 0%, 
-        rgba(255, 255, 255, 0) 50%, 
-        rgba(0, 0, 0, 0.05) 50%, 
-        rgba(0, 0, 0, 0.15) 100%
-    ), #e0b826; /* Darker, richer gold on hover */
-    border: 2px solid #000000; /* Kept black so the button edge stays sharp */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Increases shadow to look lifted */
-    transform: translateY(-2px); /* Physical lift effect */
+.troll {
+     height: 25rem;
+    width: auto;
+    position: absolute;
+    top: 0%;
+    left: 0;
+    z-index: 1;
+    transform: translate(-.5rem);
 }
 
-.button-style:active {
-    transform: translateY(1px); /* Sinks down slightly when clicked */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+.troll img {
+  height: 100%;
+  width: auto;
 }
 
+@media (max-width: 1100px) {
+  .minion {
+    display: none;
+  }
+
+  .troll {
+    display: none;
+  }
+}
+
+.brand-display {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* grid-auto-flow: row; */
+  gap: 1rem;
+}
+
+.brand-display img{
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  max-width: 18rem;
+
+}
+
+.logo-display {
+  border: 2px solid white;
+  
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.logo-display:hover {
+  border: 2px solid #F04D86;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.10);
+}
+
+.logo-display:active {
+  
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.20);
+}
+
+
+.brand-heading {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: #FFFFFF;
+  text-align: center;
+  margin-bottom: 1rem;
+}
 
 .welcome-section {
   width: min(var(--max-width), calc(100% - 2rem));
@@ -76,58 +166,31 @@ import BrandBanner from './BrandBanner.vue'
   width: 100%;
   min-height: clamp(420px, 58vw, 720px);
   padding: clamp(1.25rem, 3vw, 2.5rem);
-
-  background: #fad141;
-
+  background:
+  linear-gradient(
+    115deg,
+    #320152 0%,
+    #3d075d 24%,
+    #5e2783 52%,
+    #316bb0 76%,
+    #00afe0 100%
+  );
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-
-.brand-heading {
-  margin: 0 0 clamp(1.25rem, 3vw, 2.25rem);
-
-  width: 100%;
-
-  color: #fad141;
-
-  font-family: "Arial Black", "Trebuchet MS", Impact, Arial, sans-serif;
-  font-size: clamp(2.25rem, 7vw, 6rem);
-  line-height: 0.95;
-  letter-spacing: -0.06em;
-  text-align: center;
-  text-transform: uppercase;
-
-  /*
-    Main text stays yellow.
-    Darker yellow/brown shadows create the pressed-in look.
-  */
-  text-shadow:
-    1px 1px 0 rgba(255, 255, 255, 0.45),
-    -1px -1px 0 rgba(121, 82, 0, 0.85),
-    -2px -2px 0 rgba(121, 82, 0, 0.45),
-    0 3px 8px rgba(121, 82, 0, 0.28);
+  overflow: hidden;
 }
 
 
 
-.brand-banner-wrap {
-  width: min(100%, 1080px);
-  margin-inline: auto;
-}
 
-.products-placeholder {
-  width: min(100%, 1080px);
-  margin: clamp(1.5rem, 4vw, 3rem) auto 0;
 
-  color: #4f3900;
 
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  font-weight: 800;
-  line-height: 1.5;
-  text-align: center;
-}
+
+
+
+
 
 @media (max-width: 700px) {
   .welcome-section {
@@ -139,10 +202,7 @@ import BrandBanner from './BrandBanner.vue'
     padding: 1rem;
   }
 
-  .brand-heading {
-    margin-bottom: 1rem;
-    letter-spacing: -0.04em;
-  }
+  
 
   .brand-banner-wrap {
     width: 100%;

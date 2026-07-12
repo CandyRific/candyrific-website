@@ -5,8 +5,8 @@
     
   <section class="welcome-section" aria-label="Candyrific Loud Mouth Bites award hero image">
       <div class="inner-welcome">
-        <p>Electrified Products.</p>
-        Products Section - This is where "in style" products will be displayed. So if it's valentines day, may want to put valentiens day products here
+        <p>Top Products</p>
+        
       </div>
 
       
@@ -26,6 +26,14 @@
   aspect-ratio: 16 / 9;
   height: auto;
   object-fit: cover;
-  background: #01AEF0;
+  background:
+  linear-gradient(
+    115deg,
+    #320152 0%,
+    #3d075d 24%,
+    #5e2783 52%,
+    #316bb0 76%,
+    #00afe0 100%
+  );
 }
 </style>
