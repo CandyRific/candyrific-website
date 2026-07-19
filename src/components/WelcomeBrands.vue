@@ -3,210 +3,178 @@
 </script>
 
 <template>
-  <section class="welcome-section">
-    <div class="inner-welcome">
-      <h2 class="brand-heading">
-        Brands
-      </h2>
+  <div class="full-brand-div">
+      <div class="full-brand-title-div">
+          BRANDS WE WORK WITH
+      </div>
       
-      <div class="brand-display">
-        <div class="logo-display" style="grid-column: 1; grid-row: 1;">
-  <a>
-    <img
-      src="/src/assets/brand_images/disney_600x600.png"
-      alt="Disney"
-    />
-  </a>
-</div>
-
-<div class="logo-display" style="grid-column: 2; grid-row: 1;">
-  <a>
-    <img
-      src="/src/assets/brand_images/disney_stitch_600x600.png"
-      alt="Disney Stitch"
-    />
-  </a>
-</div>
-
-<div class="logo-display" style="grid-column: 3; grid-row: 1;">
-  <a>
-    <img
-      src="/src/assets/brand_images/elf_on_the_shelf_600x600.png"
-      alt="Elf on the Shelf"
-    />
-  </a>
-</div>
-
-<div class="logo-display" style="grid-column: 1; grid-row: 2;">
-  <a>
-    <img
-      src="/src/assets/brand_images/nightmare_before_christmas_600x600.png"
-      alt="The Nightmare Before Christmas"
-    />
-  </a>
-</div>
-
-<div class="logo-display" style="grid-column: 2; grid-row: 2;">
-  <a>
-    <img
-      src="/src/assets/brand_images/shrek_600x600.png"
-      alt="Shrek"
-    />
-  </a>
-</div>
-
-<div class="logo-display" style="grid-column: 3; grid-row: 2;">
-  <a>
-    <img
-      src="/src/assets/brand_images/spongebob_squarepants_600x600.png"
-      alt="SpongeBob SquarePants"
-    />
-  </a>
-</div>
+    <div class="left-marquee-banner">
+      <div class="left-marquee-track">
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
+        <div class="brand-marquee-card"></div>
       </div>
-
-      <div class="minion">
-        <img src="/src/assets/brand_images/evil-minions-png-24.png" alt="Candyrific Brand Banner" />
-      </div>
-      <div class="troll">
-        <img src="/src/assets/brand_images/trolls_lady-removebg-preview.png" alt="Candyrific Brand Banner" />
+    </div>
+    
+    <div class="right-marquee-banner">
+      <div class="right-marquee-track">
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
+          <div class="brand-marquee-card"></div>
       </div>
     </div>
 
+      
+      <div class="full-brand-blue-div">
 
-    
-
-  </section>
+      </div>
+  </div>
 </template>
 
 <style scoped>
-
-  .minion {
-  position: absolute;
-  top: 66%;
-  right: 0;
-  transform: translate(50%, -50%);
-  z-index: 1;
-
-}
-
-.troll {
-     height: 25rem;
-    width: auto;
-    position: absolute;
-    top: 0%;
-    left: 0;
-    z-index: 1;
-    transform: translate(-.5rem);
-}
-
-.troll img {
-  height: 100%;
-  width: auto;
-}
-
-@media (max-width: 1100px) {
-  .minion {
-    display: none;
-  }
-
-  .troll {
-    display: none;
-  }
-}
-
-.brand-display {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* grid-auto-flow: row; */
-  gap: 1rem;
-}
-
-.brand-display img{
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  max-width: 18rem;
-
-}
-
-.logo-display {
-  border: 2px solid white;
-  
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.logo-display:hover {
-  border: 2px solid #F04D86;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.10);
-}
-
-.logo-display:active {
-  
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.20);
-}
-
-
-.brand-heading {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  color: #FFFFFF;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.welcome-section {
-  width: min(var(--max-width), calc(100% - 2rem));
-  margin: 16px auto 0;
-}
-
-.inner-welcome {
-  width: 100%;
-  min-height: clamp(420px, 58vw, 720px);
-  padding: clamp(1.25rem, 3vw, 2.5rem);
-  background:
-  linear-gradient(
-    115deg,
-    #320152 0%,
-    #3d075d 24%,
-    #5e2783 52%,
-    #316bb0 76%,
-    #00afe0 100%
-  );
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-}
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 700px) {
-  .welcome-section {
-    width: min(100% - 1rem, var(--max-width));
-    margin-top: 8px;
-  }
-
-  .inner-welcome {
-    padding: 1rem;
-  }
+    .full-brand-div{
+        font-family: 'Fredoka', sans-serif;
+        background: linear-gradient(
+        90deg,
+        #6d3692 0%,
+        #6250a1 25%,
+        #3f6fb5 50%,
+        #007fc5 65%,
+        #00aced 100%
+        );
+        color: white;
+        position: relative;
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+        z-index: 1;
+    }
 
   
+    .full-brand-blue-div {
+        display: none;
+      }
 
-  .brand-banner-wrap {
-    width: 100%;
-  }
-}
+    @media (min-width: 768px) {
+      .full-brand-blue-div {
+      /* This will be the size of the original div full-brand-title-div */
+        background: linear-gradient(
+        90deg,
+        rgba(109, 54, 146, 0.95) 0%,
+        rgba(109, 54, 146, 0.75) 15%,
+        rgba(109, 54, 146, 0.25) 30%,
+        rgba(109, 54, 146, 0.02) 50%,
+        rgba(0, 172, 237, 0.25) 60%,
+        rgba(0, 172, 237, 0.75) 85%,
+        rgba(0, 172, 237, 0.95) 100%
+      );
+      position:  absolute;
+      inset: 0;
+      z-index: 2;
+      display: block;
+    }
+    }
+
+    .full-brand-title-div {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       padding: 1rem;
+       font-size: 2rem;
+       text-align: center;
+       z-index: 3;
+       position: relative;
+    }
+
+    .left-marquee-banner {
+       overflow-x: hidden;
+       width: 100%;
+       z-index: 1;
+    }
+
+    .right-marquee-banner {
+       overflow-x: hidden;
+       width: 100%;
+       z-index: 1;
+    }
+
+    .left-marquee-track {
+      display: flex;
+      width: max-content;
+      animation: left-marquee 30s linear infinite;
+      gap: 1rem;
+      padding-top: 1rem;
+    }
+
+    .right-marquee-track {
+      display: flex;
+      width: max-content;
+      animation: right-marquee 35s linear infinite;
+      gap: 1rem;
+      padding-top: 1rem;
+    }
+
+
+
+    .brand-marquee-card{
+      flex: 11rem;
+      height: 7rem;
+      background-color: #9dabd5;
+      border-radius: 5px;
+    }
+
+    @keyframes left-marquee {
+      from {
+        transform: translateX(100vw);
+      }
+      to {
+        transform: translateX(-100%);
+      }
+    }
+
+    @keyframes right-marquee {
+      from {
+        transform: translateX(-100%);
+      }
+
+      to {
+        transform: translateX(100vw);
+      }
+    }
+
+    
+
+    
+
+
+
+    .brand-marquee-card {
+      height: 7rem;
+      width: 11rem;
+      background-color: #9DABD5;
+      border-radius: 5px;
+    }
+
 </style>
 
