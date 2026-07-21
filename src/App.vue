@@ -5,6 +5,7 @@ import heroImage from './assets/loud-mouth-bites-award-hero.jpg'
 import NavBarTop from './components/NavBarTop.vue'
 import LandingPageWelcome from './components/LandingPageWelcome.vue';
 import CarouselSectionWelcome from './components/CarouselSectionWelcome.vue';
+import WelcomeBrands from './components/WelcomeBrands.vue';
 import AmazonStoreFront from './components/AmazonStoreFront.vue';
 </script>
 
@@ -21,6 +22,7 @@ import AmazonStoreFront from './components/AmazonStoreFront.vue';
     <LandingPageWelcome/>
     <CarouselSectionWelcome/>
     <RouterView />
+    <WelcomeBrands />
     <AmazonStoreFront/>
   </main>
 </template>

@@ -9,7 +9,7 @@ import heroImage from '../assets/loud-mouth-bites-award-hero.jpg'
 <template>
   <main id="main-content">
 
-    <WelcomeBrands />
+    
     <!-- <WelcomeProducts /> -->
 
     </main>
