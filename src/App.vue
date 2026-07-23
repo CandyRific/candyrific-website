@@ -7,6 +7,7 @@ import LandingPageWelcome from './components/LandingPageWelcome.vue';
 import CarouselSectionWelcome from './components/CarouselSectionWelcome.vue';
 import WelcomeBrands from './components/WelcomeBrands.vue';
 import AmazonStoreFront from './components/AmazonStoreFront.vue';
+import SiteFooter from './components/SiteFooter.vue';
 </script>
 
 <template>
@@ -24,6 +25,7 @@ import AmazonStoreFront from './components/AmazonStoreFront.vue';
     <RouterView />
     <WelcomeBrands />
     <AmazonStoreFront/>
+    <SiteFooter/>
   </main>
 </template>
 
