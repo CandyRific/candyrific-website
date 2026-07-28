@@ -1,13 +1,9 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import NavBarMain from './components/NavBarMain.vue'
-import heroImage from './assets/loud-mouth-bites-award-hero.jpg'
-import NavBarTop from './components/NavBarTop.vue'
-import LandingPageWelcome from './components/LandingPageWelcome.vue';
-import CarouselSectionWelcome from './components/CarouselSectionWelcome.vue';
-import WelcomeBrands from './components/WelcomeBrands.vue';
-import AmazonStoreFront from './components/AmazonStoreFront.vue';
+import { RouterView } from 'vue-router'
+import NavBarMain from './components/NavBarMain.vue';
+import NavBarTop from './components/NavBarTop.vue';
 import SiteFooter from './components/SiteFooter.vue';
+
 </script>
 
 <template>
@@ -16,17 +12,13 @@ import SiteFooter from './components/SiteFooter.vue';
   <NavBarTop/>
   <NavBarMain/>
 </header>
+
+<main>
+  <RouterView />
+</main>
   
   
-  <main>
-    
-    <LandingPageWelcome/>
-    <CarouselSectionWelcome/>
-    <RouterView />
-    <WelcomeBrands />
-    <AmazonStoreFront/>
-    <SiteFooter/>
-  </main>
+  <SiteFooter/>
 </template>
 
 <style scoped>
