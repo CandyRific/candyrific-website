@@ -16,7 +16,20 @@
         <div class="product-filter-option">NET WEIGHT <span class="plus-icon">  + </span></div>
     </div>
     <div class="product-section">
-      This is where the products will go.
+      <div class="product-card">Dummy Product 1</div>
+      <div class="product-card">Dummy Product 2</div>
+      <div class="product-card">Dummy Product 3</div>
+      <div class="product-card">Dummy Product 4</div>
+      <div class="product-card">Dummy Product 5</div>
+      <div class="product-card">Dummy Product 6</div>
+      <div class="product-card">Dummy Product 7</div>
+      <div class="product-card">Dummy Product 8</div>
+    </div>
+    <div class="view-count-div">
+      You've viewed 8 of 152 products.
+    </div>
+    <div class="load-more-div">
+       <button> LOAD MORE </button>
     </div>
   </div>
 </template>
@@ -65,6 +78,7 @@ padding: 1rem;
 .product-filter-option:hover{
   background: rgba(0,0,0,.05);
   color: white;
+  border: 1px solid white;
 }
 
 .plus-icon{
@@ -72,8 +86,47 @@ padding: 1rem;
 }
 
 .product-section{
-  min-height: 300px;
+  border: 1px solid red;
+  padding: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0px, 1fr));
+        gap: .5rem;
 }
+
+@media (min-width: 768px) {
+  .product-section {
+    border: 1px solid red;
+  padding: 4rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+  }
+}
+
+.product-card {
+  border: 1px solid red;
+  height: 8rem;
+  
+}
+
+@media (min-width: 768px) {
+  .product-card {
+  border: 1px solid red;
+  height: 15rem;
+  
+}
+}
+
+.view-count-div{
+  text-align: center;
+}
+
+.load-more-div {
+  display: flex;
+  justify-content: center;
+}
+
+
 
 
 </style>

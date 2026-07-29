@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="product-card">
 
     </div>
 </template>
@@ -9,5 +9,8 @@
 </script>
 
 <style  scoped>
-
+    .product-card{
+        border: 1px solid red;
+    
+    }
 </style>
