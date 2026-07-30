@@ -25,11 +25,13 @@
       <div class="product-card">Dummy Product 7</div>
       <div class="product-card">Dummy Product 8</div>
     </div>
-    <div class="view-count-div">
+    <div style="display: block; padding: 1rem;">
+      <div class="view-count-div">
       You've viewed 8 of 152 products.
     </div>
     <div class="load-more-div">
        <button> LOAD MORE </button>
+    </div>
     </div>
   </div>
 </template>
@@ -44,8 +46,17 @@
 .title-div{
   text-align: center;
   padding: 2rem;
+  font-size: 3rem;
+}
+
+@media (min-width: 768px){
+.title-div{
+  text-align: center;
+  padding: 2rem;
   font-size: 5rem;
 }
+}
+
 
 .product-filter-text {
   text-align: left;
@@ -105,7 +116,7 @@ padding: 1rem;
 
 .product-card {
   border: 1px solid red;
-  height: 8rem;
+  height: 10rem;
   
 }
 

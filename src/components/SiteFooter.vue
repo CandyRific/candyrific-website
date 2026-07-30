@@ -12,7 +12,7 @@
             <div>Image 3</div>
         </div>
         <div class="all-rights">
-            Copyright &copy CandyRific. All Rights Reserved.
+            Copyright &copy CandyRific 2026. All Rights Reserved.
         </div>
     </div>
 </template>
