@@ -35,7 +35,7 @@
         overflow: hidden;
         border-radius: 2rem;
         position: relative;
-        background-image: url(/src/assets/brand_images/amazon_store_front.jpg);
+        background-image: url(/src/assets/candy-bags.jpg);
         background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
