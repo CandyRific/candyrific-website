@@ -105,7 +105,7 @@
             grid-column: 1 / 3;
             grid-row: 1 / 4;
             align-items: flex-start;
-            border: 1px solid red;
+            /* border: 1px solid red; */
             z-index: 1;
         }
 
@@ -115,14 +115,14 @@
             justify-content: flex-end;
             align-items: center;
             padding: .5rem;
-            border: 1px solid red;
+            /* border: 1px solid red; */
             z-index: 1;
         }
 
         .all-rights {
             grid-column: 1 / 5;
-            grid-row: 4 / 6;
-            border: 1px solid red;
+            grid-row: 5 / 6;
+            /* border: 1px solid red; */
             z-index: 1;
             text-shadow: 0px 0px 2px black;
         }
