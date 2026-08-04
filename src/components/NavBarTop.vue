@@ -1,5 +1,5 @@
 <template>
-    <nav>
+    <nav class="top-nav">
         <ul class="bar">
             <li><a class="top-button">RESOURCES</a></li>
             <li><a class="top-button">WHERE TO BUY</a></li>
@@ -13,6 +13,13 @@
 </script>
 
 <style  scoped>
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 2;
+}
+
 .bar{
     display: flex;
     flex-direction: row;

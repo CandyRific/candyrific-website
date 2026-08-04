@@ -53,6 +53,11 @@ import { RouterLink } from 'vue-router'
     justify-content: flex-start;
     align-items: center;
     border-bottom: .5px solid gray;
+    position: fixed;
+    width: 100%;
+    background-color: white;
+    top: 47px;
+    z-index: 2;
   }
 }
 
@@ -77,6 +82,7 @@ import { RouterLink } from 'vue-router'
     justify-content: flex-end;
     list-style-type: none;
     flex-grow: 1;
+    padding-inline-start: 40px;
   }
 }
 

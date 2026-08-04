@@ -22,5 +22,7 @@ import SiteFooter from './components/SiteFooter.vue';
 </template>
 
 <style scoped>
-
+  header {
+    height: 300px;
+  }
 </style>
