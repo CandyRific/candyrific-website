@@ -20,7 +20,7 @@ import { RouterLink } from 'vue-router'
 
       <nav  aria-label="Main navigation">
         <ul class="nav-items">
-              <li ><a  href="#brands" class="main-nav-link">ABOUT US</a></li>
+              <li ><a  href="/about" class="main-nav-link">ABOUT US</a></li>
               <li ><RouterLink to="/products" class="main-nav-link">PRODUCTS</RouterLink></li>
               <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
         </ul>
@@ -42,6 +42,7 @@ import { RouterLink } from 'vue-router'
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+  border-bottom: .5px solid gray;
 }
 
 

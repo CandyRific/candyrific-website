@@ -7,13 +7,14 @@
             <div>FAQ</div>
         </div>
         <div class="social-media-links">
-            <div>Image 1</div>
-            <div>Image 2</div>
-            <div>Image 3</div>
+            <div><a href="https://www.youtube.com/@Candyrific" target="_blank" rel="noopener noreferrer"><img src="../assets/youtube_icon.png" alt="YouTube"></a></div>
+            <div><a href="https://www.facebook.com/CandyrificLLC/" target="_blank" rel="noopener noreferrer"><img src="../assets/facebook_icon.png" alt="Facebook"></a></div>
+            <div><a href="https://www.instagram.com/candyrificllc/" target="_blank" rel="noopener noreferrer"><img src="../assets/insta_icon.png" alt="Instagram"></a></div>
         </div>
         <div class="all-rights">
             Copyright &copy CandyRific 2026. All Rights Reserved.
         </div>
+        <img class="nw-design" src="../assets/nw_design.png">
     </div>
 </template>
 
@@ -23,6 +24,7 @@
 
 <style scoped>
     .footer-div {
+        position: relative;
         width: 100%;
         height: 30vh;
         display: flex;
@@ -42,6 +44,14 @@
     }
 
 
+    .nw-design {
+        position: absolute;
+        height: 8rem;
+        right: 0;
+        bottom: 0;
+    }
+
+
     .additional-links{
         display: flex;
         flex-direction: column;
@@ -54,6 +64,18 @@
         flex-direction: row;
         gap: 1rem;
         justify-content: center;
+        z-index: 1;
+    }
+
+    .social-media-links div {
+        height: 3rem;
+        width: 3rem;
+    }
+
+    .social-media-links img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
     }
 
     .all-rights {
@@ -78,6 +100,7 @@
             grid-row: 1 / 4;
             align-items: flex-start;
             border: 1px solid red;
+            z-index: 1;
         }
 
         .social-media-links {
@@ -87,6 +110,7 @@
             align-items: center;
             padding: .5rem;
             border: 1px solid red;
+            z-index: 1;
         }
 
         .all-rights {

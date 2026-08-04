@@ -1,11 +1,9 @@
 <template>
     <div class="landing-hello">
-        <div class="landing-hello-message">
-            
+        <img src="../assets/se_design.png" class="se-design">
+        <div class="landing-hello-message">    
                 <div>Making Candy</div>
                 <div>More Fun</div>
-            
-            
         </div>
 
         <div class="landing-hello-image">
@@ -23,9 +21,11 @@
 /* Mobile first styling */
     .landing-hello {
         display: flex;
+        position: relative;
         flex-direction: column;
         padding: 3rem;
         gap: 1rem;
+        height: 100vh;
         background: linear-gradient(
     90deg,
     #6d3692 0%,
@@ -36,9 +36,17 @@
     );
     }
 
+    .se-design {
+        position: absolute;
+        height: 25rem;
+        left: 0;
+        top: 0;
+    }
+
     .landing-hello-image {
         border: 1px solid red;
         min-height: 250px;
+        z-index: 1;
     }
 
     .landing-hello-message {
@@ -50,6 +58,7 @@
         font-family: 'Fredoka', sans-serif;
         font-size: xx-large;
         color: white;
+        z-index: 1;
     }
 
 
