@@ -26,7 +26,7 @@
     .footer-div {
         position: relative;
         width: 100%;
-        height: 30vh;
+        /* height: 30vh; */
         display: flex;
         flex-direction: column;
         padding: 1rem;
@@ -78,12 +78,18 @@
         object-fit: contain;
     }
 
+    .social-media-links img:hover {
+        transform: scale(1.1);
+    }
+
     .all-rights {
         display: flex;
         flex-direction: row;
         justify-content: center;
         align-items: center;
         font-size: .75rem;
+        z-index: 1;
+        text-shadow: 0px 0px 2px black;
     }
 
 
@@ -117,6 +123,8 @@
             grid-column: 1 / 5;
             grid-row: 4 / 6;
             border: 1px solid red;
+            z-index: 1;
+            text-shadow: 0px 0px 2px black;
         }
     }
 </style>

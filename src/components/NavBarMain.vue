@@ -17,14 +17,16 @@ import { RouterLink } from 'vue-router'
 
 
       
-
-      <nav  aria-label="Main navigation">
+      <div>
+        <nav  aria-label="Main navigation">
         <ul class="nav-items">
               <li ><a  href="/about" class="main-nav-link">ABOUT US</a></li>
               <li ><RouterLink to="/products" class="main-nav-link">PRODUCTS</RouterLink></li>
               <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
         </ul>
       </nav>
+      </div>
+      
     </div>
  
 </template>
@@ -33,10 +35,7 @@ import { RouterLink } from 'vue-router'
 
 <style  scoped>
 
-
-
 .nav-container {
-  max-height: 15vh;
   padding: 1.5rem;
   display: flex;
   flex-direction: row;
@@ -45,19 +44,54 @@ import { RouterLink } from 'vue-router'
   border-bottom: .5px solid gray;
 }
 
+@media (min-width: 768px) {
+  .nav-container {
+    max-height: 15vh;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: .5px solid gray;
+  }
+}
+
 
 
 .nav-items {
   display: flex;
   flex-direction: row;
-  gap: 3rem;
-  justify-content: flex-end;
+  gap: 1rem;
   list-style-type: none;
   flex-grow: 1;
+  white-space: nowrap;
+  font-size: 1rem;
+  padding-inline-start: 0px;
+}
+
+@media (min-width: 768px) {
+  .nav-items {
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
+    justify-content: flex-end;
+    list-style-type: none;
+    flex-grow: 1;
+  }
+}
+
+.main-nav-link {
+  font-size: .75rem;
+  color: #703795;
+  text-decoration: none;
+  font-family: 'Fredoka', sans-serif;
+  padding: .3rem;
+
 }
 
 
-.main-nav-link {
+@media (min-width: 768px) {
+  .main-nav-link {
   font-size: x-large;
   color: #703795;
   font-family: Fredoka One, sans-serif;
@@ -74,6 +108,7 @@ import { RouterLink } from 'vue-router'
   border-radius: 5px;
   text-decoration: none;
   padding: .3rem;
+}
 }
 
 </style>

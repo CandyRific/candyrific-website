@@ -12,8 +12,7 @@
         </div>
         <div class="product-filter-option">SEASON <span class="plus-icon"> + </span></div>
         <div class="product-filter-option">PRODUCT <span class="plus-icon">  + </span></div>
-        <div class="product-filter-option">PACKAGING <span class="plus-icon"> + </span></div>
-        <div class="product-filter-option">NET WEIGHT <span class="plus-icon">  + </span></div>
+        
     </div>
     <div class="product-section">
       <div class="product-card">Dummy Product 1</div>
