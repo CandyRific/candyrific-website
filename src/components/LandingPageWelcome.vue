@@ -77,7 +77,7 @@
 
     .landing-hello-text {
         background: white;
-        border-radius: 5px;
+        border-radius: 15px;
         padding: 1rem;
         color: #352454;
         font-size: 1rem;
@@ -115,7 +115,7 @@
 
         .landing-hello-text {
         background: white;
-        border-radius: 5px;
+        border-radius: 15px;
         padding: 2rem;
         color: #352454;
         font-size: 1.25rem;
