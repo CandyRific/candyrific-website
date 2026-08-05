@@ -1,15 +1,29 @@
 <template>
     <div class="landing-hello">
         <img src="../assets/se_design.png" class="se-design">
-        <div class="landing-hello-message">    
-                <div>Making Candy</div>
-                <div>More Fun</div>
+        <div class="landing-hello-message">  
+            
+            <div>Making Candy</div>
+            <div>More Fun</div>
+
+            <div class="landing-hello-text">
+                <p>
+                We love what we do, and we think it shows in every product we make. Our team
+                is always exploring new ideas, new flavors, and new ways to create candy
+                that's a little different from everything else on the shelf.
+                </p>
+                <br/>
+                <p>
+                At the end of the day, we think candy should always be fun.
+                </p>
+            </div>
+            
+            
         </div>
 
         <div class="landing-hello-image">
             <img height="75rem" width="auto" src="/src/assets/loud-mouth-bites-award-hero.jpg" alt="">
         </div>
-
     </div>
 </template>
 
@@ -23,9 +37,8 @@
         display: flex;
         position: relative;
         flex-direction: column;
-        padding: 3rem;
+        padding: 2rem;
         gap: 1rem;
-        height: 100vh;
         background: linear-gradient(
     90deg,
     #6d3692 0%,
@@ -44,13 +57,13 @@
     }
 
     .landing-hello-image {
-        border: 1px solid red;
+        /* border: 1px solid red; */
         min-height: 250px;
         z-index: 1;
     }
 
     .landing-hello-message {
-        border: 1px solid red;
+        /* border: 1px solid red; */
         align-items: center;
         display: flex;
         flex-direction: column;
@@ -59,6 +72,16 @@
         font-size: xx-large;
         color: white;
         z-index: 1;
+        line-height: 2rem;
+    }
+
+    .landing-hello-text {
+        background: white;
+        border-radius: 5px;
+        padding: 1rem;
+        color: #352454;
+        font-size: 1rem;
+        margin-top: 1rem;
     }
 
 
@@ -66,30 +89,38 @@
         .landing-hello {
             display: flex;
             flex-direction: row-reverse;
+            padding: 3rem 5rem;
         }
 
         .landing-hello-message {
-            border: 1px solid red;
+            /* border: 1px solid red; */
             align-items: flex-start;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             font-family: 'Fredoka', sans-serif;
             font-size: 3.5rem;
             color: white;
-            width: 50%;
-            padding: 0px 2rem;
+            width: 45%;
+            padding: 2rem 2rem;
+            line-height: 3.5rem;
             }
 
-        .hello-message {
-
-        }
-
         .landing-hello-image {
-            border: 1px solid red;
+            /* border: 1px solid red; */
             min-height: 250px;
-            width: 50%;
+            width: 55%;
             padding: 0px 2rem;
         }
+
+        .landing-hello-text {
+        background: white;
+        border-radius: 5px;
+        padding: 2rem;
+        color: #352454;
+        font-size: 1.25rem;
+        line-height: 2rem;
+        margin-top: 1rem;
+    }
     }
 </style>

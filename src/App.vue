@@ -3,6 +3,7 @@ import { RouterView } from 'vue-router'
 import NavBarMain from './components/NavBarMain.vue';
 import NavBarTop from './components/NavBarTop.vue';
 import SiteFooter from './components/SiteFooter.vue';
+import MobileNav from './components/MobileNav.vue';
 
 </script>
 
@@ -19,6 +20,7 @@ import SiteFooter from './components/SiteFooter.vue';
   
   
   <SiteFooter/>
+  <MobileNav/>
 </template>
 
 <style scoped>
