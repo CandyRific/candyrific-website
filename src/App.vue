@@ -20,7 +20,7 @@ import MobileNav from './components/MobileNav.vue';
   
   
   <SiteFooter/>
-  <MobileNav/>
+  <!-- <MobileNav/> -->
 </template>
 
 <style scoped>
