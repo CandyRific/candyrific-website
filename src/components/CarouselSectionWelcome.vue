@@ -1,12 +1,16 @@
 <script setup>
 import { ref } from 'vue'
 
+import carouselLoud from '../assets/carousel_image_loud.png'
+import carouselDummy from '../assets/carousel_dummy.jpg'
+import carousel169 from '../assets/16-9carousel.jpg'
+
 const currentCarouselPosition = ref(0)
 
 const carouselImages = [
-  '/src/assets/carousel_image_loud.png',
-  '/src/assets/carousel_dummy.jpg',
-  '/src/assets/16-9carousel.jpg'
+  carouselLoud,
+  carouselDummy,
+  carousel169
 ]
 
 function handleForwardArrowClick() {
