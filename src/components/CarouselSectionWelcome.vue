@@ -1,10 +1,36 @@
+<script setup>
+import { ref } from 'vue'
+
+const currentCarouselPosition = ref(0)
+
+const carouselImages = [
+  '/src/assets/carousel_image_loud.png',
+  '/src/assets/carousel_dummy.jpg',
+  '/src/assets/16-9carousel.jpg'
+]
+
+function handleForwardArrowClick() {
+  if (currentCarouselPosition.value < carouselImages.length - 1) {
+    currentCarouselPosition.value++
+  }
+}
+
+function handleBackArrowClick() {
+  if (currentCarouselPosition.value > 0) {
+    currentCarouselPosition.value--
+  }
+}
+</script>
+
 <template>
   <div class="carousel-section">
+
     <div class="arrow-container">
       <button
         class="back-arrow"
         type="button"
         aria-label="Previous slide"
+        @click="handleBackArrowClick"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -19,19 +45,31 @@
       </button>
     </div>
 
+
     <div class="carousel-image-section">
-      <img
-        class="carousel-image"
-        src="/src/assets/carousel_image_loud.png"
-        alt="Loud Mouth Bites carousel banner"
+      <div
+        class="carousel-image-track"
+        :style="{
+          transform: `translateX(-${currentCarouselPosition * 100}%)`
+        }"
       >
+        <img
+          v-for="(image, index) in carouselImages"
+          :key="index"
+          class="carousel-image"
+          :src="image"
+          :alt="`Carousel image ${index + 1}`"
+        />
+      </div>
     </div>
+
 
     <div class="arrow-container">
       <button
         class="forward-arrow"
         type="button"
         aria-label="Next slide"
+        @click="handleForwardArrowClick"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -45,85 +83,109 @@
         </svg>
       </button>
     </div>
+
   </div>
 </template>
 
-<script setup>
-</script>
-
 <style scoped>
 .carousel-section {
-  padding: 2rem;
-  border: 1px solid red;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 8fr 1fr;
+  align-items: center;
+  overflow: hidden;
 }
+
+
 
 .carousel-image-section {
   width: 100%;
+  overflow: hidden;
+  
 }
+
+
+
+.carousel-image-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  width: 100%;
+
+  transition: transform 0.5s ease;
+}
+
+
 
 .carousel-image {
-  display: block;
+  flex: 0 0 100%;
+
   width: 100%;
   height: auto;
+
+  display: block;
+
+  object-fit: contain;
 }
 
+
+
 .arrow-container {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
 }
+
 
 .back-arrow,
 .forward-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.5rem, 5vw, 4rem);
+  height: clamp(2.5rem, 5vw, 4rem);
   padding: 0;
+  border: none;
   background: transparent;
-  border: 1px solid #f04d86;
-  border-radius: 5px;
   cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .back-arrow svg,
 .forward-arrow svg {
-  width: 2rem;
-  height: 2rem;
+  width: 100%;
+  height: 100%;
 }
+
+
 
 .back-arrow:hover,
 .forward-arrow:hover {
-  box-shadow: 0 4px 10px lightgray;
+  transform: scale(1.15);
 }
 
-.back-arrow:focus-visible,
-.forward-arrow:focus-visible {
-  outline: 3px solid #01aef0;
-  outline-offset: 3px;
+.back-arrow:active,
+.forward-arrow:active {
+  transform: scale(0.95);
 }
 
-@media (min-width: 768px) {
+
+
+@media (max-width: 767px) {
   .carousel-section {
-    display: grid;
-    grid-template-columns: 1.5fr 9fr 1.5fr;
-    align-items: center;
-    min-height: 30rem;
-    margin: 1rem;
-  }
-
-  .carousel-image-section {
-    grid-column: 2 / 3;
-    border: 1px solid red;
-  }
-
-  .arrow-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    grid-template-columns: 0.8fr 8.4fr 0.8fr;
   }
 
   .back-arrow,
   .forward-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 5rem;
-    height: 5rem;
+    width: clamp(2rem, 8vw, 3rem);
+    height: clamp(2rem, 8vw, 3rem);
   }
 }
 </style>
