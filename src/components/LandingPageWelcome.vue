@@ -3,10 +3,11 @@
         <img src="../assets/se_design.png" class="se-design">
         <div class="landing-hello-message">  
             
-            <div>Making Candy</div>
-            <div>More Fun</div>
+            <div class="bold-text">Making Candy</div>
+                <div class="bold-text">More Fun</div>
 
             <div class="landing-hello-text">
+                
                 <p>
                 We love what we do, and we think it shows in every product we make. Our team
                 is always exploring new ideas, new flavors, and new ways to create candy
@@ -32,12 +33,19 @@
 </script>
 
 <style scoped>
+.bold-text {
+  /* font-size: clamp(3rem, 8vw, 6rem);
+  line-height: clamp(3.1rem, 8.5vw, 6.2rem); */
+  font-weight: 800;
+}
+
+
 /* Mobile first styling */
     .landing-hello {
         display: flex;
         position: relative;
         flex-direction: column;
-        padding: 2rem;
+        padding: 1rem;
         gap: 1rem;
         background: linear-gradient(
     90deg,
@@ -84,19 +92,23 @@
 
     .landing-hello-text {
         background: white;
-        border-radius: 15px;
+        border-radius: 10px;
         padding: 1rem;
         color: #352454;
-        font-size: 1rem;
         margin-top: 1rem;
     }
+
+    .landing-hello-text p {
+  font-size: clamp(1rem, 1.4vw, 1.3rem);
+  line-height: clamp(1.55rem, 2.2vw, 2rem);
+}
 
 
     @media (min-width: 768px) {
         .landing-hello {
             display: flex;
             flex-direction: row-reverse;
-            padding: 3rem 5rem;
+            padding: 3rem 3rem 0rem 3rem;
         }
 
         .landing-hello-message {
@@ -128,8 +140,6 @@
         border-radius: 15px;
         padding: 2rem;
         color: #352454;
-        font-size: 1.25rem;
-        line-height: 2rem;
         margin-top: 1rem;
     }
     }
