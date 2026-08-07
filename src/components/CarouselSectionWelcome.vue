@@ -27,7 +27,8 @@ function handleBackArrowClick() {
 </script>
 
 <template>
-  <div class="carousel-section">
+  <div class="carousel-plus-circles">
+    <div class="carousel-section">
 
     <div class="arrow-container">
       <button
@@ -89,9 +90,49 @@ function handleBackArrowClick() {
     </div>
 
   </div>
+  <div class="carousel-circles">
+  <div
+    class="carousel-circle"
+    :class="{ 'carousel-circle-background': currentCarouselPosition === 0 }"
+  ></div>
+
+  <div
+    class="carousel-circle"
+    :class="{ 'carousel-circle-background': currentCarouselPosition === 1 }"
+  ></div>
+
+  <div
+    class="carousel-circle"
+    :class="{ 'carousel-circle-background': currentCarouselPosition === 2 }"
+  ></div>
+</div>
+  </div>
+  
 </template>
 
 <style scoped>
+.carousel-circles {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.carousel-circle {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid rgb(112, 55, 149);
+}
+
+.carousel-circle-background {
+  background-color: rgb(112, 55, 149);
+}
+
+.carousel-plus-circles {
+  display: grid;
+  grid-template-rows: 1fr 50px;
+}
+
 .carousel-section {
   width: 100%;
   display: grid;
