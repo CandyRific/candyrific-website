@@ -22,7 +22,7 @@
         </div>
 
         <div class="landing-hello-image">
-            <img height="75rem" width="auto" src="/src/assets/loud-mouth-bites-award-hero.jpg" alt="">
+            <img src="../assets/hello_page_image.png" alt="">
         </div>
     </div>
 </template>
@@ -51,7 +51,7 @@
 
     .se-design {
         position: absolute;
-        height: 25rem;
+        height: 30rem;
         left: 0;
         top: 0;
     }
@@ -60,6 +60,13 @@
         /* border: 1px solid red; */
         min-height: 250px;
         z-index: 1;
+    }
+
+    .landing-hello-image img {
+        object-fit: contain;
+        height: 90%;
+        width: 90%;
+        /* border: 1px solid red; */
     }
 
     .landing-hello-message {
@@ -110,7 +117,10 @@
             /* border: 1px solid red; */
             min-height: 250px;
             width: 55%;
-            padding: 0px 2rem;
+            padding: 0px 0rem;
+            display: flex;
+            justify-content: center;
+
         }
 
         .landing-hello-text {
