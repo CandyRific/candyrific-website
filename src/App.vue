@@ -25,6 +25,6 @@ import MobileNav from './components/MobileNav.vue';
 
 <style scoped>
   header {
-    height: 130px;
+    height: 70px;
   }
 </style>

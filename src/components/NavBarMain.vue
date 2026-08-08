@@ -10,7 +10,7 @@ import { RouterLink } from 'vue-router'
     <div class="nav-container"> 
       <div class="logo-container">
         <RouterLink  to="/" aria-label="Candyrific home">
-            <img height="100rem" width="auto" :src="image" alt="Candyrific" />
+            <img :src="image" alt="Candyrific" />
         </RouterLink>
       </div>
         
@@ -35,13 +35,38 @@ import { RouterLink } from 'vue-router'
 
 <style  scoped>
 
+.logo-container {
+
+}
+
+.logo-container img {
+  width: 100px;
+  height: auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .logo-container img {
+    width: 200px;
+    height: auto;
+    display: block;
+  }
+}
+
+
+
 .nav-container {
-  padding: 1.5rem;
+  padding: .5rem;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  border-bottom: .5px solid gray;
+  position: fixed;
+  top: 34px;
+  z-index: 2;
+  width: 100%;
+  background-color: white;
+
 }
 
 @media (min-width: 768px) {
@@ -52,7 +77,6 @@ import { RouterLink } from 'vue-router'
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    border-bottom: .5px solid gray;
     position: fixed;
     width: 100%;
     background-color: white;
@@ -66,12 +90,19 @@ import { RouterLink } from 'vue-router'
 .nav-items {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: .5rem;
   list-style-type: none;
   flex-grow: 1;
   white-space: nowrap;
   font-size: 1rem;
-  padding-inline-start: 0px;
+  padding-inline-start: 10px;
+  font-weight: bold;
+}
+
+.nav-items li {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 @media (min-width: 768px) {
@@ -87,11 +118,13 @@ import { RouterLink } from 'vue-router'
 }
 
 .main-nav-link {
-  font-size: .75rem;
+  font-size: clamp(.5rem, 1vh, 1.5rem);
   color: #703795;
   text-decoration: none;
   font-family: 'Fredoka', sans-serif;
   padding: .3rem;
+  font-weight: bold;
+  text-decoration: underline;
 
 }
 
@@ -104,6 +137,7 @@ import { RouterLink } from 'vue-router'
   text-decoration: none;
   font-family: 'Fredoka', sans-serif;
   padding: .3rem;
+  font-weight: bold;
 }
 
 .main-nav-link:hover {

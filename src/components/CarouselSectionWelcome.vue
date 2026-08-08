@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 
-import carouselLoud from '../assets/carousel_image_loud.png'
-import carouselDummy from '../assets/carousel_dummy.jpg'
-import carousel169 from '../assets/16-9carousel.jpg'
+import carouselLoud from '../assets/21-9_image.jpg'
+import carouselDummy from '../assets/21-9_image.jpg'
+import carousel169 from '../assets/21-9_image.jpg'
 
 const currentCarouselPosition = ref(0)
 
@@ -111,34 +111,18 @@ function handleBackArrowClick() {
 </template>
 
 <style scoped>
-.carousel-circles {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
 
-.carousel-circle {
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  border: 2px solid rgb(112, 55, 149);
-}
-
-.carousel-circle-background {
-  background-color: rgb(112, 55, 149);
-}
 
 .carousel-plus-circles {
   display: grid;
   grid-template-rows: 1fr 50px;
+  margin: 2rem 1rem;
 }
 
 .carousel-section {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 8fr 1fr;
-  align-items: center;
-  overflow: hidden;
 }
 
 
@@ -146,7 +130,6 @@ function handleBackArrowClick() {
 .carousel-image-section {
   width: 100%;
   overflow: hidden;
-  
 }
 
 
@@ -155,9 +138,7 @@ function handleBackArrowClick() {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-
   width: 100%;
-
   transition: transform 0.5s ease;
 }
 
@@ -165,13 +146,11 @@ function handleBackArrowClick() {
 
 .carousel-image {
   flex: 0 0 100%;
-
   width: 100%;
   height: auto;
-
   display: block;
-
   object-fit: contain;
+  max-height: 375px;
 }
 
 
@@ -232,5 +211,23 @@ function handleBackArrowClick() {
     width: clamp(2rem, 8vw, 3rem);
     height: clamp(2rem, 8vw, 3rem);
   }
+}
+
+.carousel-circles {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.carousel-circle {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: 2px solid rgb(112, 55, 149);
+}
+
+.carousel-circle-background {
+  background-color: rgb(112, 55, 149);
 }
 </style>
