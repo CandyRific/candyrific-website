@@ -11,7 +11,7 @@ import MobileNav from './components/MobileNav.vue';
   
 <header>
   <NavBarTop/>
-  <NavBarMain/>
+  <!-- <NavBarMain/> -->
 </header>
 
 <main>

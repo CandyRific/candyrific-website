@@ -23,8 +23,8 @@
 .bar{
     display: flex;
     flex-direction: row;
-    gap: .5rem;
-    padding: .75rem;
+    gap: 1rem;
+    padding:  1rem;
     justify-content: flex-end;
     color: white;
     background: linear-gradient(
@@ -35,21 +35,13 @@
     #007fc5 65%,
     #00aced 100%
     );
-    font-size: small;
     font-family: 'Fredoka', sans-serif;
     list-style-type: none;
 }
 
 .bar li {
     white-space: nowrap;
-    font-size: clamp(.5rem, 1vw, 1rem);
-}
-
-@media (min-width: 768px) {
-  .bar {
-    gap: 1rem;
-    padding: 1rem;
-  }
+    font-size: clamp(.75rem, 1vw, 1rem);
 }
 
 
