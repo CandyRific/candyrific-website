@@ -62,11 +62,10 @@ import { RouterLink } from 'vue-router'
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  position: fixed;
-  top: 45px;
   z-index: 2;
   width: 100%;
   background-color: white;
+  overflow-x: scroll;
 
 }
 
@@ -83,6 +82,8 @@ import { RouterLink } from 'vue-router'
     background-color: white;
     top: 47px;
     z-index: 2;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
 }
 
@@ -98,7 +99,6 @@ import { RouterLink } from 'vue-router'
   font-size: 1rem;
   padding-inline-start: 10px;
   font-weight: bold;
-  overflow-x: scroll;
 }
 
 .nav-items li {

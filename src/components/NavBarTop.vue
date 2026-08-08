@@ -14,10 +14,17 @@
 
 <style  scoped>
 .top-nav {
-    position: fixed;
-    top: 0;
     width: 100%;
     z-index: 2;
+}
+
+@media (min-width: 768px) {
+    .top-nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 2;
+    }
 }
 
 .bar{
