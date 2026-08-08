@@ -1,6 +1,9 @@
 <template>
     <div class="landing-hello">
         <img src="../assets/se_design.png" class="se-design">
+        <div class="landing-hello-image">
+            <img src="../assets/hello_page_image.png" alt="">
+        </div>
         <div class="landing-hello-message">  
             
             <div class="bold-text">Making Candy</div>
@@ -9,7 +12,7 @@
             <div class="landing-hello-text">
                 
                 <p>
-                We love what we do, and we think it shows in every product we make. Our team
+                We <i>love</i> what we do, and we think it shows in every product we make. Our team
                 is always exploring new ideas, new flavors, and new ways to create candy
                 that's a little different from everything else on the shelf.
                 </p>
@@ -22,9 +25,7 @@
             
         </div>
 
-        <div class="landing-hello-image">
-            <img src="../assets/hello_page_image.png" alt="">
-        </div>
+        
     </div>
 </template>
 
@@ -55,19 +56,32 @@
     #007fc5 65%,
     #00aced 100%
     );
+    overflow: hidden;
     }
 
     .se-design {
         position: absolute;
-        height: 30rem;
+        height: 20rem;
         left: 0;
         top: 0;
+    }
+
+    @media (min-width: 768px) {
+        .se-design {
+            position: absolute;
+            height: 30rem;
+            left: 0;
+            top: 0;
+        }
     }
 
     .landing-hello-image {
         /* border: 1px solid red; */
         min-height: 250px;
         z-index: 1;
+        display: flex;
+        justify-content: center;
+        margin-top: 1.5rem;
     }
 
     .landing-hello-image img {
@@ -84,10 +98,11 @@
         flex-direction: column;
         justify-content: flex-start;
         font-family: 'Fredoka', sans-serif;
-        font-size: xx-large;
+        font-size: 3rem;
         color: white;
         z-index: 1;
-        line-height: 2rem;
+        line-height: 3rem;
+        align-items: flex-start;
     }
 
     .landing-hello-text {
@@ -107,8 +122,9 @@
     @media (min-width: 768px) {
         .landing-hello {
             display: flex;
-            flex-direction: row-reverse;
+            flex-direction: row;
             padding: 3rem 3rem 0rem 3rem;
+            margin-top: 120px;
         }
 
         .landing-hello-message {
