@@ -23,7 +23,6 @@ import { RouterLink } from 'vue-router'
               <li ><a  href="/about" class="main-nav-link">ABOUT US</a></li>
               <li ><RouterLink to="/products" class="main-nav-link">PRODUCTS</RouterLink></li>
               <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
-              <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
         </ul>
       </nav>
       </div>
