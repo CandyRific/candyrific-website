@@ -23,6 +23,7 @@ import { RouterLink } from 'vue-router'
               <li ><a  href="/about" class="main-nav-link">ABOUT US</a></li>
               <li ><RouterLink to="/products" class="main-nav-link">PRODUCTS</RouterLink></li>
               <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
+              <li ><a href="#contact" class="main-nav-link">CONTACT US</a></li>
         </ul>
       </nav>
       </div>
@@ -40,7 +41,7 @@ import { RouterLink } from 'vue-router'
 }
 
 .logo-container img {
-  width: 100px;
+  width: 120px;
   height: auto;
   display: block;
 }
@@ -56,13 +57,13 @@ import { RouterLink } from 'vue-router'
 
 
 .nav-container {
-  padding: .5rem;
+  padding: 1rem;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
   position: fixed;
-  top: 34px;
+  top: 45px;
   z-index: 2;
   width: 100%;
   background-color: white;
@@ -97,6 +98,7 @@ import { RouterLink } from 'vue-router'
   font-size: 1rem;
   padding-inline-start: 10px;
   font-weight: bold;
+  overflow-x: scroll;
 }
 
 .nav-items li {
@@ -118,7 +120,7 @@ import { RouterLink } from 'vue-router'
 }
 
 .main-nav-link {
-  font-size: clamp(.5rem, 1vh, 1.5rem);
+  font-size: clamp(1rem, 1vh, 1.5rem);
   color: #703795;
   text-decoration: none;
   font-family: 'Fredoka', sans-serif;
