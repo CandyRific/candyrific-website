@@ -47,7 +47,7 @@
         position: relative;
         flex-direction: column;
         padding: 1rem;
-        gap: 1rem;
+        gap: 0rem;
         background: linear-gradient(
     90deg,
     #6d3692 0%,
@@ -86,8 +86,8 @@
 
     .landing-hello-image img {
         object-fit: contain;
-        height: 90%;
-        width: 90%;
+        height: 100%;
+        width: 100%;
         /* border: 1px solid red; */
     }
 
@@ -98,10 +98,10 @@
         flex-direction: column;
         justify-content: flex-start;
         font-family: 'Fredoka', sans-serif;
-        font-size: 3rem;
+        font-size: 3.5rem;
         color: white;
         z-index: 1;
-        line-height: 3rem;
+        line-height: 4rem;
         align-items: flex-start;
     }
 
@@ -125,7 +125,10 @@
             flex-direction: row;
             padding: 3rem 3rem 0rem 3rem;
             margin-top: 135px;
+            gap: 1rem;
         }
+
+        
 
         .landing-hello-message {
             /* border: 1px solid red; */
@@ -150,6 +153,13 @@
             justify-content: center;
 
         }
+
+        .landing-hello-image img {
+        object-fit: contain;
+        height: 90%;
+        width: 90%;
+        /* border: 1px solid red; */
+    }
 
         .landing-hello-text {
         background: white;

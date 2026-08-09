@@ -33,13 +33,19 @@
     -webkit-overflow-scrolling: touch;
 }
 
+@media (min-width: 768px) {
+    .carousel-mobile-slider {
+        display: none;
+    }
+}
+
 
 
 .carousel-mobile-card {
     border: 1px solid red;
     border-radius: 1rem;
-    height: 30rem;
-    width: 20rem;
+    height: 33rem;
+    width: 22rem;
     margin: .5rem;
     flex-shrink: 0;
     scroll-snap-align: center;

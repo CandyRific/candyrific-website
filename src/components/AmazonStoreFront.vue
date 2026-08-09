@@ -80,16 +80,16 @@
         border-radius: 5px;
         background: white;
         font-family: 'Fredoka', sans-serif;
-        font-size: 2rem;
+        font-size: 1.5rem;
         border-radius: 5px 5px 15px 15px;
         width: 100%;
 
         transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
-    amazon-div-image-textbox button:hover  {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(112, 55, 149, 0.2);
+    .amazon-div-image-textbox button:hover  {
+        color: white;
+        background: #703795;
     }
 
 
@@ -132,7 +132,7 @@
         /* border: 1px solid red; */
         flex: 0 0 45%;
         color: #703795;
-        font-size: .8rem;
+        font-size: 1rem;
     }
 
 

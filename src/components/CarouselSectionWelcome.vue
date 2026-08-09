@@ -121,6 +121,7 @@ function handleBackArrowClick() {
   display: grid;
   grid-template-rows: 1fr 50px;
   margin: 2rem 1rem;
+  
 }
 
 .carousel-section {
@@ -206,6 +207,9 @@ function handleBackArrowClick() {
 
 
 @media (max-width: 767px) {
+  .carousel-plus-circles {
+    display: none;
+  }
   .carousel-section {
     grid-template-columns: 0.8fr 8.4fr 0.8fr;
   }

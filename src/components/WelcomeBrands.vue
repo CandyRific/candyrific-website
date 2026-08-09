@@ -156,8 +156,8 @@
         );
         color: white;
         position: relative;
-        padding-top: 1rem;
-        padding-bottom: 2rem;
+        padding-top: 0rem;
+        padding-bottom: 1rem;
         z-index: 1;
     }
 
@@ -195,6 +195,7 @@
        text-align: center;
        z-index: 3;
        position: relative;
+       font-weight: bold;
     }
 
     .left-marquee-banner {
@@ -215,31 +216,46 @@
       display: flex;
       width: max-content;
       animation: left-marquee 35s linear infinite;
-      gap: 1rem;
-      padding-top: 1rem;
+      gap: .5rem;
+      padding-top: .5rem;
     }
 
     .right-marquee-track {
       display: flex;
       width: max-content;
       animation: right-marquee 40s linear infinite;
-      gap: 1rem;
-      padding-top: 1rem;
+      gap: .5rem;
+      padding-top: .5rem;
     }
 
 
 
     .brand-marquee-card{
-      width: 10rem;
-      height: 6rem;
+      width: 9rem;
+      height: 5rem;
       background-color: #9dabd5;
       border-radius: 5px;
     }
 
     @media (min-width: 768px) {
+      .full-brand-div {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+      }
+
       .brand-marquee-card{
         width: 14rem;
         height: 10rem;
+      }
+
+      .left-marquee-track {
+        gap: 1rem;
+        padding-top: 1rem;
+      }
+
+      .right-marquee-track {
+        gap: 1rem;
+        padding-top: 1rem;
       }
     }
 
