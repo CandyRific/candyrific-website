@@ -202,7 +202,7 @@
        overflow-x: hidden;
        width: 100%;
        z-index: 1;
-       overflow-y: hidden;
+       padding-bottom: .5rem;
     }
 
     .right-marquee-banner {
@@ -210,6 +210,7 @@
        width: 100%;
        z-index: 1;
        overflow-y: hidden;
+       padding-bottom: .5rem;
     }
 
     .left-marquee-track {
@@ -217,7 +218,6 @@
       width: max-content;
       animation: left-marquee 35s linear infinite;
       gap: .5rem;
-      padding-top: .5rem;
     }
 
     .right-marquee-track {
@@ -225,7 +225,6 @@
       width: max-content;
       animation: right-marquee 40s linear infinite;
       gap: .5rem;
-      padding-top: .5rem;
     }
 
 
@@ -235,6 +234,7 @@
       height: 5rem;
       background-color: #9dabd5;
       border-radius: 5px;
+       box-shadow: 3px 4px 6px #2d2d2d;
     }
 
     @media (min-width: 768px) {
@@ -264,6 +264,7 @@
       width: 100%;
       object-fit: contain;
       padding: .5rem;
+     
     }
 
     
