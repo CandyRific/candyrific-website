@@ -35,10 +35,6 @@ import { RouterLink } from 'vue-router'
 
 <style  scoped>
 
-.logo-container {
-
-}
-
 .logo-container img {
   width: 120px;
   height: auto;
