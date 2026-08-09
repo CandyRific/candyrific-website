@@ -103,7 +103,7 @@
      }
      @media (max-width: 768px){
         .amazon-div {
-            padding: 1rem .5rem;
+            padding: .5rem .5rem;
         }
         
         .amazon-div-image{
@@ -140,17 +140,9 @@
         color: #703795;
         border: 1px solid #703795;
         border-radius: 5px;
-        background: white;
-        font-family: 'Fredoka', sans-serif;
-        font-size: 2rem;
-    }
-
-    .shop-now:hover  {
-        color: white;
         background: #703795;
-        border: 1px solid #703795;
-        border-radius: 5px;
         font-family: 'Fredoka', sans-serif;
         font-size: 2rem;
+        padding: 1rem;
     }
 </style>
