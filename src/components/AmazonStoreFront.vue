@@ -103,13 +103,14 @@
      }
      @media (max-width: 768px){
         .amazon-div {
-            padding: 2rem .5rem;
+            padding: 1rem .5rem;
         }
         
         .amazon-div-image{
             display: flex;
             justify-content: center;
-            min-height: 30rem;
+            min-height: 32rem;
+            border-radius: 5px;
         }
     }
 

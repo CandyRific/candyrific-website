@@ -79,7 +79,7 @@ import { RouterLink } from 'vue-router'
     position: fixed;
     width: 100%;
     background-color: white;
-    top: 47px;
+    top: 62px;
     z-index: 2;
     overflow-x: hidden;
     overflow-y: hidden;

@@ -31,7 +31,7 @@
     display: flex;
     flex-direction: row;
     gap: 1rem;
-    padding:  1rem;
+    padding:  1.5rem;
     justify-content: flex-end;
     color: white;
     background: linear-gradient(

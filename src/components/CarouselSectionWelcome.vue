@@ -5,6 +5,8 @@ import carouselLoud from '../assets/21-9_image.jpg'
 import carouselDummy from '../assets/21-9_image.jpg'
 import carousel169 from '../assets/21-9_image.jpg'
 
+import CarouselMobileCard from './CarouselMobileCard.vue'
+
 const currentCarouselPosition = ref(0)
 
 const carouselImages = [
@@ -27,6 +29,8 @@ function handleBackArrowClick() {
 </script>
 
 <template>
+
+  <CarouselMobileCard />
   <div class="carousel-plus-circles">
     <div class="carousel-section">
 
