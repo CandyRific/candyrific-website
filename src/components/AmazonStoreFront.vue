@@ -37,7 +37,7 @@
 
 .amazon-div {
     min-height: 75vh;
-    padding: 0.5rem;
+    padding: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -109,7 +109,7 @@
 
     border-radius: 5px 5px 15px 15px;
     width: 100%;
-
+    box-shadow: 1px 2px 1px black;
     transition:
         transform 0.1s ease,
         box-shadow 0.1s ease;
