@@ -68,8 +68,8 @@
     }
 
     .social-media-links div {
-        height: 3rem;
-        width: 3rem;
+        height: 3.5rem;
+        width: 3.5rem;
     }
 
     .social-media-links img {
