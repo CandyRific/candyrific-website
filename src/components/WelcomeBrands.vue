@@ -183,6 +183,7 @@
       inset: 0;
       z-index: 2;
       display: block;
+      pointer-events: none;
     }
     }
 
@@ -229,13 +230,22 @@
 
 
 
-    .brand-marquee-card{
-      width: 9rem;
-      height: 5rem;
-      background-color: #9dabd5;
-      border-radius: 5px;
-       box-shadow: 3px 4px 6px #2d2d2d;
-    }
+    .brand-marquee-card {
+  display: block;
+  width: 9rem;
+  height: 5rem;
+  background-color: #9dabd5;
+  border-radius: 5px;
+  text-decoration: none;
+
+  box-shadow: 1px 2px 4px black;
+}
+
+
+
+.brand-marquee-card:active {
+  box-shadow: none;
+}
 
     @media (min-width: 768px) {
       .full-brand-div {
@@ -246,7 +256,10 @@
       .brand-marquee-card{
         width: 14rem;
         height: 10rem;
+        box-shadow: 1px 2px 5px black;
       }
+
+
 
       .left-marquee-track {
         gap: 1rem;

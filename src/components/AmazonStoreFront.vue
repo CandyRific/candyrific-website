@@ -36,7 +36,6 @@
 ======================================== */
 
 .amazon-div {
-    min-height: 75vh;
     padding: 10px;
     display: flex;
     align-items: center;
