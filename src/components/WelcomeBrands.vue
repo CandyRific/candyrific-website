@@ -196,7 +196,7 @@
        text-align: center;
        z-index: 3;
        position: relative;
-       font-weight: bold;
+       font-weight: 500;
     }
 
     .left-marquee-banner {

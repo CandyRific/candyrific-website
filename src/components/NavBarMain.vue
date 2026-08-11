@@ -52,7 +52,7 @@ import { RouterLink } from 'vue-router'
   width: 100%;
   background-color: white;
   overflow-x: scroll;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2)
 }
 
 .nav-items {
@@ -79,7 +79,7 @@ import { RouterLink } from 'vue-router'
   text-decoration: underline;
   font-family: 'Fredoka', sans-serif;
   padding: 0.3rem;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 @media (min-width: 768px) {
@@ -116,12 +116,12 @@ import { RouterLink } from 'vue-router'
   }
 
   .main-nav-link {
-    font-size: large;
+    font-size: x-large;
     color: #703795;
     text-decoration: none;
     font-family: 'Fredoka', sans-serif;
-    padding: 0.5rem;
-    font-weight: bold;
+    padding: 0.3rem;
+    font-weight: 600;
   }
 
   .main-nav-link:hover {

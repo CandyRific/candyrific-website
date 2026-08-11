@@ -82,7 +82,7 @@
     font-family: 'Fredoka', sans-serif;
     line-height: 2.5rem;
     flex: 0 0 55%;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .amazon-div-image-textbox-text {
