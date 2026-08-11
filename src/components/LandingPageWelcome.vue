@@ -37,7 +37,7 @@
 .bold-text {
   /* font-size: clamp(3rem, 8vw, 6rem);
   line-height: clamp(3.1rem, 8.5vw, 6.2rem); */
-  font-weight: 800;
+  font-weight: 600;
 }
 
 
