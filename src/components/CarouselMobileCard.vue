@@ -2,17 +2,17 @@
     <div class="carousel-mobile-slider">
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/pandad.jpg" alt="carousel image" />
+                <img src="../assets/cropped_loudmouth_mobile.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/pandad.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE_V01-05.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/pandad.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE_TBD.jpg" alt="carousel image" />
             </a>
         </div>
     </div>
@@ -42,9 +42,9 @@
 
 
 .carousel-mobile-card {
-    border: 1px solid red;
+    /* border: 1px solid red; */
     border-radius: 1rem;
-    height: 33rem;
+    height: 35rem;
     width: 22rem;
     margin: .5rem;
     flex-shrink: 0;
