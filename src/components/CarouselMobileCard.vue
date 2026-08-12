@@ -2,7 +2,7 @@
     <div class="carousel-mobile-slider">
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/cropped_loudmouth_mobile.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE_V01-04.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
@@ -44,11 +44,13 @@
 .carousel-mobile-card {
     /* border: 1px solid red; */
     border-radius: 1rem;
-    height: 35rem;
+    height: 33rem;
     width: 22rem;
-    margin: .5rem;
     flex-shrink: 0;
     scroll-snap-align: center;
+    margin-bottom: -3rem;
+    margin-left: -1.8rem;
+    margin-top: -1rem;
 }
 
 .carousel-mobile-card img {

@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 
-import carouselLoud from '../assets/21-9_image.jpg'
-import carouselDummy from '../assets/21-9_image.jpg'
-import carousel169 from '../assets/21-9_image.jpg'
+import carouselLoud from '../assets/Carousel_WEB_V01-01.jpg'
+import carouselDummy from '../assets/Carousel_WEB_V01-02.jpg'
+import carousel169 from '../assets/Carousel_WEB_V01_TBD.jpg'
 
 import CarouselMobileCard from './CarouselMobileCard.vue'
 
@@ -34,7 +34,7 @@ function handleBackArrowClick() {
   <div class="carousel-plus-circles">
     <div class="carousel-section">
 
-    <div class="arrow-container">
+    <div class="arrow-container-left">
       <button
         class="back-arrow"
         type="button"
@@ -73,7 +73,7 @@ function handleBackArrowClick() {
     </div>
 
 
-    <div class="arrow-container">
+    <div class="arrow-container-right">
       <button
         class="forward-arrow"
         type="button"
@@ -160,10 +160,19 @@ function handleBackArrowClick() {
 
 
 
-.arrow-container {
+.arrow-container-left {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+
+  width: 100%;
+  height: 100%;
+}
+
+.arrow-container-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 
   width: 100%;
   height: 100%;
@@ -225,7 +234,6 @@ function handleBackArrowClick() {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 1rem;
 }
 
 .carousel-circle {
