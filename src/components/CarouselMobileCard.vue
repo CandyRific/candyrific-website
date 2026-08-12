@@ -48,9 +48,9 @@
     width: 22rem;
     flex-shrink: 0;
     scroll-snap-align: center;
-    margin-bottom: -3rem;
+    /* margin-bottom: -3rem;
     margin-left: -1.8rem;
-    margin-top: -1rem;
+    margin-top: -1rem; */
 }
 
 .carousel-mobile-card img {
