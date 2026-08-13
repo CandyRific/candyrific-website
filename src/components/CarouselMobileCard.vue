@@ -26,11 +26,12 @@
 <style scoped>
 .carousel-mobile-slider{
     width: 100%;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
     display: flex;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    gap: 1rem;
 }
 
 @media (min-width: 768px) {
@@ -48,7 +49,7 @@
     width: 22rem;
     flex-shrink: 0;
     scroll-snap-align: center;
-    margin: 1rem;
+    margin-top: 1rem;
     box-shadow: 5px 5px 10px gray;
 
 
