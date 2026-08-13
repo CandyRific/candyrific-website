@@ -29,7 +29,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     display: flex;
-    scroll-snap-type: x mandatory;
+    /* scroll-snap-type: x mandatory; */
     -webkit-overflow-scrolling: touch;
 }
 
