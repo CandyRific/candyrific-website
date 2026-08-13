@@ -2,17 +2,17 @@
     <div class="carousel-mobile-slider">
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/Carousel_MOBILE_V01-04.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE-02_01.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/Carousel_MOBILE_V01-05.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE-02_02.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/Carousel_MOBILE_TBD.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_MOBILE-02_03.jpg" alt="carousel image" />
             </a>
         </div>
     </div>
@@ -43,14 +43,22 @@
 
 .carousel-mobile-card {
     /* border: 1px solid red; */
-    border-radius: 1rem;
+    border-radius: 15px;
     height: 33rem;
     width: 22rem;
     flex-shrink: 0;
     scroll-snap-align: center;
+    margin: 1rem;
+    box-shadow: 5px 5px 10px gray;
+
+
     /* margin-bottom: -3rem;
     margin-left: -1.8rem;
     margin-top: -1rem; */
+}
+
+.carousel-mobile-card:active {
+    box-shadow: none;
 }
 
 .carousel-mobile-card img {
