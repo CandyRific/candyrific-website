@@ -237,8 +237,7 @@
   background-color: #9dabd5;
   border-radius: 5px;
   text-decoration: none;
-
-  box-shadow: 1px 2px 4px black;
+  box-shadow: .5px .5px 1px black;
 }
 
 
