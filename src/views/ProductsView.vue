@@ -8,11 +8,17 @@
 
     <div class="title-div">Products</div>
 
-    <div class="product-filter-text">
-      FILTER BY 152 ITEMS
-    </div>
 
-    <div class="product-filter">
+    <div class="products-update-message">
+  We're actively adding more products and features to this page.
+  Check back soon for more CandyRific products and updates.
+</div>
+
+    <!-- <div class="product-filter-text">
+      FILTER BY 152 ITEMS
+    </div> -->
+
+    <!-- <div class="product-filter">
       <div class="product-filter-option">
         LICENSE
         <span class="plus-icon"> + </span>
@@ -27,7 +33,7 @@
         PRODUCT
         <span class="plus-icon"> + </span>
       </div>
-    </div>
+    </div> -->
 
     <div class="product-section">
 
@@ -193,7 +199,7 @@
 
     </div>
 
-    <div style="display: block; padding: 1rem;">
+    <!-- <div style="display: block; padding: 1rem;">
       <div class="view-count-div">
         You've viewed 13 of 152 products.
       </div>
@@ -203,7 +209,7 @@
           LOAD MORE
         </button>
       </div>
-    </div>
+    </div> -->
 
   </div>
 </template>
@@ -218,7 +224,8 @@
 .title-div{
   text-align: center;
   padding: 2rem;
-  font-size: 3rem;
+  font-size: 4rem;
+  font-weight: 600;
 }
 
 @media (min-width: 768px){
@@ -269,7 +276,7 @@ padding: 1rem;
 }
 
 .product-section{
-  border: 1px solid red;
+  /* border: 1px solid red; */
   padding: 1rem;
         display: grid;
         grid-template-columns: repeat(2, minmax(0px, 1fr));
@@ -278,7 +285,7 @@ padding: 1rem;
 
 @media (min-width: 768px) {
   .product-section {
-    border: 1px solid red;
+    /* border: 1px solid red; */
   padding: 4rem;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -312,10 +319,10 @@ padding: 1rem;
   border-radius: 10px;
 }
 
-.product-card:hover {
+/* .product-card:hover {
   box-shadow: 1px 1px 5px #027dc3;
     border: 2px solid #027dc3;
-}
+} */
 
 .product-card img {
   object-fit: contain;
@@ -340,7 +347,26 @@ padding: 1rem;
   justify-content: center;
 }
 
+.products-update-message {
+  width: min(90%, 50rem);
+  margin: 0 auto 1rem auto;
+  padding: 0 1rem;
 
+  text-align: center;
+
+  color: #703795;
+
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .products-update-message {
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+  }
+}
 
 
 </style>
