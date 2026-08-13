@@ -32,6 +32,7 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     gap: 1rem;
+    padding: 0rem 1rem;
 }
 
 @media (min-width: 768px) {
@@ -49,7 +50,7 @@
     width: 22rem;
     flex-shrink: 0;
     scroll-snap-align: center;
-    margin-top: 1rem;
+    margin: 1rem 0rem;
     box-shadow: 5px 5px 10px gray;
 
 
