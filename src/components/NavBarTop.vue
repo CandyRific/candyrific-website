@@ -1,9 +1,11 @@
 <template>
     <nav class="top-nav">
         <ul class="bar">
-            <li><a class="top-button">RESOURCES</a></li>
-            <li><a class="top-button">WHERE TO BUY</a></li>
+            <!-- <li><a class="top-button">RESOURCES</a></li> -->
+            <!-- <li><a class="top-button">WHERE TO BUY</a></li> -->
             <li><a class="broker-button">LOGIN</a></li>
+
+            <!-- <li><a class="top-button"></a></li> -->
         </ul>
     </nav>
 </template>
@@ -33,7 +35,8 @@
     gap: 1rem;
     padding:  1.5rem 1rem;
     justify-content: flex-end;
-    color: white;
+    /* color: white; */
+    color: transparent;
     background: linear-gradient(
     90deg,
     #6d3692 0%,
@@ -53,15 +56,15 @@
 
 
 .broker-button {
-    border: 1px solid white;
+    border: 1px solid transparent;
     border-radius: 5px;
     padding: .5rem;
 }
 
 .broker-button:hover {
-    background-color: rgba(0,0,0,0.1);
+    /* background-color: rgba(0,0,0,0.1); */
     border-radius: 5px;
-    border: 1px solid white;
+    border: 1px solid transparent;
     padding: .5rem;
 }
 

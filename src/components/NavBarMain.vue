@@ -24,11 +24,11 @@ import { RouterLink } from 'vue-router'
             </RouterLink>
           </li>
 
-          <li>
+          <!-- <li>
             <a href="#contact" class="main-nav-link">
               CONTACT US
             </a>
-          </li>
+          </li> -->
         </ul>
       </nav>
     </div>

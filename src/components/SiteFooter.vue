@@ -1,10 +1,18 @@
 <template>
     <div class="footer-div">
         <div class="additional-links">
-            <div>Products</div>
-            <div>Contact Us</div>
+            <div>
+                <a href="/products">
+                    Products
+                </a>
+                </div>
+            <div>
+                <a href="/about">
+                    About Us
+                </a>  </div>
+            <!-- <div>Contact Us</div>
             <div>Resources</div>
-            <div>FAQ</div>
+            <div>FAQ</div> -->
         </div>
         <div class="social-media-links">
             <div><a href="https://www.youtube.com/@Candyrific" target="_blank" rel="noopener noreferrer"><img src="../assets/youtube_icon.png" alt="YouTube"></a></div>
@@ -57,6 +65,14 @@
         flex-direction: column;
         align-items: center;
         font-size: 1.5rem;
+    }
+
+    .additional-links a{
+        color:white;
+    }
+
+    .additional-links a:active {
+        color: white;
     }
 
 
