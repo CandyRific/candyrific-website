@@ -88,7 +88,8 @@
   text-align: center;
   color: #F04D86;
   padding: 2rem;
-  font-size: 3rem;
+  font-weight: 600;
+  font-size: 4rem;
 }
 
 .about-us-section{
@@ -125,9 +126,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1rem;
+  
   /* border: 1px solid red; */
+}
+
+.about-us-text p{
+  font-size: 1rem;
 }
 
 @media (min-width: 768px){
@@ -161,6 +167,7 @@
   text-align: left;
   font-size: 2rem;
   color: #7db5df;
+  font-weight: 600;
 }
 
 @media (min-width: 768px){
