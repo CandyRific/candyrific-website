@@ -157,7 +157,7 @@
         .landing-hello-image img {
         object-fit: contain;
         width: 100%;
-        max-width: 45rem;
+        max-width: 40rem;
         height: auto;
         /* border: 1px solid red; */
     }

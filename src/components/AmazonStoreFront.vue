@@ -81,7 +81,7 @@
     gap: 0.75rem;
 
     box-shadow: 0 8px 40px 10px #333333;
-    border-radius: 10px 10px 2rem 2rem;
+    border-radius: 10px 10px 10px 10px;
 }
 
 .amazon-div-image-textbox-title {
@@ -157,20 +157,6 @@
     cursor: pointer;
 }
 
-
-/* ========================================
-   516px+
-   Larger phones / tablets
-======================================== */
-
-@media (min-width: 516px) {
-
-    .amazon-div-image-textbox {
-        width: min(60%, 40rem);
-        border-radius: 0 0 2rem 0;
-    }
-
-}
 
 
 /* ========================================
