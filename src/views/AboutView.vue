@@ -68,9 +68,13 @@
       </div>
       
       
+     
+
     </div>
     </div>
-    
+     <div >
+        <img class="rob-memorial" src="../assets/Rob_Memorial.jpg">
+      </div>
   </div>
 </template>
 
@@ -79,6 +83,17 @@
 </script>
 
 <style scoped>
+.rob-memorial{
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 768px){
+  .rob-memorial{
+    padding: 0rem 12rem;
+  }
+}
 
 .aboutus-div{
   font-family: 'Fredoka', sans-serif;

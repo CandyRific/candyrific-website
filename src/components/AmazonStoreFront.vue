@@ -44,7 +44,7 @@
 ======================================== */
 
 .amazon-div {
-    padding: 10px;
+    padding: 1rem 0rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -52,7 +52,7 @@
 
 .amazon-div-image {
     overflow: hidden;
-    border-radius: 5px;
+    border-radius: 0px;
     position: relative;
 
     background-image: url('/src/assets/Candy_Background.jpg');
@@ -81,7 +81,7 @@
     gap: 0.75rem;
 
     box-shadow: 0 8px 40px 10px #333333;
-    border-radius: 2rem;
+    border-radius: 10px 10px 2rem 2rem;
 }
 
 .amazon-div-image-textbox-title {
@@ -108,6 +108,7 @@
 
 .light-p {
     font-weight: 300;
+    padding-top: .5rem;
 }
 
 .amazon-button-div{

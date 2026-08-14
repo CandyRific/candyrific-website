@@ -2,17 +2,17 @@
     <div class="carousel-mobile-slider">
         <div class="carousel-mobile-card">
             <a href="https://candyusa.com/cst/powerhouse-award-recipients-discussed-innovation/">
-                <img src="../assets/Carousel_MOBILE-02_01.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_3Banners_V02-06.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a href="https://www.fivebelow.com/products/disney-stitch-candy-fan-028oz-9217410?variant=9217411&sr=1">
-                <img src="../assets/Carousel_MOBILE-02_02.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_3Banners_V02-05.jpg" alt="carousel image" />
             </a>
         </div>
         <div class="carousel-mobile-card">
             <a>
-                <img src="../assets/Carousel_MOBILE-02_03.jpg" alt="carousel image" />
+                <img src="../assets/Carousel_3Banners_V02-04.jpg" alt="carousel image" />
             </a>
         </div>
     </div>
@@ -57,6 +57,10 @@
     /* margin-bottom: -3rem;
     margin-left: -1.8rem;
     margin-top: -1rem; */
+}
+
+.carousel-mobile-card:hover{
+    box-shadow: none;
 }
 
 .carousel-mobile-card:active {

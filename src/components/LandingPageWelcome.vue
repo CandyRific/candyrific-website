@@ -38,6 +38,8 @@
   /* font-size: clamp(3rem, 8vw, 6rem);
   line-height: clamp(3.1rem, 8.5vw, 6.2rem); */
   font-weight: 600;
+  font-size: clamp(3.5rem, 4.75vw, 6.5rem);
+  line-height: 1.1;
 }
 
 
@@ -77,7 +79,7 @@
 
     .landing-hello-image {
         /* border: 1px solid red; */
-        min-height: 250px;
+        /* min-height: 250px; */
         z-index: 1;
         display: flex;
         justify-content: center;
@@ -98,10 +100,10 @@
         flex-direction: column;
         justify-content: flex-start;
         font-family: 'Fredoka', sans-serif;
-        font-size: 3.5rem;
+        /* font-size: 3.5rem; */
         color: white;
         z-index: 1;
-        line-height: 4rem;
+        /* line-height: 4rem; */
         align-items: flex-start;
     }
 
@@ -114,8 +116,8 @@
     }
 
     .landing-hello-text p {
-  font-size: clamp(1rem, 1.4vw, 1.3rem);
-  line-height: clamp(1.55rem, 2.2vw, 2rem);
+  font-size: clamp(1rem, 1.6vw, 2.5rem);
+    line-height: clamp(1.5rem, 2vw, 2.25rem);
 }
 
 
@@ -137,11 +139,9 @@
             flex-direction: column;
             justify-content: flex-start;
             font-family: 'Fredoka', sans-serif;
-            font-size: 3.5rem;
             color: white;
             width: 45%;
-            padding: 2rem 2rem;
-            line-height: 3.5rem;
+            padding: 3rem 2rem;
             }
 
         .landing-hello-image {
@@ -156,15 +156,16 @@
 
         .landing-hello-image img {
         object-fit: contain;
-        height: 90%;
-        width: 90%;
+        width: 100%;
+        max-width: 45rem;
+        height: auto;
         /* border: 1px solid red; */
     }
 
         .landing-hello-text {
         background: white;
-        border-radius: 15px;
-        padding: 2rem;
+        border-radius:2rem;
+        padding: 2rem 2.5rem;
         color: #352454;
         margin-top: 1rem;
     }
