@@ -1,39 +1,18 @@
 <script setup>
 </script>
-<script setup>
-</script>
 
 <template>
   <div class="product-div">
 
-    <div class="title-div">Products</div>
-
+    <div class="title-div">
+      Products
+    </div>
 
     <div class="products-update-message">
-  We're actively adding more products and features to this page.
-  Check back soon for more CandyRific products and updates.
-</div>
+      We're actively adding more products and features to this page.
+      Check back soon for more CandyRific products and updates.
+    </div>
 
-    <!-- <div class="product-filter-text">
-      FILTER BY 152 ITEMS
-    </div> -->
-
-    <!-- <div class="product-filter">
-      <div class="product-filter-option">
-        LICENSE
-        <span class="plus-icon"> + </span>
-      </div>
-
-      <div class="product-filter-option">
-        SEASON
-        <span class="plus-icon"> + </span>
-      </div>
-
-      <div class="product-filter-option">
-        PRODUCT
-        <span class="plus-icon"> + </span>
-      </div>
-    </div> -->
 
     <div class="product-section">
 
@@ -44,10 +23,12 @@
             alt="Disney Helicopter Fan"
           >
         </div>
+
         <div class="product-text-div">
           Disney Assorted Candy Fan
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -56,10 +37,12 @@
             alt="Marvel Candy Fan"
           >
         </div>
+
         <div class="product-text-div">
           Marvel Avengers Assorted Character Fans
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -68,10 +51,12 @@
             alt="Helicopter Fan Display"
           >
         </div>
+
         <div class="product-text-div">
           CandyRific Light Up Helicopter Fan
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -80,10 +65,12 @@
             alt="Sweet Squad 12 Count Display"
           >
         </div>
+
         <div class="product-text-div">
           CandyRific Sweet Squad Fans
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -92,10 +79,12 @@
             alt="Licensed Assorted Sweet Spinz Fan"
           >
         </div>
+
         <div class="product-text-div">
           Licensed Assorted Sweet Spinz Fan
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -104,10 +93,12 @@
             alt="SpongeBob Stretch-eez"
           >
         </div>
+
         <div class="product-text-div">
           Nickelodeon SpongeBob Stretch-eez
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -116,10 +107,12 @@
             alt="Stitch Stretch-eez"
           >
         </div>
+
         <div class="product-text-div">
           Disney Stitch Stretch-eez
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -128,10 +121,12 @@
             alt="Shrek Stretch-eez"
           >
         </div>
+
         <div class="product-text-div">
           Universal Shrek Stretch-eez
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -140,10 +135,12 @@
             alt="Warheads Loud Mouth Bites"
           >
         </div>
+
         <div class="product-text-div">
           Warheads 10ct. Loud Mouth Bites Peg Bag
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -152,10 +149,12 @@
             alt="Warheads Popping Candy"
           >
         </div>
+
         <div class="product-text-div">
           Warheads 4pk. Popping Candy Peg Bag
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -164,10 +163,12 @@
             alt="Warheads 40 Count Popping Candy Gusset Bag"
           >
         </div>
+
         <div class="product-text-div">
           Warheads SOUR 40ct. Popping Candy Bag
         </div>
       </div>
+
 
       <div class="product-card-parent">
         <div class="product-card">
@@ -176,6 +177,7 @@
             alt="Kool-Aid Loud Mouth Bites"
           >
         </div>
+
         <div class="product-text-div">
           Kool-Aid 10ct. Loud Mouth Bites Peg Bag
           <br>
@@ -185,6 +187,7 @@
         </div>
       </div>
 
+
       <div class="product-card-parent">
         <div class="product-card">
           <img
@@ -192,6 +195,7 @@
             alt="Kool-Aid Bubblegum Cotton Candy"
           >
         </div>
+
         <div class="product-text-div">
           Kool-Aid Cotton Candy Bubble Gum Peg Bag
         </div>
@@ -199,147 +203,189 @@
 
     </div>
 
-    <!-- <div style="display: block; padding: 1rem;">
-      <div class="view-count-div">
-        You've viewed 13 of 152 products.
-      </div>
-
-      <div class="load-more-div">
-        <button>
-          LOAD MORE
-        </button>
-      </div>
-    </div> -->
-
   </div>
 </template>
 
 <style scoped>
-.product-div{
+
+.product-div {
   background: #e6f4fd;
   color: #1c8bc3;
+
   font-family: 'Fredoka', sans-serif;
 }
 
-.title-div{
+
+/* ========================================
+   PAGE TITLE
+======================================== */
+
+.title-div {
+  padding: clamp(1.5rem, 3vw, 3rem);
+
   text-align: center;
-  padding: 2rem;
-  font-size: 4rem;
+
+  font-size: clamp(3.25rem, 5vw, 6rem);
+  line-height: 1;
   font-weight: 600;
 }
 
-@media (min-width: 768px){
-.title-div{
+
+/* ========================================
+   UPDATE MESSAGE
+======================================== */
+
+.products-update-message {
+  width: min(90%, 50rem);
+
+  margin: 0 auto clamp(1.5rem, 3vw, 2.5rem);
+  padding: 0 1rem;
+
   text-align: center;
-  padding: 2rem;
-  font-size: 5rem;
-}
-}
 
+  color: #703795;
 
-.product-filter-text {
-  text-align: left;
-  margin: .5rem;
-}
-
-.product-filter {
-  background: linear-gradient(
-  90deg,
-  #39a4da 0%,
-  #027dc3 100%
-);
-display: flex;
-overflow-x: scroll;
-gap: 1rem;
-padding: 1rem;
-}
-
-.product-filter-option {
-  background: #e9faff;
-  border-radius: 5px;
-  padding: 1rem;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  max-height: 30px;
-  white-space: nowrap;
-}
-
-.product-filter-option:hover{
-  background: rgba(0,0,0,.05);
-  color: white;
-  border: 1px solid white;
-}
-
-.plus-icon{
-  font-weight: 700;
-}
-
-.product-section{
-  /* border: 1px solid red; */
-  padding: 1rem;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0px, 1fr));
-        gap: .5rem;
-}
-
-@media (min-width: 768px) {
-  .product-section {
-    /* border: 1px solid red; */
-  padding: 4rem;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-  }
-}
-
-.product-text-div{
-    padding: .5rem;
-    text-align: center;
-    color: black;
+  font-size: clamp(1rem, 1.35vw, 1.3rem);
+  line-height: clamp(1.5rem, 2vw, 1.9rem);
+  font-weight: 300;
 }
 
 
+/* ========================================
+   PRODUCT GRID
+======================================== */
 
-.product-card:active{
-  box-shadow: none;
+.product-section {
+  padding: clamp(1rem, 4vw, 4rem);
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+
+/* ========================================
+   PRODUCT CARD
+======================================== */
+
+.product-card-parent {
+  min-width: 0;
+
+  border-radius: 10px;
 }
 
 .product-card {
-  /* border: 1px solid red; */
-  border-radius: 10px;
-  height: 10rem;
-  width: auto;
+  height: clamp(10rem, 22vw, 15rem);
+
   background: white;
-  
-}
 
-.product-card-parent {
-  /* border: 1px solid red; */
   border-radius: 10px;
+
+  overflow: hidden;
 }
 
-/* .product-card:hover {
-  box-shadow: 1px 1px 5px #027dc3;
-    border: 2px solid #027dc3;
-} */
+.product-card:active {
+  box-shadow: none;
+}
 
 .product-card img {
-  object-fit: contain;
-  height: 100%;
+  display: block;
+
   width: 100%;
+  height: 100%;
+
+  object-fit: contain;
 }
 
-@media (min-width: 768px) {
-  .product-card {
-  /* border: 1px solid red; */
-  height: 15rem;
-  
-}
-}
 
-.view-count-div{
+/* ========================================
+   PRODUCT TEXT
+======================================== */
+
+.product-text-div {
+  padding: clamp(0.5rem, 1vw, 0.85rem);
+
   text-align: center;
+
+  color: black;
+
+  font-size: clamp(0.9rem, 1.25vw, 1.2rem);
+  line-height: clamp(1.25rem, 1.7vw, 1.65rem);
+  font-weight: 400;
+}
+
+
+/* ========================================
+   FILTERS
+======================================== */
+
+.product-filter-text {
+  margin: 0.5rem;
+
+  text-align: left;
+
+  font-size: clamp(0.9rem, 1vw, 1.1rem);
+  line-height: 1.4;
+}
+
+.product-filter {
+  display: flex;
+
+  gap: 1rem;
+
+  padding: 1rem;
+
+  overflow-x: auto;
+
+  background: linear-gradient(
+    90deg,
+    #39a4da 0%,
+    #027dc3 100%
+  );
+}
+
+.product-filter-option {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+
+  max-height: 30px;
+
+  padding: 1rem;
+
+  background: #e9faff;
+
+  border-radius: 5px;
+
+  white-space: nowrap;
+
+  font-size: clamp(0.9rem, 1vw, 1.1rem);
+}
+
+.product-filter-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+
+  color: white;
+
+  border: 1px solid white;
+}
+
+.plus-icon {
+  font-weight: 700;
+}
+
+
+/* ========================================
+   VIEW / LOAD MORE
+======================================== */
+
+.view-count-div {
+  text-align: center;
+
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
+  line-height: 1.5;
 }
 
 .load-more-div {
@@ -347,26 +393,17 @@ padding: 1rem;
   justify-content: center;
 }
 
-.products-update-message {
-  width: min(90%, 50rem);
-  margin: 0 auto 1rem auto;
-  padding: 0 1rem;
 
-  text-align: center;
-
-  color: #703795;
-
-  font-size: 1rem;
-  font-weight: 300;
-  line-height: 1.4;
-}
+/* ========================================
+   DESKTOP
+======================================== */
 
 @media (min-width: 768px) {
-  .products-update-message {
-    margin-bottom: 2rem;
-    font-size: 1.2rem;
-  }
-}
 
+  .product-section {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+}
 
 </style>

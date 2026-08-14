@@ -240,6 +240,10 @@
   box-shadow: .5px .5px 1px black;
 }
 
+.brand-marquee-card:hover {
+
+}
+
 
 
 .brand-marquee-card:active {
@@ -255,7 +259,11 @@
       .brand-marquee-card{
         width: 14rem;
         height: 10rem;
-        box-shadow: 1px 2px 5px black;
+        
+      }
+
+      .brand-marquee-card:hover {
+        box-shadow: 1px 2px 4px black;
       }
 
 

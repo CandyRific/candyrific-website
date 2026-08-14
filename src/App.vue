@@ -31,8 +31,5 @@ import MobileNav from './components/MobileNav.vue';
   
 }
 
-h1 {
-  font-weight: 600;
-  font-size: clamp(3rem, 4rem, 4rem);
-}
+
 </style>
