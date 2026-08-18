@@ -23,7 +23,7 @@
                     
                     <a href="https://pantryful.com/collections/candyrific">
                         <button>
-                        Shop on Pantriful
+                        Shop on Pantryful
                     </button>
                     </a>
                     
