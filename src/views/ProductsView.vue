@@ -13,13 +13,12 @@
       Check back soon for more CandyRific products and updates.
     </div>
 
-
     <div class="product-section">
 
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/14174 Disney Helicopter Fan Display front.jpg"
+            src="../assets/products/14174 Disney Helicopter Fan Display front.webp"
             alt="Disney Helicopter Fan"
           >
         </div>
@@ -29,11 +28,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/11928 Marvel Candy Fan Display.png"
+            src="../assets/products/11928 Marvel Candy Fan Display.webp"
             alt="Marvel Candy Fan"
           >
         </div>
@@ -43,11 +41,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/17466 HelicopterFan_Display.png"
+            src="../assets/products/17466 HelicopterFan_Display.webp"
             alt="Helicopter Fan Display"
           >
         </div>
@@ -57,11 +54,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/16113 SweetSquad_12ctDisplay.png"
+            src="../assets/products/16113 SweetSquad_12ctDisplay.webp"
             alt="Sweet Squad 12 Count Display"
           >
         </div>
@@ -71,11 +67,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/14604 Licensed Assorted Sweet Spinz Fan HIRES.jpg"
+            src="../assets/products/14604 Licensed Assorted Sweet Spinz Fan HIRES.webp"
             alt="Licensed Assorted Sweet Spinz Fan"
           >
         </div>
@@ -85,11 +80,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/13676 Spongebob Stretch-eez HIRES.png"
+            src="../assets/products/13676 Spongebob Stretch-eez HIRES.webp"
             alt="SpongeBob Stretch-eez"
           >
         </div>
@@ -99,11 +93,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/14529 Stitch Stretch-eez card.png"
+            src="../assets/products/14529 Stitch Stretch-eez card.webp"
             alt="Stitch Stretch-eez"
           >
         </div>
@@ -113,11 +106,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/13706 Shrek_Stretcheez_BlisterCard.png"
+            src="../assets/products/13706 Shrek_Stretcheez_BlisterCard.webp"
             alt="Shrek Stretch-eez"
           >
         </div>
@@ -127,11 +119,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/94034_10ct_WH_ED_LMB.png"
+            src="../assets/products/94034_10ct_WH_ED_LMB.webp"
             alt="Warheads Loud Mouth Bites"
           >
         </div>
@@ -141,11 +132,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/96566 Warheads_4pkPopping Candy_Peg Bag.png"
+            src="../assets/products/96566 Warheads_4pkPopping Candy_Peg Bag.webp"
             alt="Warheads Popping Candy"
           >
         </div>
@@ -155,11 +145,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/97739-HI WarHeads 40ct. Popping Candy Gusset Bag 3.17oz.png"
+            src="../assets/products/97739-HI WarHeads 40ct. Popping Candy Gusset Bag 3.17oz.webp"
             alt="Warheads 40 Count Popping Candy Gusset Bag"
           >
         </div>
@@ -169,11 +158,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/16202 Kool-Aid 10ct. Loud Mouth Bites Peg Bag unit render.jpg"
+            src="../assets/products/16202 Kool-Aid 10ct. Loud Mouth Bites Peg Bag unit render.webp"
             alt="Kool-Aid Loud Mouth Bites"
           >
         </div>
@@ -187,11 +175,10 @@
         </div>
       </div>
 
-
       <div class="product-card-parent">
         <div class="product-card">
           <img
-            src="../assets/products/19856 Kool-Aid Bubblegum Cotton Candy Peg Bag.jpg"
+            src="../assets/products/19856 Kool-Aid Bubblegum Cotton Candy Peg Bag.webp"
             alt="Kool-Aid Bubblegum Cotton Candy"
           >
         </div>
