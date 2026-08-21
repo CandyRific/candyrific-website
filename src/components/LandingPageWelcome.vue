@@ -2,9 +2,7 @@
     <div class="landing-hello">
         <img src="../assets/se_design.png" class="se-design">
         <div class="landing-hello-image">
-            <img src="../assets/hello_page_image.webp" loading="eager"
-  fetchpriority="high"
-  decoding="sync" alt="">
+            <img src="../assets/hello_page_image.webp" alt="">
         </div>
         <div class="landing-hello-message">  
             
