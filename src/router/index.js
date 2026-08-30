@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import ContentManagementView from '../views/ContentManagementView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,14 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
+    },
+    {
+      path: '/content-management',
+      name: 'content-management',
+      component: ContentManagementView,
+      meta: {
+        requiresAuth: true
+      }
     }
   ],
 })
