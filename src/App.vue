@@ -24,12 +24,6 @@ import MobileNav from './components/MobileNav.vue';
 </template>
 
 <style scoped>
-@media (min-width: 768px){
-  main{
-    margin-top: 135px;
-  }
-  
-}
 
 
 </style>

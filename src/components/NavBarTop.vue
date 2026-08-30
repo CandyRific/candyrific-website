@@ -1,18 +1,24 @@
+<script setup>
+
+</script>
+
 <template>
     <nav class="top-nav">
         <ul class="bar">
             <!-- <li><a class="top-button">RESOURCES</a></li> -->
             <!-- <li><a class="top-button">WHERE TO BUY</a></li> -->
-            <li><a class="broker-button">LOGIN</a></li>
+            <li>
+                <RouterLink to="/login" class="broker-button">
+                    LOGIN
+                </RouterLink>
+            </li>
 
             <!-- <li><a class="top-button"></a></li> -->
         </ul>
     </nav>
 </template>
 
-<script setup>
 
-</script>
 
 <style  scoped>
 .top-nav {
@@ -20,14 +26,14 @@
     z-index: 2;
 }
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
     .top-nav {
         position: fixed;
         top: 0;
         width: 100%;
         z-index: 2;
     }
-}
+} */
 
 .bar{
     display: flex;
@@ -56,15 +62,17 @@
 
 
 .broker-button {
-    border: 1px solid transparent;
+    border: 1px solid white;
     border-radius: 5px;
     padding: .5rem;
+    color: white;
+    text-decoration: none;
 }
 
 .broker-button:hover {
     /* background-color: rgba(0,0,0,0.1); */
     border-radius: 5px;
-    border: 1px solid transparent;
+    border: 1px solid white;
     padding: .5rem;
 }
 
