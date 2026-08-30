@@ -27,9 +27,17 @@ export default async (req) => {
 
     const formData = await req.formData()
 
+    const itemNumber = formData.get('item_number')
     const name = formData.get('name')
     const description = formData.get('description')
     const image = formData.get('image')
+
+    if (!itemNumber) {
+      return Response.json(
+        { error: 'Item number is required.' },
+        { status: 400 }
+      )
+    }
 
     if (!name) {
       return Response.json(
@@ -52,20 +60,28 @@ export default async (req) => {
 
       const imageStore = getStore('product-images')
 
-      const extension = image.name.split('.').pop()
+      const extension = image.name
+        .split('.')
+        .pop()
+        .toLowerCase()
 
       imageKey = `${crypto.randomUUID()}.${extension}`
 
-      await imageStore.set(imageKey, image)
+      await imageStore.set(
+        imageKey,
+        image
+      )
     }
 
     const products = await db.sql`
       INSERT INTO products (
+        item_number,
         name,
         description,
         image_key
       )
       VALUES (
+        ${itemNumber},
         ${name},
         ${description},
         ${imageKey}

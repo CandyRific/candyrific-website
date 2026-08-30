@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
 import {
   login,
   logout,
@@ -10,9 +11,14 @@ import {
 export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref(null)
   const isLoading = ref(false)
+  const isInitialized = ref(false)
   const authMessage = ref('')
 
   const initializeAuth = async () => {
+    if (isInitialized.value) {
+      return
+    }
+
     try {
       const callbackResult = await handleAuthCallback()
 
@@ -24,6 +30,10 @@ export const useAuthStore = defineStore('auth', () => {
       currentUser.value = await getUser()
     } catch (error) {
       console.error('Auth initialization failed:', error)
+
+      currentUser.value = null
+    } finally {
+      isInitialized.value = true
     }
   }
 
@@ -32,8 +42,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
 
     try {
-      currentUser.value = await login(email, password)
+      currentUser.value = await login(
+        email,
+        password
+      )
 
+      isInitialized.value = true
       authMessage.value = 'Logged in successfully.'
 
       return true
@@ -54,6 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
       await logout()
 
       currentUser.value = null
+      isInitialized.value = true
+
       authMessage.value = 'Logged out.'
     } catch (error) {
       console.error('Logout failed:', error)
@@ -66,6 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     currentUser,
     isLoading,
+    isInitialized,
     authMessage,
     initializeAuth,
     loginUser,

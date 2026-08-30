@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
+const productItemNumber = ref('')
 const productName = ref('')
 const productDescription = ref('')
 const productImage = ref(null)
@@ -20,6 +21,11 @@ const handleImageChange = (event) => {
 const addProduct = async () => {
   formMessage.value = ''
 
+  if (!productItemNumber.value.trim()) {
+    formMessage.value = 'Item number is required.'
+    return
+  }
+
   if (!productName.value.trim()) {
     formMessage.value = 'Product name is required.'
     return
@@ -30,8 +36,14 @@ const addProduct = async () => {
   try {
     const formData = new FormData()
 
+    formData.append('item_number', productItemNumber.value)
     formData.append('name', productName.value)
     formData.append('description', productDescription.value)
+
+    /*
+      These are already represented in the UI,
+      but the backend is not using them yet.
+    */
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
 
@@ -64,6 +76,7 @@ const addProduct = async () => {
 
     formMessage.value = `Added "${data.name}" successfully.`
 
+    productItemNumber.value = ''
     productName.value = ''
     productDescription.value = ''
     productImage.value = null
@@ -96,6 +109,20 @@ const addProduct = async () => {
       class="add-product-form"
       @submit.prevent="addProduct"
     >
+
+      <div class="form-group">
+        <label for="product-item-number">
+          Item Number
+        </label>
+
+        <input
+          id="product-item-number"
+          v-model="productItemNumber"
+          type="text"
+          placeholder="Item number"
+          required
+        >
+      </div>
 
       <div class="form-group">
         <label for="product-name">
