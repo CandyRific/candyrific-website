@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthStore } from '../stores/auth'
+import ProductManagement from '../components/CMS/ProductManagement.vue'
 
 const authStore = useAuthStore()
 </script>
@@ -12,14 +13,16 @@ const authStore = useAuthStore()
     </h1>
 
     <div class="dashboard-card">
-      <p>
-        Logged in as
-        <strong>{{ authStore.currentUser?.email }}</strong>
-      </p>
 
-      <p>
-        Product management will live here.
-      </p>
+      <div class="user-info">
+        <p>
+          Logged in as
+          <strong>{{ authStore.currentUser?.email }}</strong>
+        </p>
+      </div>
+
+      <ProductManagement />
+
     </div>
 
   </div>
@@ -33,6 +36,11 @@ const authStore = useAuthStore()
 
   font-family: 'Fredoka', sans-serif;
 }
+
+
+/* ========================================
+   PAGE TITLE
+======================================== */
 
 .title-div {
   margin: 0;
@@ -48,11 +56,16 @@ const authStore = useAuthStore()
   font-weight: 600;
 }
 
+
+/* ========================================
+   DASHBOARD
+======================================== */
+
 .dashboard-card {
-  width: min(90%, 50rem);
+  width: min(90%, 60rem);
 
   margin: 0 auto;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
 
   background: white;
 
@@ -60,4 +73,18 @@ const authStore = useAuthStore()
 
   color: #703795;
 }
+
+
+/* ========================================
+   USER INFO
+======================================== */
+
+.user-info {
+  margin-bottom: 1rem;
+}
+
+.user-info p {
+  margin: 0;
+}
+
 </style>
