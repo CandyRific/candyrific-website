@@ -15,9 +15,10 @@ import { RouterLink } from 'vue-router'
       <nav aria-label="Main navigation">
         <ul class="nav-items">
           <li>
-            <RouterLink href="/about" class="main-nav-link">
+            <RouterLink to="/about" class="main-nav-link">
               ABOUT US
             </RouterLink>
+         
           </li>
 
           <li>
