@@ -39,4 +39,25 @@ const router = createRouter({
   ],
 })
 
+import { useAuthStore } from '../stores/auth'
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  if (!authStore.isInitialized) {
+    await authStore.initializeAuth()
+  }
+
+  if (
+    to.meta.requiresAuth &&
+    !authStore.currentUser
+  ) {
+    return {
+      path: '/login',
+      query: {
+        redirect: to.fullPath
+      }
+    }
+  }
+})
 export default router
