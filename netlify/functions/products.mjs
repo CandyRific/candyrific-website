@@ -6,9 +6,31 @@ export default async (req) => {
 
   if (req.method === 'GET') {
     const products = await db.sql`
-      SELECT *
-      FROM products
-      ORDER BY created_at DESC
+      SELECT
+        p.id,
+        p.name,
+        p.description,
+        p.product_number,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', pi.id,
+              'image_key', pi.image_key,
+              'display_order', pi.display_order
+            )
+            ORDER BY pi.display_order, pi.id
+          ) FILTER (WHERE pi.id IS NOT NULL),
+          '[]'::json
+        ) AS images
+      FROM products p
+      LEFT JOIN product_images pi
+        ON pi.product_id = p.id
+      GROUP BY
+        p.id,
+        p.name,
+        p.description,
+        p.product_number
+      ORDER BY p.created_at DESC
     `
 
     return Response.json(products)
@@ -17,6 +39,7 @@ export default async (req) => {
  if (req.method === 'POST') {
   const formData = await req.formData()
 
+  const productNumber = formData.get('productNumber')
   const name = formData.get('name')
   const description = formData.get('description')
 
@@ -47,11 +70,13 @@ export default async (req) => {
   const products = await db.sql`
     INSERT INTO products (
       name,
-      description
+      description,
+      product_number
     )
     VALUES (
       ${name},
-      ${description}
+      ${description},
+      ${productNumber}
     )
     RETURNING *
   `

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
+const productNumber = ref('')
 const productName = ref('')
 const productDescription = ref('')
 const productImages = ref([])
@@ -31,6 +32,7 @@ const addProduct = async () => {
   try {
     const formData = new FormData()
 
+    formData.append('productNumber', productNumber.value)
     formData.append('name', productName.value)
     formData.append('description', productDescription.value)
     formData.append('season', productSeason.value)
@@ -100,6 +102,21 @@ const addProduct = async () => {
       class="add-product-form"
       @submit.prevent="addProduct"
     >
+
+    <div>
+        <div class="form-group">
+            <label for="product-number">
+            Product Number
+            </label>
+    
+            <input
+            id="product-number"
+            v-model="productNumber"
+            type="text"
+            placeholder="Product number"
+            >
+        </div>
+    </div>
 
       <div class="form-group">
         <label for="product-name">
