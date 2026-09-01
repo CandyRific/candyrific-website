@@ -4,6 +4,7 @@ import { ref } from 'vue'
 const productName = ref('')
 const productDescription = ref('')
 const productImages = ref([])
+const productImageNames = ref([])
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -13,6 +14,7 @@ const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
   productImages.value = Array.from(event.target.files || [])
+  productImageNames.value = productImages.value.map((file) => file.name)
   console.log(productImages.value)
 }
 
@@ -68,6 +70,7 @@ const addProduct = async () => {
     productName.value = ''
     productDescription.value = ''
     productImages.value = []
+    productImageNames.value = []
     productSeason.value = ''
     productBrand.value = ''
 
@@ -161,7 +164,7 @@ const addProduct = async () => {
 
       <div class="form-group">
         <label for="product-image">
-          Product Image
+          Product Images
         </label>
 
         <input
@@ -171,6 +174,15 @@ const addProduct = async () => {
           @change="handleImageChange"
           multiple
         >
+
+        <div>
+            <p
+                v-for="(imageName, index) in productImageNames"
+                :key="index"
+            >
+                {{ imageName }}
+            </p>
+        </div>
       </div>
 
       <button
