@@ -9,7 +9,7 @@ export default async (req) => {
       SELECT
         p.id,
         p.name,
-        p.description
+        p.description,
         COALESCE(
           json_agg(
             json_build_object(
