@@ -1,70 +1,49 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
-const products = ref([])
-const selectedImages = ref({})
+const productName = ref('')
+const productDescription = ref('')
+const formMessage = ref('')
+const isSubmitting = ref(false)
 
-const isLoading = ref(true)
-const loadError = ref('')
+const addProduct = async () => {
+  formMessage.value = ''
 
-const getProductImageUrl = (imageKey) => {
-  if (!imageKey) {
-    return ''
+  if (!productName.value.trim()) {
+    formMessage.value = 'Product name is required.'
+    return
   }
 
-  return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
-}
-
-const selectProductImage = (productId, imageKey) => {
-  selectedImages.value[productId] = imageKey
-}
-
-const getSelectedProductImage = (product) => {
-  if (selectedImages.value[product.id]) {
-    return selectedImages.value[product.id]
-  }
-
-  return product.images?.[0]?.image_key || ''
-}
-
-const loadProducts = async () => {
-  isLoading.value = true
-  loadError.value = ''
+  isSubmitting.value = true
 
   try {
-    const response = await fetch('/.netlify/functions/products')
+    const response = await fetch('/.netlify/functions/products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: productName.value,
+        description: productDescription.value
+      })
+    })
+
+    const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(
-        `Unable to load products. HTTP ${response.status}`
-      )
+      throw new Error(data.error || 'Unable to add product.')
     }
 
-    products.value = await response.json()
+    formMessage.value = `Added "${data.name}" successfully.`
 
-    /*
-      Set the first image for each product
-      as its initial main image.
-    */
-    for (const product of products.value) {
-      if (product.images?.length) {
-        selectedImages.value[product.id] =
-          product.images[0].image_key
-      }
-    }
+    productName.value = ''
+    productDescription.value = ''
   } catch (error) {
-    console.error('Unable to load products:', error)
-
-    loadError.value =
-      error.message || 'Unable to load products.'
+    formMessage.value = error.message
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
   }
 }
-
-onMounted(() => {
-  loadProducts()
-})
 </script>
 
 <template>
@@ -79,92 +58,220 @@ onMounted(() => {
       Check back soon for more CandyRific products and updates.
     </div>
 
-    <div
-      v-if="isLoading"
-      class="products-status"
+    <form class="add-product-form" @submit.prevent="addProduct">
+
+  <div class="form-group">
+    <label for="product-name">
+      Product Name
+    </label>
+
+    <input
+      id="product-name"
+      v-model="productName"
+      type="text"
+      placeholder="Product name"
     >
-      Loading products...
-    </div>
+  </div>
 
-    <div
-      v-else-if="loadError"
-      class="products-status products-error"
-    >
-      {{ loadError }}
-    </div>
+  <div class="form-group">
+    <label for="product-description">
+      Bruh
+    </label>
 
-    <div
-      v-else
-      class="product-section"
-    >
+    <textarea
+      id="product-description"
+      v-model="productDescription"
+      placeholder="Product description"
+      rows="4"
+    ></textarea>
+  </div>
 
-      <div
-        v-for="product in products"
-        :key="product.id"
-        class="product-card-parent"
-      >
+  <button
+    type="submit"
+    :disabled="isSubmitting"
+  >
+    {{ isSubmitting ? 'Adding...' : 'Add Product' }}
+  </button>
 
-        <!-- ========================================
-             MAIN IMAGE
-        ========================================= -->
+  <p v-if="formMessage" class="form-message">
+    {{ formMessage }}
+  </p>
 
+</form>
+
+    <div class="product-section">
+
+      <div class="product-card-parent">
         <div class="product-card">
-
           <img
-            v-if="getSelectedProductImage(product)"
-            :src="getProductImageUrl(
-              getSelectedProductImage(product)
-            )"
-            :alt="product.name"
+            src="../assets/products/14174 Disney Helicopter Fan Display front.webp"
+            alt="Disney Helicopter Fan"
           >
-
         </div>
-
-
-        <!-- ========================================
-             SECONDARY IMAGES
-        ========================================= -->
-
-        <div
-          v-if="product.images?.length > 1"
-          class="product-thumbnail-section"
-        >
-
-          <button
-            v-for="image in product.images"
-            :key="image.id"
-            type="button"
-            class="product-thumbnail"
-            :class="{
-              'product-thumbnail-selected':
-                getSelectedProductImage(product) === image.image_key
-            }"
-            @click="
-              selectProductImage(
-                product.id,
-                image.image_key
-              )
-            "
-          >
-
-            <img
-              :src="getProductImageUrl(image.image_key)"
-              :alt="`${product.name} alternate view`"
-            >
-
-          </button>
-
-        </div>
-
-
-        <!-- ========================================
-             PRODUCT NAME
-        ========================================= -->
 
         <div class="product-text-div">
-          {{ product.name }}
+          Disney Assorted Candy Fan
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/11928 Marvel Candy Fan Display.webp"
+            alt="Marvel Candy Fan"
+          >
         </div>
 
+        <div class="product-text-div">
+          Marvel Avengers Assorted Character Fans
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/17466 HelicopterFan_Display.webp"
+            alt="Helicopter Fan Display"
+          >
+        </div>
+
+        <div class="product-text-div">
+          CandyRific Light Up Helicopter Fan
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/16113 SweetSquad_12ctDisplay.webp"
+            alt="Sweet Squad 12 Count Display"
+          >
+        </div>
+
+        <div class="product-text-div">
+          CandyRific Sweet Squad Fans
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/14604 Licensed Assorted Sweet Spinz Fan HIRES.webp"
+            alt="Licensed Assorted Sweet Spinz Fan"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Licensed Assorted Sweet Spinz Fan
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/13676 Spongebob Stretch-eez HIRES.webp"
+            alt="SpongeBob Stretch-eez"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Nickelodeon SpongeBob Stretch-eez
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/14529 Stitch Stretch-eez card.webp"
+            alt="Stitch Stretch-eez"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Disney Stitch Stretch-eez
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/13706 Shrek_Stretcheez_BlisterCard.webp"
+            alt="Shrek Stretch-eez"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Universal Shrek Stretch-eez
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/94034_10ct_WH_ED_LMB.webp"
+            alt="Warheads Loud Mouth Bites"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Warheads 10ct. Loud Mouth Bites Peg Bag
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/96566 Warheads_4pkPopping Candy_Peg Bag.webp"
+            alt="Warheads Popping Candy"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Warheads 4pk. Popping Candy Peg Bag
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/97739-HI WarHeads 40ct. Popping Candy Gusset Bag 3.17oz.webp"
+            alt="Warheads 40 Count Popping Candy Gusset Bag"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Warheads SOUR 40ct. Popping Candy Bag
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/16202 Kool-Aid 10ct. Loud Mouth Bites Peg Bag unit render.webp"
+            alt="Kool-Aid Loud Mouth Bites"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Kool-Aid 10ct. Loud Mouth Bites Peg Bag
+          <br>
+          COMING SOON
+          <br>
+          Available October 15, 2026
+        </div>
+      </div>
+
+      <div class="product-card-parent">
+        <div class="product-card">
+          <img
+            src="../assets/products/19856 Kool-Aid Bubblegum Cotton Candy Peg Bag.webp"
+            alt="Kool-Aid Bubblegum Cotton Candy"
+          >
+        </div>
+
+        <div class="product-text-div">
+          Kool-Aid Cotton Candy Bubble Gum Peg Bag
+        </div>
       </div>
 
     </div>
@@ -218,25 +325,6 @@ onMounted(() => {
 
 
 /* ========================================
-   LOADING / ERROR
-======================================== */
-
-.products-status {
-  padding: 2rem;
-
-  text-align: center;
-
-  color: #703795;
-
-  font-size: 1.1rem;
-}
-
-.products-error {
-  color: #b42318;
-}
-
-
-/* ========================================
    PRODUCT GRID
 ======================================== */
 
@@ -271,6 +359,10 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.product-card:active {
+  box-shadow: none;
+}
+
 .product-card img {
   display: block;
 
@@ -278,50 +370,6 @@ onMounted(() => {
   height: 100%;
 
   object-fit: contain;
-}
-
-
-/* ========================================
-   PRODUCT THUMBNAILS
-======================================== */
-
-.product-thumbnail-section {
-  display: flex;
-
-  gap: 0.4rem;
-
-  padding-top: 0.5rem;
-
-  overflow-x: auto;
-}
-
-.product-thumbnail {
-  flex: 0 0 3.5rem;
-
-  width: 3.5rem;
-  height: 3.5rem;
-
-  padding: 0.2rem;
-
-  background: white;
-
-  border: 1px solid transparent;
-  border-radius: 6px;
-
-  cursor: pointer;
-}
-
-.product-thumbnail img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: contain;
-}
-
-.product-thumbnail-selected {
-  border-color: #703795;
 }
 
 
@@ -339,6 +387,83 @@ onMounted(() => {
   font-size: clamp(0.9rem, 1.25vw, 1.2rem);
   line-height: clamp(1.25rem, 1.7vw, 1.65rem);
   font-weight: 400;
+}
+
+
+/* ========================================
+   FILTERS
+======================================== */
+
+.product-filter-text {
+  margin: 0.5rem;
+
+  text-align: left;
+
+  font-size: clamp(0.9rem, 1vw, 1.1rem);
+  line-height: 1.4;
+}
+
+.product-filter {
+  display: flex;
+
+  gap: 1rem;
+
+  padding: 1rem;
+
+  overflow-x: auto;
+
+  background: linear-gradient(
+    90deg,
+    #39a4da 0%,
+    #027dc3 100%
+  );
+}
+
+.product-filter-option {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+
+  max-height: 30px;
+
+  padding: 1rem;
+
+  background: #e9faff;
+
+  border-radius: 5px;
+
+  white-space: nowrap;
+
+  font-size: clamp(0.9rem, 1vw, 1.1rem);
+}
+
+.product-filter-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+
+  color: white;
+
+  border: 1px solid white;
+}
+
+.plus-icon {
+  font-weight: 700;
+}
+
+
+/* ========================================
+   VIEW / LOAD MORE
+======================================== */
+
+.view-count-div {
+  text-align: center;
+
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
+  line-height: 1.5;
+}
+
+.load-more-div {
+  display: flex;
+  justify-content: center;
 }
 
 
