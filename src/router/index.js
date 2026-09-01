@@ -35,11 +35,17 @@ const router = createRouter({
       meta: {
         requiresAuth: true
       }
+    },
+    {
+      path:'/product/:item_number',
+      name: 'product',
+      component: ProductView  
     }
   ],
 })
 
 import { useAuthStore } from '../stores/auth'
+import ProductView from '@/views/ProductView.vue'
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()

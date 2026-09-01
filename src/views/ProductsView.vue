@@ -78,6 +78,7 @@ onMounted(() => {
         :key="product.id"
         class="product-card-parent"
       >
+    
 
         <div class="product-card">
 
@@ -92,6 +93,8 @@ onMounted(() => {
         <div class="product-text-div">
           {{ product.name }}
         </div>
+
+  
 
       </div>
 

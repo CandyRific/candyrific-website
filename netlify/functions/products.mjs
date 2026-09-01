@@ -16,6 +16,8 @@ export default async (req) => {
   }
 
   if (req.method === 'POST') {
+    const isDevAuthBypass = process.env.DEV_AUTH_BYPASS === 'true';
+
     const user = await getUser()
 
     if (!user) {
@@ -23,7 +25,9 @@ export default async (req) => {
         { error: 'Unauthorized.' },
         { status: 401 }
       )
-    }
+    
+  }
+
 
     const formData = await req.formData()
 
