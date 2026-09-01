@@ -9,8 +9,7 @@ export default async (req) => {
       SELECT
         p.id,
         p.name,
-        p.description,
-        p.product_number,
+        p.description
         COALESCE(
           json_agg(
             json_build_object(
@@ -28,8 +27,7 @@ export default async (req) => {
       GROUP BY
         p.id,
         p.name,
-        p.description,
-        p.product_number
+        p.description
       ORDER BY p.created_at DESC
     `
 
