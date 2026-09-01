@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const productName = ref('')
 const productDescription = ref('')
-const productImage = ref(null)
+const productImages = ref([])
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -12,9 +12,8 @@ const formMessage = ref('')
 const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
-  const file = event.target.files[0] || null
-
-  productImage.value = file
+  productImages.value = Array.from(event.target.files || [])
+  console.log(productImages.value)
 }
 
 const addProduct = async () => {
@@ -35,8 +34,10 @@ const addProduct = async () => {
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
 
-    if (productImage.value) {
-      formData.append('image', productImage.value)
+    if (productImages.value) {
+      for (const file of productImages.value) {
+        formData.append('image', file)
+      }
     }
 
     const response = await fetch('/.netlify/functions/products', {
@@ -66,7 +67,7 @@ const addProduct = async () => {
 
     productName.value = ''
     productDescription.value = ''
-    productImage.value = null
+    productImages.value = []
     productSeason.value = ''
     productBrand.value = ''
 
@@ -168,6 +169,7 @@ const addProduct = async () => {
           type="file"
           accept="image/*"
           @change="handleImageChange"
+          multiple
         >
       </div>
 
