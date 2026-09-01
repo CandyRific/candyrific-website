@@ -1,49 +1,5 @@
 <script setup>
-import { ref } from 'vue'
 
-const productName = ref('')
-const productDescription = ref('')
-const formMessage = ref('')
-const isSubmitting = ref(false)
-
-const addProduct = async () => {
-  formMessage.value = ''
-
-  if (!productName.value.trim()) {
-    formMessage.value = 'Product name is required.'
-    return
-  }
-
-  isSubmitting.value = true
-
-  try {
-    const response = await fetch('/.netlify/functions/products', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: productName.value,
-        description: productDescription.value
-      })
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Unable to add product.')
-    }
-
-    formMessage.value = `Added "${data.name}" successfully.`
-
-    productName.value = ''
-    productDescription.value = ''
-  } catch (error) {
-    formMessage.value = error.message
-  } finally {
-    isSubmitting.value = false
-  }
-}
 </script>
 
 <template>
@@ -57,47 +13,6 @@ const addProduct = async () => {
       We're actively adding more products and features to this page.
       Check back soon for more CandyRific products and updates.
     </div>
-
-    <!-- <form class="add-product-form" @submit.prevent="addProduct">
-
-  <div class="form-group">
-    <label for="product-name">
-      Product Name
-    </label>
-
-    <input
-      id="product-name"
-      v-model="productName"
-      type="text"
-      placeholder="Product name"
-    >
-  </div>
-
-  <div class="form-group">
-    <label for="product-description">
-      Bruh
-    </label>
-
-    <textarea
-      id="product-description"
-      v-model="productDescription"
-      placeholder="Product description"
-      rows="4"
-    ></textarea>
-  </div>
-
-  <button
-    type="submit"
-    :disabled="isSubmitting"
-  >
-    {{ isSubmitting ? 'Adding...' : 'Add Product' }}
-  </button>
-
-  <p v-if="formMessage" class="form-message">
-    {{ formMessage }}
-  </p>
-
-</form> -->
 
     <div class="product-section">
 

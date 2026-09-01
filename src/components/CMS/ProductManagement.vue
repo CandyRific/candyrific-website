@@ -1,10 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 
-const productItemNumber = ref('')
 const productName = ref('')
 const productDescription = ref('')
-const productImages = ref([])
+const productImage = ref(null)
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -13,18 +12,13 @@ const formMessage = ref('')
 const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
-  productImages.value = Array.from(event.target.files)
+  const file = event.target.files[0] || null
 
-  console.log('Selected images:', productImages.value)
+  productImage.value = file
 }
 
 const addProduct = async () => {
   formMessage.value = ''
-
-  if (!productItemNumber.value.trim()) {
-    formMessage.value = 'Item number is required.'
-    return
-  }
 
   if (!productName.value.trim()) {
     formMessage.value = 'Product name is required.'
@@ -36,19 +30,13 @@ const addProduct = async () => {
   try {
     const formData = new FormData()
 
-    formData.append('item_number', productItemNumber.value)
     formData.append('name', productName.value)
     formData.append('description', productDescription.value)
-
-    /*
-      These are already represented in the UI,
-      but the backend is not using them yet.
-    */
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
 
-    for (const image of productImages.value) {
-      formData.append('images', image)
+    if (productImage.value) {
+      formData.append('image', productImage.value)
     }
 
     const response = await fetch('/.netlify/functions/products', {
@@ -76,10 +64,9 @@ const addProduct = async () => {
 
     formMessage.value = `Added "${data.name}" successfully.`
 
-    productItemNumber.value = ''
     productName.value = ''
     productDescription.value = ''
-    productImages.value = []
+    productImage.value = null
     productSeason.value = ''
     productBrand.value = ''
 
@@ -109,20 +96,6 @@ const addProduct = async () => {
       class="add-product-form"
       @submit.prevent="addProduct"
     >
-
-      <div class="form-group">
-        <label for="product-item-number">
-          Item Number
-        </label>
-
-        <input
-          id="product-item-number"
-          v-model="productItemNumber"
-          type="text"
-          placeholder="Item number"
-          required
-        >
-      </div>
 
       <div class="form-group">
         <label for="product-name">
@@ -187,25 +160,15 @@ const addProduct = async () => {
 
       <div class="form-group">
         <label for="product-image">
-          Product Images
+          Product Image
         </label>
 
         <input
           id="product-image"
           type="file"
           accept="image/*"
-          multiple
           @change="handleImageChange"
         >
-      </div>
-
-      <div
-        v-if="productImages.length"
-        class="selected-images"
-      >
-        {{ productImages.length }}
-        {{ productImages.length === 1 ? 'image' : 'images' }}
-        selected
       </div>
 
       <button
@@ -309,14 +272,6 @@ const addProduct = async () => {
   color: black;
 
   cursor: pointer;
-}
-
-.selected-images {
-  margin: -0.25rem 0 1rem;
-
-  color: #703795;
-
-  font-size: 0.95rem;
 }
 
 .add-product-form button {
