@@ -5,36 +5,87 @@ import { getUser } from '@netlify/identity'
 export default async (req) => {
   const db = getDatabase()
 
-  if (req.method === 'GET') {
-    const products = await db.sql`
-      SELECT *
-      FROM products
-      ORDER BY created_at DESC
-    `
+  // ========================================
+  // GET PRODUCTS
+  // ========================================
 
-    return Response.json(products)
-  }
+  if (req.method === 'GET') {
+  const products = await db.sql`
+    SELECT
+      p.id,
+      p.item_number,
+      p.name,
+      p.description,
+      p.brand_id,
+      p.season_id,
+      p.created_at,
+      p.updated_at,
+
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', pi.id,
+            'product_id', pi.product_id,
+            'image_key', pi.image_key,
+            'display_order', pi.display_order,
+            'created_at', pi.created_at
+          )
+          ORDER BY pi.display_order, pi.id
+        ) FILTER (WHERE pi.id IS NOT NULL),
+        '[]'::json
+      ) AS images
+
+    FROM products p
+
+    LEFT JOIN product_images pi
+      ON pi.product_id = p.id
+
+    GROUP BY
+      p.id,
+      p.item_number,
+      p.name,
+      p.description,
+      p.brand_id,
+      p.season_id,
+      p.created_at,
+      p.updated_at
+
+    ORDER BY p.created_at DESC
+  `
+
+  return Response.json(products)
+}
+
+  // ========================================
+  // ADD PRODUCT
+  // ========================================
 
   if (req.method === 'POST') {
-    const isDevAuthBypass = process.env.DEV_AUTH_BYPASS === 'true';
+    const isDevAuthBypass =
+      process.env.DEV_AUTH_BYPASS === 'true'
 
-    const user = await getUser()
+    if (!isDevAuthBypass) {
+      const user = await getUser()
 
-    if (!user) {
-      return Response.json(
-        { error: 'Unauthorized.' },
-        { status: 401 }
-      )
-    
-  }
-
+      if (!user) {
+        return Response.json(
+          { error: 'Unauthorized.' },
+          { status: 401 }
+        )
+      }
+    }
 
     const formData = await req.formData()
 
     const itemNumber = formData.get('item_number')
     const name = formData.get('name')
     const description = formData.get('description')
-    const image = formData.get('image')
+
+    const images = formData.getAll('images')
+
+    // ========================================
+    // VALIDATION
+    // ========================================
 
     if (!itemNumber) {
       return Response.json(
@@ -50,54 +101,98 @@ export default async (req) => {
       )
     }
 
-    let imageKey = null
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
-    if (image && image.size > 0) {
-      const MAX_IMAGE_SIZE = 5 * 1024 * 1024
-
+    for (const image of images) {
       if (image.size > MAX_IMAGE_SIZE) {
         return Response.json(
-          { error: 'Image must be smaller than 5 MB.' },
+          {
+            error: `${image.name} must be smaller than 5 MB.`
+          },
           { status: 413 }
         )
       }
+    }
 
-      const imageStore = getStore('product-images')
+    // ========================================
+    // CREATE PRODUCT
+    // ========================================
+
+    const products = await db.sql`
+      INSERT INTO products (
+        item_number,
+        name,
+        description
+      )
+      VALUES (
+        ${itemNumber},
+        ${name},
+        ${description}
+      )
+      RETURNING *
+    `
+
+    const product = products[0]
+
+    // ========================================
+    // SAVE PRODUCT IMAGES
+    // ========================================
+
+    const imageStore = getStore('product-images')
+
+    const productImages = []
+
+    for (const image of images) {
+      if (!image || image.size === 0) {
+        continue
+      }
 
       const extension = image.name
         .split('.')
         .pop()
         .toLowerCase()
 
-      imageKey = `${crypto.randomUUID()}.${extension}`
+      const imageKey =
+        `${crypto.randomUUID()}.${extension}`
 
+      // Save actual file to Netlify Blobs
       await imageStore.set(
         imageKey,
         image
       )
+
+      // Save relationship in database
+      const savedImages = await db.sql`
+        INSERT INTO product_images (
+          product_id,
+          image_key
+        )
+        VALUES (
+          ${product.id},
+          ${imageKey}
+        )
+        RETURNING *
+      `
+
+      productImages.push(savedImages[0])
     }
 
-    const products = await db.sql`
-      INSERT INTO products (
-        item_number,
-        name,
-        description,
-        image_key
-      )
-      VALUES (
-        ${itemNumber},
-        ${name},
-        ${description},
-        ${imageKey}
-      )
-      RETURNING *
-    `
+    // ========================================
+    // RESPONSE
+    // ========================================
 
     return Response.json(
-      products[0],
+      {
+        ...product,
+        images: productImages
+      },
       { status: 201 }
     )
   }
+
+  // ========================================
+  // UNSUPPORTED METHOD
+  // ========================================
 
   return Response.json(
     { error: 'Method not allowed.' },

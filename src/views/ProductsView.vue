@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue'
 
 const products = ref([])
+const selectedImages = ref({})
+
 const isLoading = ref(true)
 const loadError = ref('')
 
@@ -11,6 +13,18 @@ const getProductImageUrl = (imageKey) => {
   }
 
   return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
+}
+
+const selectProductImage = (productId, imageKey) => {
+  selectedImages.value[productId] = imageKey
+}
+
+const getSelectedProductImage = (product) => {
+  if (selectedImages.value[product.id]) {
+    return selectedImages.value[product.id]
+  }
+
+  return product.images?.[0]?.image_key || ''
 }
 
 const loadProducts = async () => {
@@ -27,6 +41,17 @@ const loadProducts = async () => {
     }
 
     products.value = await response.json()
+
+    /*
+      Set the first image for each product
+      as its initial main image.
+    */
+    for (const product of products.value) {
+      if (product.images?.length) {
+        selectedImages.value[product.id] =
+          product.images[0].image_key
+      }
+    }
   } catch (error) {
     console.error('Unable to load products:', error)
 
@@ -78,23 +103,67 @@ onMounted(() => {
         :key="product.id"
         class="product-card-parent"
       >
-    
+
+        <!-- ========================================
+             MAIN IMAGE
+        ========================================= -->
 
         <div class="product-card">
 
           <img
-            v-if="product.image_key"
-            :src="getProductImageUrl(product.image_key)"
+            v-if="getSelectedProductImage(product)"
+            :src="getProductImageUrl(
+              getSelectedProductImage(product)
+            )"
             :alt="product.name"
           >
 
         </div>
 
+
+        <!-- ========================================
+             SECONDARY IMAGES
+        ========================================= -->
+
+        <div
+          v-if="product.images?.length > 1"
+          class="product-thumbnail-section"
+        >
+
+          <button
+            v-for="image in product.images"
+            :key="image.id"
+            type="button"
+            class="product-thumbnail"
+            :class="{
+              'product-thumbnail-selected':
+                getSelectedProductImage(product) === image.image_key
+            }"
+            @click="
+              selectProductImage(
+                product.id,
+                image.image_key
+              )
+            "
+          >
+
+            <img
+              :src="getProductImageUrl(image.image_key)"
+              :alt="`${product.name} alternate view`"
+            >
+
+          </button>
+
+        </div>
+
+
+        <!-- ========================================
+             PRODUCT NAME
+        ========================================= -->
+
         <div class="product-text-div">
           {{ product.name }}
         </div>
-
-  
 
       </div>
 
@@ -202,10 +271,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.product-card:active {
-  box-shadow: none;
-}
-
 .product-card img {
   display: block;
 
@@ -213,6 +278,50 @@ onMounted(() => {
   height: 100%;
 
   object-fit: contain;
+}
+
+
+/* ========================================
+   PRODUCT THUMBNAILS
+======================================== */
+
+.product-thumbnail-section {
+  display: flex;
+
+  gap: 0.4rem;
+
+  padding-top: 0.5rem;
+
+  overflow-x: auto;
+}
+
+.product-thumbnail {
+  flex: 0 0 3.5rem;
+
+  width: 3.5rem;
+  height: 3.5rem;
+
+  padding: 0.2rem;
+
+  background: white;
+
+  border: 1px solid transparent;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.product-thumbnail img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+.product-thumbnail-selected {
+  border-color: #703795;
 }
 
 

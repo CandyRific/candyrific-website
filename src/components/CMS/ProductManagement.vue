@@ -4,7 +4,7 @@ import { ref } from 'vue'
 const productItemNumber = ref('')
 const productName = ref('')
 const productDescription = ref('')
-const productImage = ref(null)
+const productImages = ref([])
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -13,9 +13,9 @@ const formMessage = ref('')
 const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
-  const file = event.target.files[0] || null
+  productImages.value = Array.from(event.target.files)
 
-  productImage.value = file
+  console.log('Selected images:', productImages.value)
 }
 
 const addProduct = async () => {
@@ -47,8 +47,8 @@ const addProduct = async () => {
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
 
-    if (productImage.value) {
-      formData.append('image', productImage.value)
+    for (const image of productImages.value) {
+      formData.append('images', image)
     }
 
     const response = await fetch('/.netlify/functions/products', {
@@ -79,7 +79,7 @@ const addProduct = async () => {
     productItemNumber.value = ''
     productName.value = ''
     productDescription.value = ''
-    productImage.value = null
+    productImages.value = []
     productSeason.value = ''
     productBrand.value = ''
 
@@ -187,15 +187,25 @@ const addProduct = async () => {
 
       <div class="form-group">
         <label for="product-image">
-          Product Image
+          Product Images
         </label>
 
         <input
           id="product-image"
           type="file"
           accept="image/*"
+          multiple
           @change="handleImageChange"
         >
+      </div>
+
+      <div
+        v-if="productImages.length"
+        class="selected-images"
+      >
+        {{ productImages.length }}
+        {{ productImages.length === 1 ? 'image' : 'images' }}
+        selected
       </div>
 
       <button
@@ -299,6 +309,14 @@ const addProduct = async () => {
   color: black;
 
   cursor: pointer;
+}
+
+.selected-images {
+  margin: -0.25rem 0 1rem;
+
+  color: #703795;
+
+  font-size: 0.95rem;
 }
 
 .add-product-form button {
