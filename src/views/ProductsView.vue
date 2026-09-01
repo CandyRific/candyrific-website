@@ -58,7 +58,7 @@ const addProduct = async () => {
       Check back soon for more CandyRific products and updates.
     </div>
 
-    <form class="add-product-form" @submit.prevent="addProduct">
+    <!-- <form class="add-product-form" @submit.prevent="addProduct">
 
   <div class="form-group">
     <label for="product-name">
@@ -97,7 +97,7 @@ const addProduct = async () => {
     {{ formMessage }}
   </p>
 
-</form>
+</form> -->
 
     <div class="product-section">
 
