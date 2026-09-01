@@ -13,6 +13,16 @@ const loadProducts = async () => {
   products.value = await response.json()
 }
 
+const selectedImages = ref({})
+
+const getSelectedImage = (product) => {
+  return selectedImages.value[product.id] || product.images?.[0]?.image_key
+}
+
+const selectImage = (productId, imageKey) => {
+  selectedImages.value[productId] = imageKey
+}
+
 onMounted(() => {
   loadProducts()
 })
@@ -40,10 +50,28 @@ onMounted(() => {
   <div class="product-card">
     <img
       v-if="product.images?.length"
-      :src="getProductImageUrl(product.images[0].image_key)"
+      :src="getProductImageUrl(getSelectedImage(product))"
       :alt="product.name"
     >
   </div>
+
+  <div
+  v-if="product.images?.length"
+  class="product-thumbnails"
+>
+  <button
+    v-for="image in product.images"
+    :key="image.id"
+    type="button"
+    class="product-thumbnail"
+    @click="selectImage(product.id, image.image_key)"
+  >
+    <img
+      :src="getProductImageUrl(image.image_key)"
+      :alt="`${product.name} thumbnail`"
+    >
+  </button>
+</div>
 
   <div class="product-text-div">
     {{ product.name }}
@@ -252,6 +280,37 @@ onMounted(() => {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+}
+
+.product-thumbnails {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.4rem;
+
+  margin-top: 0.5rem;
+}
+
+.product-thumbnail {
+  width: 3rem;
+  height: 3rem;
+
+  padding: 0.2rem;
+
+  background: white;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.product-thumbnail img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
 }
 
 </style>
