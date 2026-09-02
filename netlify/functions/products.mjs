@@ -68,11 +68,13 @@ export default async (req) => {
   const products = await db.sql`
     INSERT INTO products (
       name,
-      description
+      description,
+      item_number
     )
     VALUES (
       ${name},
-      ${description}
+      ${description},
+      ${productNumber}
     )
     RETURNING *
   `
