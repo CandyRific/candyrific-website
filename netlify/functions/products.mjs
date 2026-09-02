@@ -37,7 +37,7 @@ export default async (req) => {
  if (req.method === 'POST') {
   const formData = await req.formData()
 
-  const productNumber = formData.get('productNumber')
+  // const productNumber = formData.get('productNumber')
   const name = formData.get('name')
   const description = formData.get('description')
 
@@ -68,13 +68,11 @@ export default async (req) => {
   const products = await db.sql`
     INSERT INTO products (
       name,
-      description,
-      item_number
+      description
     )
     VALUES (
       ${name},
-      ${description},
-      ${productNumber}
+      ${description}
     )
     RETURNING *
   `
