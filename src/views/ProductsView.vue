@@ -1,5 +1,31 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 
+const products = ref([])
+
+const getProductImageUrl = (imageKey) => {
+  return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
+}
+
+const loadProducts = async () => {
+  const response = await fetch('/.netlify/functions/products')
+
+  products.value = await response.json()
+}
+
+const selectedImages = ref({})
+
+const getSelectedImage = (product) => {
+  return selectedImages.value[product.id] || product.images?.[0]?.image_key
+}
+
+const selectImage = (productId, imageKey) => {
+  selectedImages.value[productId] = imageKey
+}
+
+onMounted(() => {
+  loadProducts()
+})
 </script>
 
 <template>
@@ -16,179 +42,41 @@
 
     <div class="product-section">
 
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/14174 Disney Helicopter Fan Display front.webp"
-            alt="Disney Helicopter Fan"
-          >
-        </div>
+     <div
+  v-for="product in products"
+  :key="product.id"
+  class="product-card-parent"
+>
+  <div class="product-card">
+    <img
+      v-if="product.images?.length"
+      :src="getProductImageUrl(getSelectedImage(product))"
+      :alt="product.name"
+    >
+  </div>
 
-        <div class="product-text-div">
-          Disney Assorted Candy Fan
-        </div>
-      </div>
+  <div
+  v-if="product.images?.length"
+  class="product-thumbnails"
+>
+  <button
+    v-for="image in product.images"
+    :key="image.id"
+    type="button"
+    class="product-thumbnail"
+    @click="selectImage(product.id, image.image_key)"
+  >
+    <img
+      :src="getProductImageUrl(image.image_key)"
+      :alt="`${product.name} thumbnail`"
+    >
+  </button>
+</div>
 
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/11928 Marvel Candy Fan Display.webp"
-            alt="Marvel Candy Fan"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Marvel Avengers Assorted Character Fans
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/17466 HelicopterFan_Display.webp"
-            alt="Helicopter Fan Display"
-          >
-        </div>
-
-        <div class="product-text-div">
-          CandyRific Light Up Helicopter Fan
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/16113 SweetSquad_12ctDisplay.webp"
-            alt="Sweet Squad 12 Count Display"
-          >
-        </div>
-
-        <div class="product-text-div">
-          CandyRific Sweet Squad Fans
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/14604 Licensed Assorted Sweet Spinz Fan HIRES.webp"
-            alt="Licensed Assorted Sweet Spinz Fan"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Licensed Assorted Sweet Spinz Fan
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/13676 Spongebob Stretch-eez HIRES.webp"
-            alt="SpongeBob Stretch-eez"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Nickelodeon SpongeBob Stretch-eez
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/14529 Stitch Stretch-eez card.webp"
-            alt="Stitch Stretch-eez"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Disney Stitch Stretch-eez
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/13706 Shrek_Stretcheez_BlisterCard.webp"
-            alt="Shrek Stretch-eez"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Universal Shrek Stretch-eez
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/94034_10ct_WH_ED_LMB.webp"
-            alt="Warheads Loud Mouth Bites"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Warheads 10ct. Loud Mouth Bites Peg Bag
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/96566 Warheads_4pkPopping Candy_Peg Bag.webp"
-            alt="Warheads Popping Candy"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Warheads 4pk. Popping Candy Peg Bag
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/97739-HI WarHeads 40ct. Popping Candy Gusset Bag 3.17oz.webp"
-            alt="Warheads 40 Count Popping Candy Gusset Bag"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Warheads SOUR 40ct. Popping Candy Bag
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/16202 Kool-Aid 10ct. Loud Mouth Bites Peg Bag unit render.webp"
-            alt="Kool-Aid Loud Mouth Bites"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Kool-Aid 10ct. Loud Mouth Bites Peg Bag
-          <br>
-          COMING SOON
-          <br>
-          Available October 15, 2026
-        </div>
-      </div>
-
-      <div class="product-card-parent">
-        <div class="product-card">
-          <img
-            src="../assets/products/19856 Kool-Aid Bubblegum Cotton Candy Peg Bag.webp"
-            alt="Kool-Aid Bubblegum Cotton Candy"
-          >
-        </div>
-
-        <div class="product-text-div">
-          Kool-Aid Cotton Candy Bubble Gum Peg Bag
-        </div>
-      </div>
-
+  <div class="product-text-div">
+    {{ product.name }}
+  </div>
+</div>
     </div>
 
   </div>
@@ -392,6 +280,37 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+}
+
+.product-thumbnails {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.4rem;
+
+  margin-top: 0.5rem;
+}
+
+.product-thumbnail {
+  width: 3rem;
+  height: 3rem;
+
+  padding: 0.2rem;
+
+  background: white;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.product-thumbnail img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
 }
 
 </style>

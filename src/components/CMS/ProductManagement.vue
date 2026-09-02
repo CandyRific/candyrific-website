@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 
+const productNumber = ref('')
 const productName = ref('')
 const productDescription = ref('')
-const productImage = ref(null)
+const productImages = ref([])
+const productImageNames = ref([])
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -12,9 +14,9 @@ const formMessage = ref('')
 const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
-  const file = event.target.files[0] || null
-
-  productImage.value = file
+  productImages.value = Array.from(event.target.files || [])
+  productImageNames.value = productImages.value.map((file) => file.name)
+  console.log(productImages.value)
 }
 
 const addProduct = async () => {
@@ -30,13 +32,16 @@ const addProduct = async () => {
   try {
     const formData = new FormData()
 
+    formData.append('productNumber', productNumber.value)
     formData.append('name', productName.value)
     formData.append('description', productDescription.value)
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
 
-    if (productImage.value) {
-      formData.append('image', productImage.value)
+    if (productImages.value) {
+      for (const file of productImages.value) {
+        formData.append('image', file)
+      }
     }
 
     const response = await fetch('/.netlify/functions/products', {
@@ -66,7 +71,8 @@ const addProduct = async () => {
 
     productName.value = ''
     productDescription.value = ''
-    productImage.value = null
+    productImages.value = []
+    productImageNames.value = []
     productSeason.value = ''
     productBrand.value = ''
 
@@ -96,6 +102,21 @@ const addProduct = async () => {
       class="add-product-form"
       @submit.prevent="addProduct"
     >
+
+    <div>
+        <div class="form-group">
+            <label for="product-number">
+            Product Number
+            </label>
+    
+            <input
+            id="product-number"
+            v-model="productNumber"
+            type="text"
+            placeholder="Product number"
+            >
+        </div>
+    </div>
 
       <div class="form-group">
         <label for="product-name">
@@ -160,7 +181,7 @@ const addProduct = async () => {
 
       <div class="form-group">
         <label for="product-image">
-          Product Image
+          Product Images
         </label>
 
         <input
@@ -168,7 +189,17 @@ const addProduct = async () => {
           type="file"
           accept="image/*"
           @change="handleImageChange"
+          multiple
         >
+
+        <div>
+            <p
+                v-for="(imageName, index) in productImageNames"
+                :key="index"
+            >
+                {{ imageName }}
+            </p>
+        </div>
       </div>
 
       <button

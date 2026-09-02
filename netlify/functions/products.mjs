@@ -6,9 +6,29 @@ export default async (req) => {
 
   if (req.method === 'GET') {
     const products = await db.sql`
-      SELECT *
-      FROM products
-      ORDER BY created_at DESC
+      SELECT
+        p.id,
+        p.name,
+        p.description,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', pi.id,
+              'image_key', pi.image_key,
+              'display_order', pi.display_order
+            )
+            ORDER BY pi.display_order, pi.id
+          ) FILTER (WHERE pi.id IS NOT NULL),
+          '[]'::json
+        ) AS images
+      FROM products p
+      LEFT JOIN product_images pi
+        ON pi.product_id = p.id
+      GROUP BY
+        p.id,
+        p.name,
+        p.description
+      ORDER BY p.created_at DESC
     `
 
     return Response.json(products)
@@ -17,9 +37,11 @@ export default async (req) => {
  if (req.method === 'POST') {
   const formData = await req.formData()
 
+  const productNumber = formData.get('productNumber')
   const name = formData.get('name')
   const description = formData.get('description')
-  const image = formData.get('image')
+
+  const images = formData.getAll('image')
 
   if (!name) {
     return Response.json(
@@ -28,30 +50,51 @@ export default async (req) => {
     )
   }
 
-  let imageKey = null
+  let imageKeys = [] // don't think we'll need the image key anymore. Actually, we will, it'll just need to be an array of image keys instead of a single image key
 
-  if (image && image.size > 0) {
+  if (images && images.length > 0) { // Need to check images instead of image and loop through them to store each image in the blob store
     const imageStore = getStore('product-images')
 
-    const extension = image.name.split('.').pop()
-    imageKey = `${crypto.randomUUID()}.${extension}`
-
-    await imageStore.set(imageKey, image)
+    for (const img of images) {
+      const extension = img.name.split('.').pop()
+      const key = `${crypto.randomUUID()}.${extension}`
+      await imageStore.set(key, img)
+      imageKeys.push(key) // push the key to the array of image keys
+    }
   }
 
+
+  // We'll likely need to insert into the products database just the name and description, get the product id, and then insert into the product_images table
   const products = await db.sql`
     INSERT INTO products (
       name,
       description,
-      image_key
+      item_number
     )
     VALUES (
       ${name},
       ${description},
-      ${imageKey}
+      ${productNumber}
     )
     RETURNING *
   `
+  let product = products[0];
+
+  // Then we can insert into the product_images table for each image key
+  if (imageKeys.length > 0) {
+    for (const key of imageKeys) {
+      await db.sql`
+        INSERT INTO product_images (
+          product_id,
+          image_key
+        )
+        VALUES (
+          ${product.id},
+          ${key}
+        )
+      `
+    }
+  }
 
   return Response.json(products[0], {
     status: 201
