@@ -69,6 +69,7 @@ const addProduct = async () => {
 
     formMessage.value = `Added "${data.name}" successfully.`
 
+    productNumber.value = ''
     productName.value = ''
     productDescription.value = ''
     productImages.value = []
