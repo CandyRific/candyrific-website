@@ -6,6 +6,7 @@ const productName = ref('')
 const productDescription = ref('')
 const productImages = ref([])
 const productImageNames = ref([])
+const amazonLink = ref('')
 
 const productSeason = ref('')
 const productBrand = ref('')
@@ -37,6 +38,7 @@ const addProduct = async () => {
     formData.append('description', productDescription.value)
     formData.append('season', productSeason.value)
     formData.append('brand', productBrand.value)
+    formData.append('amazonLink', amazonLink.value)
 
     if (productImages.value) {
       for (const file of productImages.value) {
@@ -76,6 +78,7 @@ const addProduct = async () => {
     productImageNames.value = []
     productSeason.value = ''
     productBrand.value = ''
+    amazonLink.value = ''
 
     const imageInput = document.getElementById('product-image')
 
@@ -115,6 +118,21 @@ const addProduct = async () => {
             v-model="productNumber"
             type="text"
             placeholder="Product number"
+            >
+        </div>
+    </div>
+
+    <div>
+        <div class="form-group">
+            <label for="amazon-link">
+            Amazon Link
+            </label>
+    
+            <input
+              id="amazon-link"
+              v-model="amazonLink"
+              type="url"
+              placeholder="https://www.amazon.com/..."
             >
         </div>
     </div>
@@ -179,6 +197,8 @@ const addProduct = async () => {
         </div>
 
       </div>
+
+
 
       <div class="form-group">
         <label for="product-image">

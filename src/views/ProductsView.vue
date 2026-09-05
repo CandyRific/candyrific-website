@@ -76,6 +76,20 @@ onMounted(() => {
   <div class="product-text-div">
     {{ product.name }}
   </div>
+
+  <div
+  v-if="product.amazon_link"
+  class="amazon-link-wrapper"
+>
+  <a
+    class="amazon-link"
+    :href="product.amazon_link"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Buy on Amazon
+  </a>
+</div>
 </div>
     </div>
 
@@ -183,7 +197,7 @@ onMounted(() => {
 .product-text-div {
   padding: clamp(0.5rem, 1vw, 0.85rem);
 
-  text-align: center;
+  text-align: left;
 
   color: black;
 
@@ -311,6 +325,39 @@ onMounted(() => {
   height: 100%;
 
   object-fit: contain;
+}
+
+.amazon-link-wrapper {
+  margin-top: 1rem;
+}
+
+.amazon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+
+  background: #111;
+  color: white;
+  text-decoration: none;
+
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.amazon-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.amazon-link:active {
+  transform: translateY(0);
 }
 
 </style>
