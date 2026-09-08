@@ -15,11 +15,11 @@
                 </div>
 
                 <div class="amazon-button-div">
-                    <!-- <a>
+                    <a href="https://www.amazon.com/s?k=CandyRific&ref=bl_dp_s_web_0">
                         <button>
                         Shop on Amazon
                     </button>
-                    </a> -->
+                    </a>
                     
                     <a href="https://pantryful.com/collections/candyrific">
                         <button>
