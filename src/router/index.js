@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
 import HomeView from '../views/HomeView.vue'
 import ContentManagementView from '../views/ContentManagementView.vue'
 import ProductView from '../views/ProductView.vue'
+
+import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,7 +49,7 @@ const router = createRouter({
 })
 
 import { useAuthStore } from '../stores/auth'
-import ProductView from '@/views/ProductView.vue'
+
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
