@@ -12,26 +12,42 @@ export default async (req) => {
       p.name,
       p.description,
       p.amazon_link,
+
       COALESCE(
-        json_agg(
-          json_build_object(
-            'id', pi.id,
-            'image_key', pi.image_key,
-            'display_order', pi.display_order
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', pi.id,
+              'image_key', pi.image_key,
+              'display_order', pi.display_order
+            )
+            ORDER BY pi.display_order, pi.id
           )
-          ORDER BY pi.display_order, pi.id
-        ) FILTER (WHERE pi.id IS NOT NULL),
+          FROM product_images pi
+          WHERE pi.product_id = p.id
+        ),
         '[]'::json
-      ) AS images
+      ) AS images,
+
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', b.id,
+              'name', b.name
+            )
+            ORDER BY b.name
+          )
+          FROM product_brands pb
+          JOIN brands b
+            ON b.id = pb.brand_id
+          WHERE pb.product_id = p.id
+        ),
+        '[]'::json
+      ) AS brands
+
     FROM products p
-    LEFT JOIN product_images pi
-      ON pi.product_id = p.id
-    GROUP BY
-      p.id,
-      p.item_number,
-      p.name,
-      p.description,
-      p.amazon_link
+
     ORDER BY p.created_at DESC
   `
 

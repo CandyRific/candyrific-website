@@ -1,5 +1,10 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref
+} from 'vue'
+
 import { useRouter } from 'vue-router'
 
 import sideArt from '../assets/se_long_design.png'
@@ -7,10 +12,19 @@ import sideArt from '../assets/se_long_design.png'
 const router = useRouter()
 
 const products = ref([])
+const brands = ref([])
+
 const selectedImages = ref({})
+const selectedBrandIds = ref([])
+
+const brandFilterOpen = ref(false)
 
 const isLoading = ref(false)
+const isLoadingBrands = ref(false)
+
 const loadError = ref('')
+const brandLoadError = ref('')
+
 
 const getProductImageUrl = (imageKey) => {
   if (!imageKey) {
@@ -19,6 +33,7 @@ const getProductImageUrl = (imageKey) => {
 
   return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
 }
+
 
 const loadProducts = async () => {
   isLoading.value = true
@@ -53,12 +68,79 @@ const loadProducts = async () => {
   }
 }
 
+
+const loadBrands = async () => {
+  isLoadingBrands.value = true
+  brandLoadError.value = ''
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/brands'
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        'Unable to load brands.'
+      )
+    }
+
+    brands.value = data
+  } catch (error) {
+    console.error(
+      'Unable to load brands:',
+      error
+    )
+
+    brandLoadError.value =
+      error.message ||
+      'Unable to load brands.'
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
+
+
+const filteredProducts = computed(() => {
+  if (selectedBrandIds.value.length === 0) {
+    return products.value
+  }
+
+  return products.value.filter((product) => {
+    return product.brands?.some((brand) => {
+      return selectedBrandIds.value.includes(
+        brand.id
+      )
+    })
+  })
+})
+
+
+const selectedBrandCount = computed(() => {
+  return selectedBrandIds.value.length
+})
+
+
+const toggleBrandFilter = () => {
+  brandFilterOpen.value =
+    !brandFilterOpen.value
+}
+
+
+const clearBrandFilters = () => {
+  selectedBrandIds.value = []
+}
+
+
 const getSelectedImage = (product) => {
   return (
     selectedImages.value[product.id] ||
     product.images?.[0]?.image_key
   )
 }
+
 
 const selectImage = (
   productId,
@@ -67,6 +149,7 @@ const selectImage = (
   selectedImages.value[productId] =
     imageKey
 }
+
 
 const navigateToIndividualProduct = (
   itemNumber
@@ -83,10 +166,13 @@ const navigateToIndividualProduct = (
   })
 }
 
+
 onMounted(() => {
   loadProducts()
+  loadBrands()
 })
 </script>
+
 
 <template>
   <main class="products-page">
@@ -97,6 +183,7 @@ onMounted(() => {
         Products
       </h1>
 
+
       <div class="products-layout">
 
         <!-- ==============================
@@ -106,31 +193,122 @@ onMounted(() => {
         <aside class="products-sidebar">
 
           <div class="item-count">
-            SHOWING {{ products.length }} ITEMS
+            SHOWING
+            {{ filteredProducts.length }}
+            ITEMS
           </div>
 
+
           <div class="filter-heading">
+
             <span>
               FILTER BY
             </span>
 
             <span class="filter-result-count">
-              {{ products.length }} RESULTS
+              {{ filteredProducts.length }}
+              RESULTS
             </span>
+
           </div>
+
 
           <button
             type="button"
             class="filter-button"
+            :aria-expanded="brandFilterOpen"
+            aria-controls="brand-filter-options"
+            @click="toggleBrandFilter"
           >
-            <span>
+
+            <span class="filter-button-label">
+
               BRAND
+
+              <span
+                v-if="selectedBrandCount"
+                class="selected-filter-count"
+              >
+                {{ selectedBrandCount }}
+              </span>
+
             </span>
 
-            <span class="filter-plus">
+            <span
+              class="filter-plus"
+              :class="{
+                open: brandFilterOpen
+              }"
+            >
               +
             </span>
+
           </button>
+
+
+          <div
+            v-if="brandFilterOpen"
+            id="brand-filter-options"
+            class="brand-filter-panel"
+          >
+
+            <p
+              v-if="isLoadingBrands"
+              class="brand-filter-status"
+            >
+              Loading brands...
+            </p>
+
+
+            <p
+              v-else-if="brandLoadError"
+              class="brand-filter-status"
+            >
+              {{ brandLoadError }}
+            </p>
+
+
+            <p
+              v-else-if="brands.length === 0"
+              class="brand-filter-status"
+            >
+              No brands available.
+            </p>
+
+
+            <template v-else>
+
+              <label
+                v-for="brand in brands"
+                :key="brand.id"
+                class="brand-filter-option"
+              >
+
+                <input
+                  v-model="selectedBrandIds"
+                  type="checkbox"
+                  :value="brand.id"
+                >
+
+                <span>
+                  {{ brand.name }}
+                </span>
+
+              </label>
+
+
+              <button
+                v-if="selectedBrandCount"
+                type="button"
+                class="clear-filters-button"
+                @click="clearBrandFilters"
+              >
+                Clear brands
+              </button>
+
+            </template>
+
+          </div>
 
         </aside>
 
@@ -148,6 +326,7 @@ onMounted(() => {
             Loading products...
           </div>
 
+
           <div
             v-else-if="loadError"
             class="products-status products-error"
@@ -155,13 +334,22 @@ onMounted(() => {
             {{ loadError }}
           </div>
 
+
+          <div
+            v-else-if="filteredProducts.length === 0"
+            class="products-status"
+          >
+            No products match the selected brands.
+          </div>
+
+
           <div
             v-else
             class="product-section"
           >
 
             <article
-              v-for="product in products"
+              v-for="product in filteredProducts"
               :key="product.id"
               class="product-card-parent"
               @click="
@@ -171,7 +359,7 @@ onMounted(() => {
               "
             >
 
-              <!-- Main product image -->
+              <!-- Main Product Image -->
 
               <div class="product-card">
 
@@ -199,9 +387,7 @@ onMounted(() => {
               <!-- Thumbnails -->
 
               <div
-                v-if="
-                  product.images?.length > 1
-                "
+                v-if="product.images?.length > 1"
                 class="product-thumbnails"
               >
 
@@ -222,6 +408,7 @@ onMounted(() => {
                     )
                   "
                 >
+
                   <img
                     :src="
                       getProductImageUrl(
@@ -232,19 +419,20 @@ onMounted(() => {
                       `${product.name} thumbnail`
                     "
                   >
+
                 </button>
 
               </div>
 
 
-              <!-- Product name -->
+              <!-- Product Name -->
 
               <div class="product-text-div">
                 {{ product.name }}
               </div>
 
 
-              <!-- Item number -->
+              <!-- Item Number -->
 
               <div
                 v-if="product.item_number"
@@ -260,6 +448,7 @@ onMounted(() => {
                 v-if="product.amazon_link"
                 class="amazon-link-wrapper"
               >
+
                 <a
                   class="amazon-link"
                   :href="product.amazon_link"
@@ -269,6 +458,7 @@ onMounted(() => {
                 >
                   Buy on Amazon
                 </a>
+
               </div>
 
             </article>
@@ -282,8 +472,6 @@ onMounted(() => {
     </div>
 
 
-    <!-- Decorative artwork -->
-
     <img
       :src="sideArt"
       alt=""
@@ -293,6 +481,7 @@ onMounted(() => {
 
   </main>
 </template>
+
 
 <style scoped>
 /* ========================================
@@ -423,10 +612,131 @@ onMounted(() => {
   background: #f7fbfe;
 }
 
+.filter-button-label {
+  display: flex;
+  align-items: center;
+
+  gap: 0.45rem;
+}
+
+.selected-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 1.25rem;
+  height: 1.25rem;
+
+  padding: 0 0.25rem;
+
+  background: #078fc9;
+
+  color: white;
+
+  border-radius: 999px;
+
+  font-size: 0.65rem;
+}
+
 .filter-plus {
+  display: inline-block;
+
   font-size: 1.2rem;
   line-height: 1;
   font-weight: 600;
+
+  transition: transform 0.2s ease;
+}
+
+.filter-plus.open {
+  transform: rotate(45deg);
+}
+
+
+/* ========================================
+   BRAND FILTER
+======================================== */
+
+.brand-filter-panel {
+  margin-top: 0.35rem;
+  padding: 0.6rem;
+
+  max-height: 20rem;
+
+  overflow-y: auto;
+
+  background: white;
+
+  border-radius: 5px;
+}
+
+.brand-filter-option {
+  display: flex;
+  align-items: center;
+
+  gap: 0.55rem;
+
+  width: 100%;
+
+  padding: 0.55rem 0.4rem;
+
+  box-sizing: border-box;
+
+  color: #078fc9;
+
+  font-size: 0.8rem;
+
+  cursor: pointer;
+
+  border-radius: 4px;
+}
+
+.brand-filter-option:hover {
+  background: #f0f8fc;
+}
+
+.brand-filter-option input {
+  flex-shrink: 0;
+
+  margin: 0;
+
+  accent-color: #078fc9;
+
+  cursor: pointer;
+}
+
+.brand-filter-status {
+  margin: 0;
+
+  padding: 0.5rem;
+
+  color: #078fc9;
+
+  font-size: 0.8rem;
+}
+
+.clear-filters-button {
+  width: 100%;
+
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+
+  background: transparent;
+
+  color: #703795;
+
+  border: 1px solid #703795;
+  border-radius: 4px;
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.clear-filters-button:hover {
+  background: #f7f2fa;
 }
 
 
