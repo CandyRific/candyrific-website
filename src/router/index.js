@@ -48,7 +48,7 @@ const router = createRouter({
   ],
 })
 
-import { useAuthStore } from '../stores/auth'
+
 
 
 router.beforeEach(async (to) => {
