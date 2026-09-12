@@ -1,7 +1,3 @@
-ALTER TABLE brands
-DROP COLUMN products;
-
-
 CREATE TABLE product_brands (
   product_id BIGINT NOT NULL,
   brand_id BIGINT NOT NULL,
