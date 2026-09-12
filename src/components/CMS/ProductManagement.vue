@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const productNumber = ref('')
 const productName = ref('')
@@ -9,22 +9,70 @@ const productImageNames = ref([])
 const amazonLink = ref('')
 
 const productSeason = ref('')
-const productBrand = ref('')
+
+const brands = ref([])
+const selectedBrandIds = ref([])
+const isLoadingBrands = ref(false)
 
 const formMessage = ref('')
 const isSubmitting = ref(false)
 
 const handleImageChange = (event) => {
-  productImages.value = Array.from(event.target.files || [])
-  productImageNames.value = productImages.value.map((file) => file.name)
-  console.log(productImages.value)
+  productImages.value = Array.from(
+    event.target.files || []
+  )
+
+  productImageNames.value =
+    productImages.value.map(
+      (file) => file.name
+    )
+}
+
+const loadBrands = async () => {
+  isLoadingBrands.value = true
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/brands'
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to load brands. HTTP ${response.status}`
+      )
+    }
+
+    brands.value = data
+  } catch (error) {
+    console.error(
+      'Unable to load brands:',
+      error
+    )
+  } finally {
+    isLoadingBrands.value = false
+  }
 }
 
 const addProduct = async () => {
   formMessage.value = ''
 
   if (!productName.value.trim()) {
-    formMessage.value = 'Product name is required.'
+    formMessage.value =
+      'Product name is required.'
+
     return
   }
 
@@ -33,25 +81,61 @@ const addProduct = async () => {
   try {
     const formData = new FormData()
 
-    formData.append('productNumber', productNumber.value)
-    formData.append('name', productName.value)
-    formData.append('description', productDescription.value)
-    formData.append('season', productSeason.value)
-    formData.append('brand', productBrand.value)
-    formData.append('amazonLink', amazonLink.value)
+    formData.append(
+      'productNumber',
+      productNumber.value
+    )
 
-    if (productImages.value) {
-      for (const file of productImages.value) {
-        formData.append('image', file)
-      }
+    formData.append(
+      'name',
+      productName.value
+    )
+
+    formData.append(
+      'description',
+      productDescription.value
+    )
+
+    formData.append(
+      'season',
+      productSeason.value
+    )
+
+    formData.append(
+      'amazonLink',
+      amazonLink.value
+    )
+
+    for (
+      const brandId of
+      selectedBrandIds.value
+    ) {
+      formData.append(
+        'brandIds',
+        brandId
+      )
     }
 
-    const response = await fetch('/.netlify/functions/products', {
-      method: 'POST',
-      body: formData
-    })
+    for (
+      const file of
+      productImages.value
+    ) {
+      formData.append(
+        'image',
+        file
+      )
+    }
 
-    const responseText = await response.text()
+    const response = await fetch(
+      '/.netlify/functions/products',
+      {
+        method: 'POST',
+        body: formData
+      }
+    )
+
+    const responseText =
+      await response.text()
 
     let data = null
 
@@ -69,7 +153,8 @@ const addProduct = async () => {
       )
     }
 
-    formMessage.value = `Added "${data.name}" successfully.`
+    formMessage.value =
+      `Added "${data.name}" successfully.`
 
     productNumber.value = ''
     productName.value = ''
@@ -77,22 +162,33 @@ const addProduct = async () => {
     productImages.value = []
     productImageNames.value = []
     productSeason.value = ''
-    productBrand.value = ''
     amazonLink.value = ''
+    selectedBrandIds.value = []
 
-    const imageInput = document.getElementById('product-image')
+    const imageInput =
+      document.getElementById(
+        'product-image'
+      )
 
     if (imageInput) {
       imageInput.value = ''
     }
   } catch (error) {
-    console.error('Unable to add product:', error)
+    console.error(
+      'Unable to add product:',
+      error
+    )
 
-    formMessage.value = error.message
+    formMessage.value =
+      error.message
   } finally {
     isSubmitting.value = false
   }
 }
+
+onMounted(() => {
+  loadBrands()
+})
 </script>
 
 <template>
@@ -107,35 +203,31 @@ const addProduct = async () => {
       @submit.prevent="addProduct"
     >
 
-    <div>
-        <div class="form-group">
-            <label for="product-number">
-            Product Number
-            </label>
-    
-            <input
-            id="product-number"
-            v-model="productNumber"
-            type="text"
-            placeholder="Product number"
-            >
-        </div>
-    </div>
+      <div class="form-group">
+        <label for="product-number">
+          Product Number
+        </label>
 
-    <div>
-        <div class="form-group">
-            <label for="amazon-link">
-            Amazon Link
-            </label>
-    
-            <input
-              id="amazon-link"
-              v-model="amazonLink"
-              type="url"
-              placeholder="https://www.amazon.com/..."
-            >
-        </div>
-    </div>
+        <input
+          id="product-number"
+          v-model="productNumber"
+          type="text"
+          placeholder="Product number"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="amazon-link">
+          Amazon Link
+        </label>
+
+        <input
+          id="amazon-link"
+          v-model="amazonLink"
+          type="url"
+          placeholder="https://www.amazon.com/..."
+        >
+      </div>
 
       <div class="form-group">
         <label for="product-name">
@@ -164,41 +256,65 @@ const addProduct = async () => {
         ></textarea>
       </div>
 
-      <div class="form-select-row">
+      <div class="form-group">
+        <label for="product-season">
+          Season
+        </label>
 
-        <div class="form-group">
-          <label for="product-season">
-            Season
-          </label>
-
-          <select
-            id="product-season"
-            v-model="productSeason"
-          >
-            <option value="">
-              Select season
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="product-brand">
-            Brand
-          </label>
-
-          <select
-            id="product-brand"
-            v-model="productBrand"
-          >
-            <option value="">
-              Select brand
-            </option>
-          </select>
-        </div>
-
+        <select
+          id="product-season"
+          v-model="productSeason"
+        >
+          <option value="">
+            Select season
+          </option>
+        </select>
       </div>
 
+      <fieldset class="brand-selection">
 
+        <legend>
+          Brands
+        </legend>
+
+        <p
+          v-if="isLoadingBrands"
+          class="brand-status"
+        >
+          Loading brands...
+        </p>
+
+        <p
+          v-else-if="brands.length === 0"
+          class="brand-status"
+        >
+          No brands are currently available.
+        </p>
+
+        <div
+          v-else
+          class="brand-checklist"
+        >
+
+          <label
+            v-for="brand in brands"
+            :key="brand.id"
+            class="brand-checkbox"
+          >
+            <input
+              v-model="selectedBrandIds"
+              type="checkbox"
+              :value="brand.id"
+            >
+
+            <span>
+              {{ brand.name }}
+            </span>
+          </label>
+
+        </div>
+
+      </fieldset>
 
       <div class="form-group">
         <label for="product-image">
@@ -209,17 +325,17 @@ const addProduct = async () => {
           id="product-image"
           type="file"
           accept="image/*"
-          @change="handleImageChange"
           multiple
+          @change="handleImageChange"
         >
 
-        <div>
-            <p
-                v-for="(imageName, index) in productImageNames"
-                :key="index"
-            >
-                {{ imageName }}
-            </p>
+        <div class="selected-images">
+          <p
+            v-for="(imageName, index) in productImageNames"
+            :key="index"
+          >
+            {{ imageName }}
+          </p>
         </div>
       </div>
 
@@ -227,7 +343,11 @@ const addProduct = async () => {
         type="submit"
         :disabled="isSubmitting"
       >
-        {{ isSubmitting ? 'Adding...' : 'Add Product' }}
+        {{
+          isSubmitting
+            ? 'Adding...'
+            : 'Add Product'
+        }}
       </button>
 
       <p
@@ -278,13 +398,6 @@ const addProduct = async () => {
   gap: 0.4rem;
 }
 
-.form-select-row {
-  display: grid;
-  grid-template-columns: 1fr;
-
-  gap: 1rem;
-}
-
 .form-group label {
   color: #703795;
 
@@ -326,6 +439,105 @@ const addProduct = async () => {
   cursor: pointer;
 }
 
+
+/* ========================================
+   BRAND CHECKLIST
+======================================== */
+
+.brand-selection {
+  margin: 0 0 1.5rem;
+
+  padding: 0;
+
+  border: none;
+}
+
+.brand-selection legend {
+  margin-bottom: 0.75rem;
+
+  color: #703795;
+
+  font-weight: 500;
+}
+
+.brand-checklist {
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  gap: 0.5rem;
+
+  max-height: 18rem;
+
+  padding: 1rem;
+
+  overflow-y: auto;
+
+  background: #f7f4fa;
+
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.brand-checkbox {
+  display: flex;
+  align-items: center;
+
+  gap: 0.6rem;
+
+  padding: 0.65rem;
+
+  background: white;
+
+  color: #703795;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.brand-checkbox:hover {
+  background: #eee7f4;
+}
+
+.brand-checkbox input {
+  width: auto;
+
+  margin: 0;
+
+  cursor: pointer;
+}
+
+.brand-status {
+  margin: 0;
+
+  color: #703795;
+}
+
+
+/* ========================================
+   SELECTED IMAGES
+======================================== */
+
+.selected-images {
+  margin-top: 0.5rem;
+}
+
+.selected-images p {
+  margin: 0.2rem 0;
+
+  color: #703795;
+
+  font-size: 0.9rem;
+}
+
+
+/* ========================================
+   SUBMIT BUTTON
+======================================== */
+
 .add-product-form button {
   padding: 0.75rem 1.25rem;
 
@@ -358,9 +570,15 @@ const addProduct = async () => {
   color: #703795;
 }
 
+
+/* ========================================
+   DESKTOP
+======================================== */
+
 @media (min-width: 768px) {
-  .form-select-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .brand-checklist {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 </style>

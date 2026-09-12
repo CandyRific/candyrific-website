@@ -39,40 +39,97 @@ export default async (req) => {
 }
 
   if (req.method === 'POST') {
-    const formData = await req.formData()
+  const formData =
+    await req.formData()
 
-    const productNumber = formData.get('productNumber')
-    const name = formData.get('name')
-    const description = formData.get('description')
 
-    const amazonLinkValue = formData.get('amazonLink')
-    const amazonLink = amazonLinkValue?.trim() || null
+  const productNumber =
+    formData.get('productNumber')
 
-    const images = formData.getAll('image')
+  const name =
+    formData.get('name')
 
-    if (!name) {
-      return Response.json(
-        { error: 'Product name is required.' },
-        { status: 400 }
+  const description =
+    formData.get('description')
+
+
+  const amazonLinkValue =
+    formData.get('amazonLink')
+
+  const amazonLink =
+    amazonLinkValue?.trim() || null
+
+
+  const images =
+    formData.getAll('image')
+
+
+  const brandIds =
+    formData
+      .getAll('brandIds')
+      .map((id) => Number(id))
+      .filter((id) =>
+        Number.isInteger(id)
       )
-    }
 
-    const imageKeys = []
 
-    if (images && images.length > 0) {
-      const imageStore = getStore('product-images')
-
-      for (const img of images) {
-        const extension = img.name.split('.').pop()
-        const key = `${crypto.randomUUID()}.${extension}`
-
-        await imageStore.set(key, img)
-
-        imageKeys.push(key)
+  if (!name) {
+    return Response.json(
+      {
+        error:
+          'Product name is required.'
+      },
+      {
+        status: 400
       }
-    }
+    )
+  }
 
-    const products = await db.sql`
+
+  const imageKeys = []
+
+
+  if (
+    images &&
+    images.length > 0
+  ) {
+    const imageStore =
+      getStore('product-images')
+
+
+    for (const img of images) {
+
+      if (
+        !img ||
+        img.size === 0
+      ) {
+        continue
+      }
+
+
+      const extension =
+        img.name
+          .split('.')
+          .pop()
+
+
+      const key =
+        `${crypto.randomUUID()}.${extension}`
+
+
+      await imageStore.set(
+        key,
+        img
+      )
+
+
+      imageKeys.push(key)
+    }
+  }
+
+
+  const products =
+    await db.sql`
       INSERT INTO products (
         name,
         description,
@@ -88,30 +145,62 @@ export default async (req) => {
       RETURNING *
     `
 
-    const product = products[0]
 
-    if (imageKeys.length > 0) {
-      for (const key of imageKeys) {
-        await db.sql`
-          INSERT INTO product_images (
-            product_id,
-            image_key
-          )
-          VALUES (
-            ${product.id},
-            ${key}
-          )
-        `
-      }
+  const product =
+    products[0]
+
+
+  if (imageKeys.length > 0) {
+
+    for (
+      let index = 0;
+      index < imageKeys.length;
+      index++
+    ) {
+
+      const key =
+        imageKeys[index]
+
+
+      await db.sql`
+        INSERT INTO product_images (
+          product_id,
+          image_key,
+          display_order
+        )
+        VALUES (
+          ${product.id},
+          ${key},
+          ${index + 1}
+        )
+      `
     }
-
-    return Response.json(product, {
-      status: 201
-    })
   }
 
+
+  if (brandIds.length > 0) {
+
+    for (const brandId of brandIds) {
+
+      await db.sql`
+        INSERT INTO product_brands (
+          product_id,
+          brand_id
+        )
+        VALUES (
+          ${product.id},
+          ${brandId}
+        )
+      `
+    }
+  }
+
+
   return Response.json(
-    { error: 'Method not allowed.' },
-    { status: 405 }
+    product,
+    {
+      status: 201
+    }
   )
+}
 }
