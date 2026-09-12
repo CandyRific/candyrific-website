@@ -271,11 +271,10 @@ onMounted(() => {
         </select>
       </div>
 
-      <fieldset class="brand-selection">
-
-        <legend>
+      <div class="form-group">
+        <label for="product-brands">
           Brands
-        </legend>
+        </label>
 
         <p
           v-if="isLoadingBrands"
@@ -284,37 +283,26 @@ onMounted(() => {
           Loading brands...
         </p>
 
-        <p
-          v-else-if="brands.length === 0"
-          class="brand-status"
-        >
-          No brands are currently available.
-        </p>
-
-        <div
+        <select
           v-else
-          class="brand-checklist"
+          id="product-brands"
+          v-model="selectedBrandIds"
+          multiple
+          class="brand-multi-select"
         >
-
-          <label
+          <option
             v-for="brand in brands"
             :key="brand.id"
-            class="brand-checkbox"
+            :value="brand.id"
           >
-            <input
-              v-model="selectedBrandIds"
-              type="checkbox"
-              :value="brand.id"
-            >
+            {{ brand.name }}
+          </option>
+        </select>
 
-            <span>
-              {{ brand.name }}
-            </span>
-          </label>
-
-        </div>
-
-      </fieldset>
+        <p class="brand-help-text">
+          Hold Ctrl on Windows or Cmd on Mac to select multiple brands.
+        </p>
+      </div>
 
       <div class="form-group">
         <label for="product-image">
@@ -435,77 +423,10 @@ onMounted(() => {
   background: white;
 
   color: black;
-
-  cursor: pointer;
 }
 
-
-/* ========================================
-   BRAND CHECKLIST
-======================================== */
-
-.brand-selection {
-  margin: 0 0 1.5rem;
-
-  padding: 0;
-
-  border: none;
-}
-
-.brand-selection legend {
-  margin-bottom: 0.75rem;
-
-  color: #703795;
-
-  font-weight: 500;
-}
-
-.brand-checklist {
-  display: grid;
-
-  grid-template-columns: 1fr;
-
-  gap: 0.5rem;
-
-  max-height: 18rem;
-
-  padding: 1rem;
-
-  overflow-y: auto;
-
-  background: #f7f4fa;
-
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.brand-checkbox {
-  display: flex;
-  align-items: center;
-
-  gap: 0.6rem;
-
-  padding: 0.65rem;
-
-  background: white;
-
-  color: #703795;
-
-  border-radius: 5px;
-
-  cursor: pointer;
-
-  transition: background 0.15s ease;
-}
-
-.brand-checkbox:hover {
-  background: #eee7f4;
-}
-
-.brand-checkbox input {
-  width: auto;
-
-  margin: 0;
+.brand-multi-select {
+  min-height: 10rem;
 
   cursor: pointer;
 }
@@ -516,10 +437,13 @@ onMounted(() => {
   color: #703795;
 }
 
+.brand-help-text {
+  margin: 0;
 
-/* ========================================
-   SELECTED IMAGES
-======================================== */
+  color: #666;
+
+  font-size: 0.85rem;
+}
 
 .selected-images {
   margin-top: 0.5rem;
@@ -532,11 +456,6 @@ onMounted(() => {
 
   font-size: 0.9rem;
 }
-
-
-/* ========================================
-   SUBMIT BUTTON
-======================================== */
 
 .add-product-form button {
   padding: 0.75rem 1.25rem;
@@ -568,17 +487,5 @@ onMounted(() => {
   margin-top: 1rem;
 
   color: #703795;
-}
-
-
-/* ========================================
-   DESKTOP
-======================================== */
-
-@media (min-width: 768px) {
-  .brand-checklist {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
 }
 </style>
