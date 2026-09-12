@@ -1,26 +1,52 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const products = ref([])
+const selectedImages = ref({})
 
 const getProductImageUrl = (imageKey) => {
   return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
 }
 
 const loadProducts = async () => {
-  const response = await fetch('/.netlify/functions/products')
+  try {
+    const response = await fetch('/.netlify/functions/products')
 
-  products.value = await response.json()
+    if (!response.ok) {
+      throw new Error('Unable to load products.')
+    }
+
+    products.value = await response.json()
+  } catch (error) {
+    console.error('Error loading products:', error)
+  }
 }
 
-const selectedImages = ref({})
-
 const getSelectedImage = (product) => {
-  return selectedImages.value[product.id] || product.images?.[0]?.image_key
+  return (
+    selectedImages.value[product.id] ||
+    product.images?.[0]?.image_key
+  )
 }
 
 const selectImage = (productId, imageKey) => {
   selectedImages.value[productId] = imageKey
+}
+
+const navigateToIndividualProduct = (itemNumber) => {
+  if (!itemNumber) {
+    return
+  }
+
+  router.push({
+    name: 'product',
+    params: {
+      itemNumber
+    }
+  })
 }
 
 onMounted(() => {
@@ -42,55 +68,60 @@ onMounted(() => {
 
     <div class="product-section">
 
-     <div
-  v-for="product in products"
-  :key="product.id"
-  class="product-card-parent"
->
-  <div class="product-card">
-    <img
-      v-if="product.images?.length"
-      :src="getProductImageUrl(getSelectedImage(product))"
-      :alt="product.name"
-    >
-  </div>
+      <div
+        v-for="product in products"
+        :key="product.id"
+        class="product-card-parent"
+        @click="navigateToIndividualProduct(product.item_number)"
+      >
 
-  <div
-  v-if="product.images?.length"
-  class="product-thumbnails"
->
-  <button
-    v-for="image in product.images"
-    :key="image.id"
-    type="button"
-    class="product-thumbnail"
-    @click="selectImage(product.id, image.image_key)"
-  >
-    <img
-      :src="getProductImageUrl(image.image_key)"
-      :alt="`${product.name} thumbnail`"
-    >
-  </button>
-</div>
+        <div class="product-card">
+          <img
+            v-if="product.images?.length"
+            :src="getProductImageUrl(getSelectedImage(product))"
+            :alt="product.name"
+          >
+        </div>
 
-  <div class="product-text-div">
-    {{ product.name }}
-  </div>
+        <div
+          v-if="product.images?.length"
+          class="product-thumbnails"
+        >
+          <button
+            v-for="image in product.images"
+            :key="image.id"
+            type="button"
+            class="product-thumbnail"
+            @click.stop="selectImage(product.id, image.image_key)"
+          >
+            <img
+              :src="getProductImageUrl(image.image_key)"
+              :alt="`${product.name} thumbnail`"
+            >
+          </button>
+        </div>
 
-  <div
-  v-if="product.amazon_link"
-  class="amazon-link-wrapper"
->
-  <a
-    class="amazon-link"
-    :href="product.amazon_link"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    Buy on Amazon
-  </a>
-</div>
-</div>
+        <div class="product-text-div">
+          {{ product.name }}
+        </div>
+
+        <div
+          v-if="product.amazon_link"
+          class="amazon-link-wrapper"
+        >
+          <a
+            class="amazon-link"
+            :href="product.amazon_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.stop
+          >
+            Buy on Amazon
+          </a>
+        </div>
+
+      </div>
+
     </div>
 
   </div>

@@ -5,36 +5,38 @@ export default async (req) => {
   const db = getDatabase()
 
   if (req.method === 'GET') {
-    const products = await db.sql`
-      SELECT
-        p.id,
-        p.name,
-        p.description,
-        p.amazon_link,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', pi.id,
-              'image_key', pi.image_key,
-              'display_order', pi.display_order
-            )
-            ORDER BY pi.display_order, pi.id
-          ) FILTER (WHERE pi.id IS NOT NULL),
-          '[]'::json
-        ) AS images
-      FROM products p
-      LEFT JOIN product_images pi
-        ON pi.product_id = p.id
-      GROUP BY
-        p.id,
-        p.name,
-        p.description,
-        p.amazon_link
-      ORDER BY p.created_at DESC
-    `
+  const products = await db.sql`
+    SELECT
+      p.id,
+      p.item_number,
+      p.name,
+      p.description,
+      p.amazon_link,
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', pi.id,
+            'image_key', pi.image_key,
+            'display_order', pi.display_order
+          )
+          ORDER BY pi.display_order, pi.id
+        ) FILTER (WHERE pi.id IS NOT NULL),
+        '[]'::json
+      ) AS images
+    FROM products p
+    LEFT JOIN product_images pi
+      ON pi.product_id = p.id
+    GROUP BY
+      p.id,
+      p.item_number,
+      p.name,
+      p.description,
+      p.amazon_link
+    ORDER BY p.created_at DESC
+  `
 
-    return Response.json(products)
-  }
+  return Response.json(products)
+}
 
   if (req.method === 'POST') {
     const formData = await req.formData()
