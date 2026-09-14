@@ -300,19 +300,17 @@ onMounted(() => {
         Products
       </h1>
 
-
       <div class="products-layout">
 
         <!-- ==============================
              FILTER AREA
         =============================== -->
 
-        <aside class="products-sidebar">
+       <!-- <aside class="products-sidebar">
 
           <div class="item-count">
             SHOWING {{ products.length }} ITEMS
           </div>
-
 
           <div class="filter-heading">
 
@@ -326,7 +324,6 @@ onMounted(() => {
             </span>
 
           </div>
-
 
           <button
             type="button"
@@ -360,7 +357,6 @@ onMounted(() => {
 
           </button>
 
-
           <div
             v-if="brandFilterOpen"
             id="brand-filter-options"
@@ -374,7 +370,6 @@ onMounted(() => {
               Loading brands...
             </p>
 
-
             <p
               v-else-if="brandLoadError"
               class="brand-filter-status"
@@ -382,14 +377,12 @@ onMounted(() => {
               {{ brandLoadError }}
             </p>
 
-
             <p
               v-else-if="brands.length === 0"
               class="brand-filter-status"
             >
               No brands available.
             </p>
-
 
             <template v-else>
 
@@ -411,7 +404,6 @@ onMounted(() => {
 
               </label>
 
-
               <button
                 v-if="selectedBrandIds.length"
                 type="button"
@@ -425,8 +417,7 @@ onMounted(() => {
 
           </div>
 
-        </aside>
-
+        </aside> -->
 
         <!-- ==============================
              PRODUCT AREA
@@ -441,7 +432,6 @@ onMounted(() => {
             Loading products...
           </div>
 
-
           <div
             v-else-if="loadError"
             class="products-status products-error"
@@ -449,14 +439,12 @@ onMounted(() => {
             {{ loadError }}
           </div>
 
-
           <div
             v-else-if="products.length === 0"
             class="products-status"
           >
             No products match the selected brands.
           </div>
-
 
           <div
             v-else
@@ -496,7 +484,6 @@ onMounted(() => {
 
               </div>
 
-
               <div
                 v-if="product.images?.length > 1"
                 class="product-thumbnails"
@@ -535,11 +522,9 @@ onMounted(() => {
 
               </div>
 
-
               <div class="product-text-div">
                 {{ product.name }}
               </div>
-
 
               <div
                 v-if="product.item_number"
@@ -547,7 +532,6 @@ onMounted(() => {
               >
                 Item # {{ product.item_number }}
               </div>
-
 
               <div
                 v-if="product.amazon_link"
@@ -575,7 +559,6 @@ onMounted(() => {
       </div>
 
     </div>
-
 
     <img
       :src="sideArt"
@@ -652,6 +635,10 @@ onMounted(() => {
 ======================================== */
 
 .products-sidebar {
+  position: relative;
+
+  z-index: 3;
+
   width: 100%;
 }
 
@@ -1052,14 +1039,14 @@ onMounted(() => {
   position: absolute;
 
   left: 0;
-  bottom: 0;
+  top: 10rem;
 
   z-index: 1;
 
   width: clamp(
-    70px,
-    16vw,
-    170px
+    80px,
+    20vw,
+    150px
   );
 
   height: auto;
@@ -1076,6 +1063,16 @@ onMounted(() => {
 @media (min-width: 600px) {
   .products-page {
     padding-top: 1.5rem;
+  }
+
+  .side-art {
+    top: 11rem;
+
+    width: clamp(
+      100px,
+      18vw,
+      165px
+    );
   }
 
   .product-section {
@@ -1127,6 +1124,17 @@ onMounted(() => {
     top: 1rem;
   }
 
+  .side-art {
+    top: 12rem;
+    left: 0;
+
+    width: clamp(
+      120px,
+      14vw,
+      180px
+    );
+  }
+
   .product-section {
     grid-template-columns:
       repeat(4, minmax(0, 1fr));
@@ -1150,6 +1158,12 @@ onMounted(() => {
       11rem minmax(0, 1fr);
 
     gap: 1.5rem;
+  }
+
+  .side-art {
+    top: 12rem;
+
+    width: 185px;
   }
 
   .product-section {
