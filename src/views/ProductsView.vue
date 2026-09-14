@@ -1,14 +1,18 @@
 <script setup>
 import {
-  computed,
   onMounted,
-  ref
+  ref,
+  watch
 } from 'vue'
 
-import { useRouter } from 'vue-router'
+import {
+  useRoute,
+  useRouter
+} from 'vue-router'
 
 import sideArt from '../assets/se_long_design.png'
 
+const route = useRoute()
 const router = useRouter()
 
 const products = ref([])
@@ -26,6 +30,43 @@ const loadError = ref('')
 const brandLoadError = ref('')
 
 
+const normalizeBrandQuery = (queryValue) => {
+  if (!queryValue) {
+    return []
+  }
+
+  const values =
+    Array.isArray(queryValue)
+      ? queryValue
+      : [queryValue]
+
+  return values
+    .map((value) => String(value))
+    .filter((value) => /^\d+$/.test(value))
+}
+
+
+const sameBrandSelection = (
+  first,
+  second
+) => {
+  if (first.length !== second.length) {
+    return false
+  }
+
+  const firstSorted =
+    [...first].sort()
+
+  const secondSorted =
+    [...second].sort()
+
+  return firstSorted.every(
+    (value, index) =>
+      value === secondSorted[index]
+  )
+}
+
+
 const getProductImageUrl = (imageKey) => {
   if (!imageKey) {
     return ''
@@ -40,11 +81,32 @@ const loadProducts = async () => {
   loadError.value = ''
 
   try {
-    const response = await fetch(
-      '/.netlify/functions/products'
-    )
+    const params =
+      new URLSearchParams()
 
-    const data = await response.json()
+    for (
+      const brandId of
+      selectedBrandIds.value
+    ) {
+      params.append(
+        'brand',
+        brandId
+      )
+    }
+
+    const queryString =
+      params.toString()
+
+    const endpoint =
+      queryString
+        ? `/.netlify/functions/products?${queryString}`
+        : '/.netlify/functions/products'
+
+    const response =
+      await fetch(endpoint)
+
+    const data =
+      await response.json()
 
     if (!response.ok) {
       throw new Error(
@@ -78,7 +140,8 @@ const loadBrands = async () => {
       '/.netlify/functions/brands'
     )
 
-    const data = await response.json()
+    const data =
+      await response.json()
 
     if (!response.ok) {
       throw new Error(
@@ -101,26 +164,6 @@ const loadBrands = async () => {
     isLoadingBrands.value = false
   }
 }
-
-
-const filteredProducts = computed(() => {
-  if (selectedBrandIds.value.length === 0) {
-    return products.value
-  }
-
-  return products.value.filter((product) => {
-    return product.brands?.some((brand) => {
-      return selectedBrandIds.value.includes(
-        brand.id
-      )
-    })
-  })
-})
-
-
-const selectedBrandCount = computed(() => {
-  return selectedBrandIds.value.length
-})
 
 
 const toggleBrandFilter = () => {
@@ -167,8 +210,82 @@ const navigateToIndividualProduct = (
 }
 
 
+/*
+  When the checkbox selection changes:
+
+  1. Update /products?brand=...
+  2. Vue Router changes the route query.
+*/
+watch(
+  selectedBrandIds,
+  async (newBrandIds) => {
+    const currentRouteBrands =
+      normalizeBrandQuery(
+        route.query.brand
+      )
+
+    if (
+      sameBrandSelection(
+        newBrandIds,
+        currentRouteBrands
+      )
+    ) {
+      return
+    }
+
+    await router.replace({
+      name: 'products',
+
+      query:
+        newBrandIds.length > 0
+          ? {
+              brand: newBrandIds
+            }
+          : {}
+    })
+  },
+  {
+    deep: true
+  }
+)
+
+
+/*
+  The route query is the source of truth.
+
+  This handles:
+  - selecting filters
+  - refreshing the page
+  - browser back/forward
+  - arriving from a homepage brand link
+*/
+watch(
+  () => route.query.brand,
+  async (brandQuery) => {
+    const routeBrandIds =
+      normalizeBrandQuery(
+        brandQuery
+      )
+
+    if (
+      !sameBrandSelection(
+        selectedBrandIds.value,
+        routeBrandIds
+      )
+    ) {
+      selectedBrandIds.value =
+        routeBrandIds
+    }
+
+    await loadProducts()
+  },
+  {
+    immediate: true
+  }
+)
+
+
 onMounted(() => {
-  loadProducts()
   loadBrands()
 })
 </script>
@@ -193,9 +310,7 @@ onMounted(() => {
         <aside class="products-sidebar">
 
           <div class="item-count">
-            SHOWING
-            {{ filteredProducts.length }}
-            ITEMS
+            SHOWING {{ products.length }} ITEMS
           </div>
 
 
@@ -206,7 +321,7 @@ onMounted(() => {
             </span>
 
             <span class="filter-result-count">
-              {{ filteredProducts.length }}
+              {{ products.length }}
               RESULTS
             </span>
 
@@ -226,10 +341,10 @@ onMounted(() => {
               BRAND
 
               <span
-                v-if="selectedBrandCount"
+                v-if="selectedBrandIds.length"
                 class="selected-filter-count"
               >
-                {{ selectedBrandCount }}
+                {{ selectedBrandIds.length }}
               </span>
 
             </span>
@@ -287,7 +402,7 @@ onMounted(() => {
                 <input
                   v-model="selectedBrandIds"
                   type="checkbox"
-                  :value="brand.id"
+                  :value="String(brand.id)"
                 >
 
                 <span>
@@ -298,7 +413,7 @@ onMounted(() => {
 
 
               <button
-                v-if="selectedBrandCount"
+                v-if="selectedBrandIds.length"
                 type="button"
                 class="clear-filters-button"
                 @click="clearBrandFilters"
@@ -336,7 +451,7 @@ onMounted(() => {
 
 
           <div
-            v-else-if="filteredProducts.length === 0"
+            v-else-if="products.length === 0"
             class="products-status"
           >
             No products match the selected brands.
@@ -349,7 +464,7 @@ onMounted(() => {
           >
 
             <article
-              v-for="product in filteredProducts"
+              v-for="product in products"
               :key="product.id"
               class="product-card-parent"
               @click="
@@ -358,8 +473,6 @@ onMounted(() => {
                 )
               "
             >
-
-              <!-- Main Product Image -->
 
               <div class="product-card">
 
@@ -383,8 +496,6 @@ onMounted(() => {
 
               </div>
 
-
-              <!-- Thumbnails -->
 
               <div
                 v-if="product.images?.length > 1"
@@ -425,14 +536,10 @@ onMounted(() => {
               </div>
 
 
-              <!-- Product Name -->
-
               <div class="product-text-div">
                 {{ product.name }}
               </div>
 
-
-              <!-- Item Number -->
 
               <div
                 v-if="product.item_number"
@@ -441,8 +548,6 @@ onMounted(() => {
                 Item # {{ product.item_number }}
               </div>
 
-
-              <!-- Amazon -->
 
               <div
                 v-if="product.amazon_link"

@@ -5,6 +5,14 @@ export default async (req) => {
   const db = getDatabase()
 
   if (req.method === 'GET') {
+  const url = new URL(req.url)
+
+  const brandIds = url.searchParams
+    .getAll('brand')
+    .filter((id) => /^\d+$/.test(id))
+
+  const brandIdList = brandIds.join(',')
+
   const products = await db.sql`
     SELECT
       p.id,
@@ -47,6 +55,21 @@ export default async (req) => {
       ) AS brands
 
     FROM products p
+
+    WHERE (
+      ${brandIdList} = ''
+      OR EXISTS (
+        SELECT 1
+        FROM product_brands pb_filter
+        WHERE pb_filter.product_id = p.id
+        AND pb_filter.brand_id = ANY(
+          string_to_array(
+            ${brandIdList},
+            ','
+          )::bigint[]
+        )
+      )
+    )
 
     ORDER BY p.created_at DESC
   `
