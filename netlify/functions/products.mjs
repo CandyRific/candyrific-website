@@ -5,6 +5,14 @@ export default async (req) => {
   const db = getDatabase()
 
   if (req.method === 'GET') {
+  const url = new URL(req.url)
+
+  const brandIds = url.searchParams
+    .getAll('brand')
+    .filter((id) => /^\d+$/.test(id))
+
+  const brandIdList = brandIds.join(',')
+
   const products = await db.sql`
     SELECT
       p.id,
@@ -12,26 +20,57 @@ export default async (req) => {
       p.name,
       p.description,
       p.amazon_link,
+
       COALESCE(
-        json_agg(
-          json_build_object(
-            'id', pi.id,
-            'image_key', pi.image_key,
-            'display_order', pi.display_order
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', pi.id,
+              'image_key', pi.image_key,
+              'display_order', pi.display_order
+            )
+            ORDER BY pi.display_order, pi.id
           )
-          ORDER BY pi.display_order, pi.id
-        ) FILTER (WHERE pi.id IS NOT NULL),
+          FROM product_images pi
+          WHERE pi.product_id = p.id
+        ),
         '[]'::json
-      ) AS images
+      ) AS images,
+
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', b.id,
+              'name', b.name
+            )
+            ORDER BY b.name
+          )
+          FROM product_brands pb
+          JOIN brands b
+            ON b.id = pb.brand_id
+          WHERE pb.product_id = p.id
+        ),
+        '[]'::json
+      ) AS brands
+
     FROM products p
-    LEFT JOIN product_images pi
-      ON pi.product_id = p.id
-    GROUP BY
-      p.id,
-      p.item_number,
-      p.name,
-      p.description,
-      p.amazon_link
+
+    WHERE (
+      ${brandIdList} = ''
+      OR EXISTS (
+        SELECT 1
+        FROM product_brands pb_filter
+        WHERE pb_filter.product_id = p.id
+        AND pb_filter.brand_id = ANY(
+          string_to_array(
+            ${brandIdList},
+            ','
+          )::bigint[]
+        )
+      )
+    )
+
     ORDER BY p.created_at DESC
   `
 
