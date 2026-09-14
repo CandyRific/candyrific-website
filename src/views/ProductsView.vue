@@ -306,7 +306,7 @@ onMounted(() => {
              FILTER AREA
         =============================== -->
 
-       <!-- <aside class="products-sidebar">
+        <aside class="products-sidebar">
 
           <div class="item-count">
             SHOWING {{ products.length }} ITEMS
@@ -417,7 +417,7 @@ onMounted(() => {
 
           </div>
 
-        </aside> -->
+        </aside>
 
         <!-- ==============================
              PRODUCT AREA
