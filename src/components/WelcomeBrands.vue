@@ -1,312 +1,366 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 
+const brands = ref([])
+const isLoading = ref(true)
+const loadError = ref('')
+
+const loadBrands = async () => {
+  try {
+    isLoading.value = true
+    loadError.value = ''
+
+    const response = await fetch('/.netlify/functions/brands')
+
+    if (!response.ok) {
+      throw new Error(`Failed to load brands: ${response.status}`)
+    }
+
+    brands.value = await response.json()
+  } catch (error) {
+    console.error('Error loading brands:', error)
+    loadError.value = 'Unable to load brands.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const leftBrands = computed(() => {
+  const midpoint = Math.ceil(brands.value.length / 2)
+
+  return brands.value.slice(0, midpoint)
+})
+
+const rightBrands = computed(() => {
+  const midpoint = Math.ceil(brands.value.length / 2)
+
+  return brands.value.slice(midpoint)
+})
+
+const getBrandImageUrl = (imageKey) => {
+  if (!imageKey) {
+    return ''
+  }
+
+  return `/.netlify/functions/brand-image?key=${encodeURIComponent(imageKey)}`
+}
+
+onMounted(() => {
+  loadBrands()
+})
 </script>
 
 <template>
   <div class="full-brand-div">
-      <div class="full-brand-title-div">
-          BRANDS WE WORK WITH
-      </div>
-      
-    <div class="left-marquee-banner">
-      
+
+    <div class="full-brand-title-div">
+      BRANDS WE WORK WITH
+    </div>
+
+    <div
+      v-if="loadError"
+      class="brand-message"
+    >
+      {{ loadError }}
+    </div>
+
+    <template v-else-if="!isLoading">
+
+      <div class="left-marquee-banner">
+
         <div class="left-marquee-track">
-  <div class="brand-marquee-card">
-    <img src="../assets/BS_Logo.png" alt="BS logo">
-  </div>
 
-  <div class="brand-marquee-card">
-    <img src="../assets/EOTS Logo.png" alt="EOTS logo">
-  </div>
+          <RouterLink
+            v-for="brand in leftBrands"
+            :key="brand.id"
+            :to="{
+              path: '/products',
+              query: {
+                brand: brand.id
+              }
+            }"
+            class="brand-marquee-card"
+            :aria-label="`View ${brand.name} products`"
+          >
 
-  <div class="brand-marquee-card">
-    <img src="../assets/HARIBO_logo.png" alt="Haribo logo">
-  </div>
+            <img
+              v-if="brand.image_key"
+              :src="getBrandImageUrl(brand.image_key)"
+              :alt="`${brand.name} logo`"
+            >
 
-  <div class="brand-marquee-card">
-    <img src="../assets/KonaIce_CupLogo.png" alt="Kona Ice Cup logo">
-  </div>
+          </RouterLink>
 
-  <div class="brand-marquee-card">
-    <img src="../assets/marvel logo.png" alt="Marvel logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/NBC logo.png" alt="NBC logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/PP_Logo.png" alt="PP logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Shrek Logo.png" alt="Shrek logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/SW Logo.png" alt="Star Wars logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Universal Horror Logo.png" alt="Universal Horror logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Cosmic_Logo.png" alt="Cosmic logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Frozen Logo.png" alt="Frozen logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/JW_Logo.png" alt="Jurassic World logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Kraft Heinz.png" alt="Kraft Heinz logo">
-  </div>
-</div>
-  
-    </div>
-    
-    <div class="right-marquee-banner">
-     
-          <div class="right-marquee-track">
-  <div class="brand-marquee-card">
-    <img src="../assets/mickey and friends logo.png" alt="Mickey and Friends logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Nickelodeon_Logo.png" alt="Nickelodeon logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/princess logo.png" alt="Princess logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/SS_logo.png" alt="SS logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Toy Story Logo.png" alt="Toy Story logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/WARHEADS Wally Logo.png" alt="Warheads Wally logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Disney Logo.png" alt="Disney logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/GD_Logo.png" alt="GD logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/KA Logo.png" alt="KA logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/LMB Logo.png" alt="LMB logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Minions_Logo.png" alt="Minions logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Paramount_Logo.png" alt="Paramount logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/SB_Logo.png" alt="SB logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Stitch_Logo.png" alt="Stitch logo">
-  </div>
-
-  <div class="brand-marquee-card">
-    <img src="../assets/Trolls_Logo.png" alt="Trolls logo">
-  </div>
-</div>
-      
-    </div>
-
-      
-      <div class="full-brand-blue-div">
+        </div>
 
       </div>
+
+
+      <div class="right-marquee-banner">
+
+        <div class="right-marquee-track">
+
+          <RouterLink
+            v-for="brand in rightBrands"
+            :key="brand.id"
+            :to="{
+              path: '/products',
+              query: {
+                brand: brand.id
+              }
+            }"
+            class="brand-marquee-card"
+            :aria-label="`View ${brand.name} products`"
+          >
+
+            <img
+              v-if="brand.image_key"
+              :src="getBrandImageUrl(brand.image_key)"
+              :alt="`${brand.name} logo`"
+            >
+
+          </RouterLink>
+
+        </div>
+
+      </div>
+
+    </template>
+
+
+    <div class="full-brand-blue-div">
+    </div>
+
   </div>
 </template>
 
 <style scoped>
-    .full-brand-div{
-        font-family: 'Fredoka', sans-serif;
-        background: linear-gradient(
-        90deg,
-        #6d3692 0%,
-        #6250a1 25%,
-        #3f6fb5 50%,
-        #007fc5 65%,
-        #00aced 100%
-        );
-        color: white;
-        position: relative;
-        padding-top: 0rem;
-        padding-bottom: 1rem;
-        z-index: 1;
-    }
 
-  
-    .full-brand-blue-div {
-        display: none;
-      }
+.full-brand-div {
+  font-family: 'Fredoka', sans-serif;
 
-    @media (min-width: 768px) {
-      .full-brand-blue-div {
-      /* This will be the size of the original div full-brand-title-div */
-        background: linear-gradient(
-        90deg,
-        rgba(109, 54, 146, 0.95) 0%,
-        rgba(109, 54, 146, 0.75) 5%,
-        rgba(109, 54, 146, 0.25) 10%,
-        rgba(109, 54, 146, 0.02) 50%,
-        rgba(0, 172, 237, 0.25) 90%,
-        rgba(0, 172, 237, 0.75) 95%,
-        rgba(0, 172, 237, 0.95) 100%
-      );
-      position:  absolute;
-      inset: 0;
-      z-index: 2;
-      display: block;
-      pointer-events: none;
-    }
-    }
+  background: linear-gradient(
+    90deg,
+    #6d3692 0%,
+    #6250a1 25%,
+    #3f6fb5 50%,
+    #007fc5 65%,
+    #00aced 100%
+  );
 
-    .full-brand-title-div {
-       display: flex;
-       justify-content: center;
-       align-items: center;
-       padding: 1rem;
-       font-size: 2rem;
-       text-align: center;
-       z-index: 3;
-       position: relative;
-       font-weight: 500;
-    }
+  color: white;
 
-    .left-marquee-banner {
-       overflow-x: hidden;
-       width: 100%;
-       z-index: 1;
-       padding-bottom: .5rem;
-    }
+  position: relative;
 
-    .right-marquee-banner {
-       overflow-x: hidden;
-       width: 100%;
-       z-index: 1;
-       overflow-y: hidden;
-       padding-bottom: .5rem;
-    }
+  padding-top: 0rem;
+  padding-bottom: 1rem;
 
-    .left-marquee-track {
-      display: flex;
-      width: max-content;
-      animation: left-marquee 35s linear infinite;
-      gap: .5rem;
-    }
-
-    .right-marquee-track {
-      display: flex;
-      width: max-content;
-      animation: right-marquee 40s linear infinite;
-      gap: .5rem;
-    }
+  z-index: 1;
+}
 
 
+.full-brand-blue-div {
+  display: none;
+}
 
-    .brand-marquee-card {
+
+.full-brand-title-div {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: 1rem;
+
+  font-size: 2rem;
+
+  text-align: center;
+
+  z-index: 3;
+
+  position: relative;
+
+  font-weight: 500;
+}
+
+
+.brand-message {
+  position: relative;
+
+  z-index: 3;
+
+  text-align: center;
+
+  padding: 2rem 1rem;
+}
+
+
+.left-marquee-banner {
+  overflow-x: hidden;
+
+  width: 100%;
+
+  z-index: 1;
+
+  padding-bottom: .5rem;
+}
+
+
+.right-marquee-banner {
+  overflow-x: hidden;
+
+  width: 100%;
+
+  z-index: 1;
+
+  overflow-y: hidden;
+
+  padding-bottom: .5rem;
+}
+
+
+.left-marquee-track {
+  display: flex;
+
+  width: max-content;
+
+  animation: left-marquee 35s linear infinite;
+
+  gap: .5rem;
+}
+
+
+.right-marquee-track {
+  display: flex;
+
+  width: max-content;
+
+  animation: right-marquee 40s linear infinite;
+
+  gap: .5rem;
+}
+
+
+.brand-marquee-card {
   display: block;
+
+  flex-shrink: 0;
+
   width: 9rem;
   height: 5rem;
+
   background-color: #9dabd5;
+
   border-radius: 5px;
+
   text-decoration: none;
+
   box-shadow: .5px .5px 1px black;
 }
-
-.brand-marquee-card:hover {
-
-}
-
 
 
 .brand-marquee-card:active {
   box-shadow: none;
 }
 
-    @media (min-width: 768px) {
-      .full-brand-div {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-      }
 
-      .brand-marquee-card{
-        width: 14rem;
-        height: 10rem;
-        
-      }
+.brand-marquee-card img {
+  height: 100%;
 
-      .brand-marquee-card:hover {
-        box-shadow: 1px 2px 4px black;
-      }
+  width: 100%;
+
+  object-fit: contain;
+
+  padding: .5rem;
+}
 
 
+@media (min-width: 768px) {
 
-      .left-marquee-track {
-        gap: 1rem;
-        padding-top: 1rem;
-      }
+  .full-brand-div {
+    padding-top: 1rem;
 
-      .right-marquee-track {
-        gap: 1rem;
-        padding-top: 1rem;
-      }
-    }
+    padding-bottom: 1rem;
+  }
 
-    .brand-marquee-card img {
-      height: 100%;
-      width: 100%;
-      object-fit: contain;
-      padding: .5rem;
-     
-    }
 
-    
+  .full-brand-blue-div {
 
-    @keyframes left-marquee {
-      from {
-        transform: translateX(100vw);
-      }
-      to {
-        transform: translateX(-100%);
-      }
-    }
+    background: linear-gradient(
+      90deg,
+      rgba(109, 54, 146, 0.95) 0%,
+      rgba(109, 54, 146, 0.75) 5%,
+      rgba(109, 54, 146, 0.25) 10%,
+      rgba(109, 54, 146, 0.02) 50%,
+      rgba(0, 172, 237, 0.25) 90%,
+      rgba(0, 172, 237, 0.75) 95%,
+      rgba(0, 172, 237, 0.95) 100%
+    );
 
-    @keyframes right-marquee {
-      from {
-        transform: translateX(-100%);
-      }
+    position: absolute;
 
-      to {
-        transform: translateX(100vw);
-      }
-    }
+    inset: 0;
+
+    z-index: 2;
+
+    display: block;
+
+    pointer-events: none;
+  }
+
+
+  .brand-marquee-card {
+    width: 14rem;
+
+    height: 10rem;
+  }
+
+
+  .brand-marquee-card:hover {
+    box-shadow: 1px 2px 4px black;
+  }
+
+
+  .left-marquee-track {
+    gap: 1rem;
+
+    padding-top: 1rem;
+  }
+
+
+  .right-marquee-track {
+    gap: 1rem;
+
+    padding-top: 1rem;
+  }
+
+}
+
+
+@keyframes left-marquee {
+
+  from {
+    transform: translateX(100vw);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+
+}
+
+
+@keyframes right-marquee {
+
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100vw);
+  }
+
+}
 
 </style>
-
