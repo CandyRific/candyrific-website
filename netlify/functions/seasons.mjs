@@ -1,4 +1,4 @@
-import { getDatabase } from '@netlify/neon'
+import { getDatabase } from '@netlify/database'
 
 export default async (req) => {
   try {
