@@ -1,4 +1,3 @@
-import { getStore } from '@netlify/blobs'
 import { getDatabase } from '@netlify/neon'
 
 export default async (req) => {
@@ -14,7 +13,6 @@ export default async (req) => {
         SELECT
           id,
           name,
-          image_key,
           created_at
         FROM seasons
         ORDER BY name ASC
@@ -29,71 +27,21 @@ export default async (req) => {
     ======================================== */
 
     if (req.method === 'POST') {
-      const formData = await req.formData()
+      const body = await req.json()
 
-      const name = formData.get('name')
-      const image = formData.get('image')
+      const name =
+        body?.name?.trim()
 
-
-      /* ========================================
-         VALIDATION
-      ======================================== */
-
-      if (!name || !name.trim()) {
+      if (!name) {
         return Response.json(
           {
-            error: 'Season name is required.',
+            error: 'Season name is required.'
           },
           {
-            status: 400,
+            status: 400
           }
         )
       }
-
-      if (!image || typeof image === 'string') {
-        return Response.json(
-          {
-            error: 'Season image is required.',
-          },
-          {
-            status: 400,
-          }
-        )
-      }
-
-
-      /* ========================================
-         IMAGE KEY
-      ======================================== */
-
-      const safeSeasonName = name
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-
-      const safeFileName = image.name
-        .toLowerCase()
-        .replace(/[^a-z0-9.-]+/g, '-')
-
-      const imageKey =
-        `seasons/${Date.now()}-${safeSeasonName}-${safeFileName}`
-
-
-      /* ========================================
-         UPLOAD IMAGE
-      ======================================== */
-
-      const seasonImageStore = getStore('season-images')
-
-      const imageBuffer = await image.arrayBuffer()
-
-      await seasonImageStore.set(imageKey, imageBuffer, {
-        metadata: {
-          contentType: image.type,
-          seasonName: name.trim(),
-        },
-      })
 
 
       /* ========================================
@@ -102,24 +50,21 @@ export default async (req) => {
 
       const result = await db.sql`
         INSERT INTO seasons (
-          name,
-          image_key
+          name
         )
         VALUES (
-          ${name.trim()},
-          ${imageKey}
+          ${name}
         )
         RETURNING
           id,
           name,
-          image_key,
           created_at
       `
 
       return Response.json(
         result[0],
         {
-          status: 201,
+          status: 201
         }
       )
     }
@@ -131,21 +76,26 @@ export default async (req) => {
 
     return Response.json(
       {
-        error: 'Method not allowed.',
+        error: 'Method not allowed.'
       },
       {
-        status: 405,
+        status: 405
       }
     )
+
   } catch (error) {
-    console.error('Seasons function error:', error)
+    console.error(
+      'Seasons function error:',
+      error
+    )
 
     return Response.json(
       {
-        error: 'Something went wrong while processing the season request.',
+        error:
+          'Something went wrong while processing the season request.'
       },
       {
-        status: 500,
+        status: 500
       }
     )
   }

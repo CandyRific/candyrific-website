@@ -1,130 +1,161 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import {
+  onMounted,
+  ref
+} from 'vue'
 
 const seasonName = ref('')
-const seasonImage = ref(null)
-const seasonImageName = ref('')
-
 const seasons = ref([])
 
 const formMessage = ref('')
+
 const isSubmitting = ref(false)
 const isLoading = ref(false)
 
-const handleImageChange = (event) => {
-  const file = event.target.files?.[0] || null
 
-  seasonImage.value = file
-  seasonImageName.value = file?.name || ''
-}
+/* ========================================
+   LOAD SEASONS
+======================================== */
 
 const loadSeasons = async () => {
   isLoading.value = true
 
   try {
-    const response = await fetch('/.netlify/functions/seasons')
+    const response = await fetch(
+      '/.netlify/functions/seasons'
+    )
+
+    const data =
+      await response.json()
 
     if (!response.ok) {
-      throw new Error('Unable to load seasons.')
+      throw new Error(
+        data?.error ||
+        'Unable to load seasons.'
+      )
     }
 
-    seasons.value = await response.json()
+    seasons.value = data
+
   } catch (error) {
-    console.error('Error loading seasons:', error)
+    console.error(
+      'Error loading seasons:',
+      error
+    )
+
+    formMessage.value =
+      error.message ||
+      'Unable to load seasons.'
+
   } finally {
     isLoading.value = false
   }
 }
 
+
+/* ========================================
+   ADD SEASON
+======================================== */
+
 const addSeason = async () => {
   formMessage.value = ''
 
-  if (!seasonName.value.trim()) {
-    formMessage.value = 'Season name is required.'
-    return
-  }
+  const name =
+    seasonName.value.trim()
 
-  if (!seasonImage.value) {
-    formMessage.value = 'Season image is required.'
+  if (!name) {
+    formMessage.value =
+      'Season name is required.'
+
     return
   }
 
   isSubmitting.value = true
 
   try {
-    const formData = new FormData()
+    const response = await fetch(
+      '/.netlify/functions/seasons',
+      {
+        method: 'POST',
 
-    formData.append('name', seasonName.value.trim())
-    formData.append('image', seasonImage.value)
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
 
-    const response = await fetch('/.netlify/functions/seasons', {
-      method: 'POST',
-      body: formData,
-    })
+        body: JSON.stringify({
+          name
+        })
+      }
+    )
 
-    const responseText = await response.text()
-
-    let responseData = null
-
-    try {
-      responseData = JSON.parse(responseText)
-    } catch {
-      responseData = null
-    }
+    const data =
+      await response.json()
 
     if (!response.ok) {
       throw new Error(
-        responseData?.error ||
-          responseData?.message ||
-          responseText ||
-          'Unable to add season.'
+        data?.error ||
+        'Unable to add season.'
       )
     }
 
-    formMessage.value = 'Season added successfully.'
+    formMessage.value =
+      'Season added successfully.'
 
     seasonName.value = ''
-    seasonImage.value = null
-    seasonImageName.value = ''
-
-    const fileInput = document.getElementById('season-image')
-
-    if (fileInput) {
-      fileInput.value = ''
-    }
 
     await loadSeasons()
+
   } catch (error) {
-    console.error('Error adding season:', error)
+    console.error(
+      'Error adding season:',
+      error
+    )
 
     formMessage.value =
-      error.message || 'Something went wrong while adding the season.'
+      error.message ||
+      'Something went wrong while adding the season.'
+
   } finally {
     isSubmitting.value = false
   }
 }
+
 
 onMounted(() => {
   loadSeasons()
 })
 </script>
 
+
 <template>
   <section class="season-management">
+
     <div class="section-header">
-      <h2>Season Manager</h2>
+
+      <h2>
+        Season Manager
+      </h2>
 
       <p>
-        Add and manage seasonal categories that can later be associated
-        with products.
+        Add and manage seasons that can be
+        associated with products.
       </p>
+
     </div>
+
+
+    <!-- ========================================
+         ADD SEASON
+    ========================================= -->
 
     <form
       class="season-form"
       @submit.prevent="addSeason"
     >
+
       <div class="form-group">
+
         <label for="season-name">
           Season Name
         </label>
@@ -136,36 +167,22 @@ onMounted(() => {
           placeholder="Example: Christmas"
           required
         >
+
       </div>
 
-      <div class="form-group">
-        <label for="season-image">
-          Season Image
-        </label>
-
-        <input
-          id="season-image"
-          type="file"
-          accept="image/*"
-          required
-          @change="handleImageChange"
-        >
-
-        <p
-          v-if="seasonImageName"
-          class="selected-file"
-        >
-          Selected: {{ seasonImageName }}
-        </p>
-      </div>
 
       <button
         type="submit"
         class="submit-button"
         :disabled="isSubmitting"
       >
-        {{ isSubmitting ? 'Adding Season...' : 'Add Season' }}
+        {{
+          isSubmitting
+            ? 'Adding Season...'
+            : 'Add Season'
+        }}
       </button>
+
 
       <p
         v-if="formMessage"
@@ -173,10 +190,20 @@ onMounted(() => {
       >
         {{ formMessage }}
       </p>
+
     </form>
 
+
+    <!-- ========================================
+         CURRENT SEASONS
+    ========================================= -->
+
     <div class="season-list-section">
-      <h3>Current Seasons</h3>
+
+      <h3>
+        Current Seasons
+      </h3>
+
 
       <p
         v-if="isLoading"
@@ -185,6 +212,7 @@ onMounted(() => {
         Loading seasons...
       </p>
 
+
       <p
         v-else-if="seasons.length === 0"
         class="status-message"
@@ -192,38 +220,45 @@ onMounted(() => {
         No seasons have been added yet.
       </p>
 
+
       <div
         v-else
-        class="season-grid"
+        class="season-list"
       >
+
         <div
           v-for="season in seasons"
           :key="season.id"
-          class="season-card"
+          class="season-row"
         >
-          <div class="season-image-wrapper">
-            <img
-              v-if="season.image_key"
-              :src="`/.netlify/functions/season-image?key=${encodeURIComponent(season.image_key)}`"
-              :alt="season.name"
-            >
-          </div>
 
-          <div class="season-card-content">
-            <span class="season-name">
-              {{ season.name }}
-            </span>
-          </div>
+          <span class="season-name">
+            {{ season.name }}
+          </span>
+
+          <span class="season-id">
+            ID: {{ season.id }}
+          </span>
+
         </div>
+
       </div>
+
     </div>
+
   </section>
 </template>
+
 
 <style scoped>
 .season-management {
   width: 100%;
 }
+
+
+/* ========================================
+   HEADER
+======================================== */
 
 .section-header {
   margin-bottom: 2rem;
@@ -234,7 +269,12 @@ onMounted(() => {
 
   color: #703795;
 
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-size: clamp(
+    1.75rem,
+    3vw,
+    2.5rem
+  );
+
   font-weight: 600;
 }
 
@@ -252,11 +292,17 @@ onMounted(() => {
 ======================================== */
 
 .season-form {
-  padding: clamp(1rem, 3vw, 1.5rem);
+  padding: clamp(
+    1rem,
+    3vw,
+    1.5rem
+  );
 
   background: #f8f5fb;
 
-  border: 1px solid #e4d8ed;
+  border:
+    1px solid #e4d8ed;
+
   border-radius: 10px;
 }
 
@@ -275,40 +321,38 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.form-group input[type='text'] {
+.form-group input {
   width: 100%;
 
   padding: 0.75rem;
 
+  box-sizing: border-box;
+
   background: white;
 
-  border: 1px solid #ccc;
+  border:
+    1px solid #ccc;
+
   border-radius: 6px;
 
   font: inherit;
-
-  box-sizing: border-box;
 }
 
-.form-group input[type='text']:focus {
-  outline: 2px solid #703795;
+.form-group input:focus {
+  outline:
+    2px solid #703795;
+
   outline-offset: 2px;
 }
 
-.form-group input[type='file'] {
-  font: inherit;
-}
 
-.selected-file {
-  margin: 0.25rem 0 0;
-
-  color: #555;
-
-  font-size: 0.9rem;
-}
+/* ========================================
+   BUTTON
+======================================== */
 
 .submit-button {
-  padding: 0.8rem 1.4rem;
+  padding:
+    0.8rem 1.4rem;
 
   background: #703795;
 
@@ -337,12 +381,22 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+
+/* ========================================
+   MESSAGES
+======================================== */
+
 .form-message {
-  margin: 1rem 0 0;
+  margin:
+    1rem 0 0;
 
   color: #703795;
 
   font-weight: 500;
+}
+
+.status-message {
+  color: #555;
 }
 
 
@@ -355,58 +409,36 @@ onMounted(() => {
 }
 
 .season-list-section h3 {
-  margin: 0 0 1rem;
+  margin:
+    0 0 1rem;
 
   color: #703795;
 
   font-size: 1.4rem;
 }
 
-.status-message {
-  color: #555;
+.season-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.6rem;
 }
 
-.season-grid {
-  display: grid;
-
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  gap: 1rem;
-}
-
-.season-card {
-  overflow: hidden;
-
-  background: white;
-
-  border: 1px solid #e4d8ed;
-  border-radius: 10px;
-}
-
-.season-image-wrapper {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-
+.season-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
 
-  overflow: hidden;
+  gap: 1rem;
+
+  padding: 0.85rem 1rem;
 
   background: #f8f5fb;
-}
 
-.season-image-wrapper img {
-  width: 100%;
-  height: 100%;
+  border:
+    1px solid #e4d8ed;
 
-  object-fit: contain;
-}
-
-.season-card-content {
-  padding: 0.8rem;
-
-  text-align: center;
+  border-radius: 6px;
 }
 
 .season-name {
@@ -415,20 +447,9 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.season-id {
+  color: #777;
 
-/* ========================================
-   DESKTOP
-======================================== */
-
-@media (min-width: 768px) {
-  .season-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1100px) {
-  .season-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  font-size: 0.75rem;
 }
 </style>
