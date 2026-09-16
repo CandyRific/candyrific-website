@@ -17,20 +17,29 @@ const router = useRouter()
 
 const products = ref([])
 const brands = ref([])
+const seasons = ref([])
 
 const selectedImages = ref({})
 const selectedBrandIds = ref([])
+const selectedSeasonIds = ref([])
 
 const brandFilterOpen = ref(false)
+const seasonFilterOpen = ref(false)
 
 const isLoading = ref(false)
 const isLoadingBrands = ref(false)
+const isLoadingSeasons = ref(false)
 
 const loadError = ref('')
 const brandLoadError = ref('')
+const seasonLoadError = ref('')
 
 
-const normalizeBrandQuery = (queryValue) => {
+/* ========================================
+   QUERY HELPERS
+======================================== */
+
+const normalizeQueryIds = (queryValue) => {
   if (!queryValue) {
     return []
   }
@@ -46,7 +55,7 @@ const normalizeBrandQuery = (queryValue) => {
 }
 
 
-const sameBrandSelection = (
+const sameSelection = (
   first,
   second
 ) => {
@@ -67,6 +76,10 @@ const sameBrandSelection = (
 }
 
 
+/* ========================================
+   PRODUCT IMAGE
+======================================== */
+
 const getProductImageUrl = (imageKey) => {
   if (!imageKey) {
     return ''
@@ -75,6 +88,10 @@ const getProductImageUrl = (imageKey) => {
   return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
 }
 
+
+/* ========================================
+   LOAD PRODUCTS
+======================================== */
 
 const loadProducts = async () => {
   isLoading.value = true
@@ -91,6 +108,16 @@ const loadProducts = async () => {
       params.append(
         'brand',
         brandId
+      )
+    }
+
+    for (
+      const seasonId of
+      selectedSeasonIds.value
+    ) {
+      params.append(
+        'season',
+        seasonId
       )
     }
 
@@ -131,6 +158,10 @@ const loadProducts = async () => {
 }
 
 
+/* ========================================
+   LOAD BRANDS
+======================================== */
+
 const loadBrands = async () => {
   isLoadingBrands.value = true
   brandLoadError.value = ''
@@ -166,9 +197,58 @@ const loadBrands = async () => {
 }
 
 
+/* ========================================
+   LOAD SEASONS
+======================================== */
+
+const loadSeasons = async () => {
+  isLoadingSeasons.value = true
+  seasonLoadError.value = ''
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/seasons'
+    )
+
+    const data =
+      await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        'Unable to load seasons.'
+      )
+    }
+
+    seasons.value = data
+  } catch (error) {
+    console.error(
+      'Unable to load seasons:',
+      error
+    )
+
+    seasonLoadError.value =
+      error.message ||
+      'Unable to load seasons.'
+  } finally {
+    isLoadingSeasons.value = false
+  }
+}
+
+
+/* ========================================
+   FILTER CONTROLS
+======================================== */
+
 const toggleBrandFilter = () => {
   brandFilterOpen.value =
     !brandFilterOpen.value
+}
+
+
+const toggleSeasonFilter = () => {
+  seasonFilterOpen.value =
+    !seasonFilterOpen.value
 }
 
 
@@ -176,6 +256,21 @@ const clearBrandFilters = () => {
   selectedBrandIds.value = []
 }
 
+
+const clearSeasonFilters = () => {
+  selectedSeasonIds.value = []
+}
+
+
+const clearAllFilters = () => {
+  selectedBrandIds.value = []
+  selectedSeasonIds.value = []
+}
+
+
+/* ========================================
+   PRODUCT IMAGE SELECTION
+======================================== */
 
 const getSelectedImage = (product) => {
   return (
@@ -194,6 +289,10 @@ const selectImage = (
 }
 
 
+/* ========================================
+   PRODUCT NAVIGATION
+======================================== */
+
 const navigateToIndividualProduct = (
   itemNumber
 ) => {
@@ -210,38 +309,64 @@ const navigateToIndividualProduct = (
 }
 
 
-/*
-  When the checkbox selection changes:
+/* ========================================
+   SELECTED FILTERS -> URL
+======================================== */
 
-  1. Update /products?brand=...
-  2. Vue Router changes the route query.
-*/
 watch(
-  selectedBrandIds,
-  async (newBrandIds) => {
+  [
+    selectedBrandIds,
+    selectedSeasonIds
+  ],
+  async () => {
     const currentRouteBrands =
-      normalizeBrandQuery(
+      normalizeQueryIds(
         route.query.brand
       )
 
-    if (
-      sameBrandSelection(
-        newBrandIds,
+    const currentRouteSeasons =
+      normalizeQueryIds(
+        route.query.season
+      )
+
+    const brandsMatch =
+      sameSelection(
+        selectedBrandIds.value,
         currentRouteBrands
       )
+
+    const seasonsMatch =
+      sameSelection(
+        selectedSeasonIds.value,
+        currentRouteSeasons
+      )
+
+    if (
+      brandsMatch &&
+      seasonsMatch
     ) {
       return
     }
 
+    const query = {}
+
+    if (
+      selectedBrandIds.value.length > 0
+    ) {
+      query.brand =
+        selectedBrandIds.value
+    }
+
+    if (
+      selectedSeasonIds.value.length > 0
+    ) {
+      query.season =
+        selectedSeasonIds.value
+    }
+
     await router.replace({
       name: 'products',
-
-      query:
-        newBrandIds.length > 0
-          ? {
-              brand: newBrandIds
-            }
-          : {}
+      query
     })
   },
   {
@@ -250,31 +375,44 @@ watch(
 )
 
 
-/*
-  The route query is the source of truth.
+/* ========================================
+   URL -> SELECTED FILTERS
+======================================== */
 
-  This handles:
-  - selecting filters
-  - refreshing the page
-  - browser back/forward
-  - arriving from a homepage brand link
-*/
 watch(
-  () => route.query.brand,
-  async (brandQuery) => {
+  () => [
+    route.query.brand,
+    route.query.season
+  ],
+  async () => {
     const routeBrandIds =
-      normalizeBrandQuery(
-        brandQuery
+      normalizeQueryIds(
+        route.query.brand
+      )
+
+    const routeSeasonIds =
+      normalizeQueryIds(
+        route.query.season
       )
 
     if (
-      !sameBrandSelection(
+      !sameSelection(
         selectedBrandIds.value,
         routeBrandIds
       )
     ) {
       selectedBrandIds.value =
         routeBrandIds
+    }
+
+    if (
+      !sameSelection(
+        selectedSeasonIds.value,
+        routeSeasonIds
+      )
+    ) {
+      selectedSeasonIds.value =
+        routeSeasonIds
     }
 
     await loadProducts()
@@ -287,6 +425,7 @@ watch(
 
 onMounted(() => {
   loadBrands()
+  loadSeasons()
 })
 </script>
 
@@ -325,6 +464,11 @@ onMounted(() => {
 
           </div>
 
+
+          <!-- ==============================
+               BRAND FILTER
+          =============================== -->
+
           <button
             type="button"
             class="filter-button"
@@ -360,26 +504,26 @@ onMounted(() => {
           <div
             v-if="brandFilterOpen"
             id="brand-filter-options"
-            class="brand-filter-panel"
+            class="filter-panel"
           >
 
             <p
               v-if="isLoadingBrands"
-              class="brand-filter-status"
+              class="filter-status"
             >
               Loading brands...
             </p>
 
             <p
               v-else-if="brandLoadError"
-              class="brand-filter-status"
+              class="filter-status"
             >
               {{ brandLoadError }}
             </p>
 
             <p
               v-else-if="brands.length === 0"
-              class="brand-filter-status"
+              class="filter-status"
             >
               No brands available.
             </p>
@@ -389,7 +533,7 @@ onMounted(() => {
               <label
                 v-for="brand in brands"
                 :key="brand.id"
-                class="brand-filter-option"
+                class="filter-option"
               >
 
                 <input
@@ -417,7 +561,122 @@ onMounted(() => {
 
           </div>
 
+
+          <!-- ==============================
+               SEASON FILTER
+          =============================== -->
+
+          <button
+            type="button"
+            class="filter-button season-filter-button"
+            :aria-expanded="seasonFilterOpen"
+            aria-controls="season-filter-options"
+            @click="toggleSeasonFilter"
+          >
+
+            <span class="filter-button-label">
+
+              SEASON
+
+              <span
+                v-if="selectedSeasonIds.length"
+                class="selected-filter-count"
+              >
+                {{ selectedSeasonIds.length }}
+              </span>
+
+            </span>
+
+            <span
+              class="filter-plus"
+              :class="{
+                open: seasonFilterOpen
+              }"
+            >
+              +
+            </span>
+
+          </button>
+
+          <div
+            v-if="seasonFilterOpen"
+            id="season-filter-options"
+            class="filter-panel"
+          >
+
+            <p
+              v-if="isLoadingSeasons"
+              class="filter-status"
+            >
+              Loading seasons...
+            </p>
+
+            <p
+              v-else-if="seasonLoadError"
+              class="filter-status"
+            >
+              {{ seasonLoadError }}
+            </p>
+
+            <p
+              v-else-if="seasons.length === 0"
+              class="filter-status"
+            >
+              No seasons available.
+            </p>
+
+            <template v-else>
+
+              <label
+                v-for="season in seasons"
+                :key="season.id"
+                class="filter-option"
+              >
+
+                <input
+                  v-model="selectedSeasonIds"
+                  type="checkbox"
+                  :value="String(season.id)"
+                >
+
+                <span>
+                  {{ season.name }}
+                </span>
+
+              </label>
+
+              <button
+                v-if="selectedSeasonIds.length"
+                type="button"
+                class="clear-filters-button"
+                @click="clearSeasonFilters"
+              >
+                Clear seasons
+              </button>
+
+            </template>
+
+          </div>
+
+
+          <!-- ==============================
+               CLEAR ALL
+          =============================== -->
+
+          <button
+            v-if="
+              selectedBrandIds.length ||
+              selectedSeasonIds.length
+            "
+            type="button"
+            class="clear-all-filters-button"
+            @click="clearAllFilters"
+          >
+            Clear all filters
+          </button>
+
         </aside>
+
 
         <!-- ==============================
              PRODUCT AREA
@@ -443,7 +702,7 @@ onMounted(() => {
             v-else-if="products.length === 0"
             class="products-status"
           >
-            No products match the selected brands.
+            No products match the selected filters.
           </div>
 
           <div
@@ -704,6 +963,10 @@ onMounted(() => {
   background: #f7fbfe;
 }
 
+.season-filter-button {
+  margin-top: 0.4rem;
+}
+
 .filter-button-label {
   display: flex;
   align-items: center;
@@ -746,10 +1009,10 @@ onMounted(() => {
 
 
 /* ========================================
-   BRAND FILTER
+   FILTER PANELS
 ======================================== */
 
-.brand-filter-panel {
+.filter-panel {
   margin-top: 0.35rem;
   padding: 0.6rem;
 
@@ -762,7 +1025,7 @@ onMounted(() => {
   border-radius: 5px;
 }
 
-.brand-filter-option {
+.filter-option {
   display: flex;
   align-items: center;
 
@@ -783,11 +1046,11 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.brand-filter-option:hover {
+.filter-option:hover {
   background: #f0f8fc;
 }
 
-.brand-filter-option input {
+.filter-option input {
   flex-shrink: 0;
 
   margin: 0;
@@ -797,7 +1060,7 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.brand-filter-status {
+.filter-status {
   margin: 0;
 
   padding: 0.5rem;
@@ -829,6 +1092,30 @@ onMounted(() => {
 
 .clear-filters-button:hover {
   background: #f7f2fa;
+}
+
+.clear-all-filters-button {
+  width: 100%;
+
+  margin-top: 0.6rem;
+  padding: 0.65rem;
+
+  background: #703795;
+
+  color: white;
+
+  border: none;
+  border-radius: 5px;
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.clear-all-filters-button:hover {
+  background: #5f2e80;
 }
 
 

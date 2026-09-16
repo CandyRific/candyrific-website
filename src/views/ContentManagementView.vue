@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth'
 
 import ProductManagement from '../components/CMS/ProductManagement.vue'
 import BrandManagement from '../components/CMS/BrandManagement.vue'
+import SeasonManagement from '../components/CMS/SeasonManagement.vue'
 
 const authStore = useAuthStore()
 
@@ -44,6 +45,15 @@ const setActiveSection = (section) => {
         >
           Brands
         </button>
+
+        <button
+          type="button"
+          class="cms-nav-button"
+          :class="{ active: activeSection === 'seasons' }"
+          @click="setActiveSection('seasons')"
+        >
+          Seasons
+        </button>
       </nav>
 
       <div class="dashboard-card">
@@ -61,6 +71,10 @@ const setActiveSection = (section) => {
 
         <BrandManagement
           v-if="activeSection === 'brands'"
+        />
+
+        <SeasonManagement
+          v-if="activeSection === 'seasons'"
         />
 
       </div>
