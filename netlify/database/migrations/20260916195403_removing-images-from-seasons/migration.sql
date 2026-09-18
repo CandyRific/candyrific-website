@@ -1,0 +1,3 @@
+ALTER TABLE seasons
+DROP COLUMN IF EXISTS image_key,
+DROP COLUMN IF EXISTS image;

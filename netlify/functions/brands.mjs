@@ -122,6 +122,146 @@ export default async (req) => {
     )
   }
 
+  if (req.method === 'PATCH') {
+  const formData =
+    await req.formData()
+
+  const brandId =
+    formData.get('brandId')
+
+  const image =
+    formData.get('image')
+
+
+  if (!brandId) {
+    return Response.json(
+      {
+        error:
+          'Brand ID is required.'
+      },
+      {
+        status: 400
+      }
+    )
+  }
+
+
+  if (
+    !image ||
+    image.size === 0
+  ) {
+    return Response.json(
+      {
+        error:
+          'A new brand image is required.'
+      },
+      {
+        status: 400
+      }
+    )
+  }
+
+
+  const existingBrands =
+    await db.sql`
+      SELECT
+        id,
+        name,
+        image_key
+      FROM brands
+      WHERE id = ${brandId}
+      LIMIT 1
+    `
+
+
+  if (existingBrands.length === 0) {
+    return Response.json(
+      {
+        error:
+          'Brand not found.'
+      },
+      {
+        status: 404
+      }
+    )
+  }
+
+
+  const existingBrand =
+    existingBrands[0]
+
+  const oldImageKey =
+    existingBrand.image_key
+
+  const imageStore =
+    getStore('brand-images')
+
+
+  const extension =
+    image.name
+      .split('.')
+      .pop()
+
+  const newImageKey =
+    `${crypto.randomUUID()}.${extension}`
+
+
+  /*
+   * 1. Upload the new image first.
+   */
+  await imageStore.set(
+    newImageKey,
+    image
+  )
+
+
+  try {
+    /*
+     * 2. Point the database at
+     *    the new image.
+     */
+    const updatedBrands =
+      await db.sql`
+        UPDATE brands
+        SET image_key = ${newImageKey}
+        WHERE id = ${brandId}
+        RETURNING
+          id,
+          name,
+          image_key,
+          created_at
+      `
+
+
+    /*
+     * 3. The database now points
+     *    at the new image, so the
+     *    old blob can be deleted.
+     */
+    if (oldImageKey) {
+      await imageStore.delete(
+        oldImageKey
+      )
+    }
+
+
+    return Response.json(
+      updatedBrands[0]
+    )
+  } catch (error) {
+    /*
+     * The DB update failed.
+     *
+     * Clean up the NEW blob because
+     * nothing references it.
+     */
+    await imageStore.delete(
+      newImageKey
+    )
+
+    throw error
+  }
+}
 
   return Response.json(
     {

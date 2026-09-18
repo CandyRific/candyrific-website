@@ -8,6 +8,9 @@ const brandImageName = ref('')
 
 const brands = ref([])
 
+const replacementImages = ref({})
+const replacingBrandId = ref(null)
+
 const formMessage = ref('')
 
 const isSubmitting = ref(false)
@@ -24,10 +27,24 @@ const getBrandImageUrl = (imageKey) => {
 
 
 const handleBrandImageChange = (event) => {
-  const file = event.target.files?.[0] || null
+  const file =
+    event.target.files?.[0] || null
 
   brandImage.value = file
-  brandImageName.value = file?.name || ''
+  brandImageName.value =
+    file?.name || ''
+}
+
+
+const handleReplacementImageChange = (
+  brandId,
+  event
+) => {
+  const file =
+    event.target.files?.[0] || null
+
+  replacementImages.value[brandId] =
+    file
 }
 
 
@@ -39,7 +56,8 @@ const loadBrands = async () => {
       '/.netlify/functions/brands'
     )
 
-    const responseText = await response.text()
+    const responseText =
+      await response.text()
 
     let data = null
 
@@ -85,7 +103,8 @@ const addBrand = async () => {
   isSubmitting.value = true
 
   try {
-    const formData = new FormData()
+    const formData =
+      new FormData()
 
     formData.append(
       'name',
@@ -149,9 +168,103 @@ const addBrand = async () => {
       error
     )
 
-    formMessage.value = error.message
+    formMessage.value =
+      error.message
   } finally {
     isSubmitting.value = false
+  }
+}
+
+
+const replaceBrandImage = async (
+  brand
+) => {
+  const image =
+    replacementImages.value[
+      brand.id
+    ]
+
+  if (!image) {
+    formMessage.value =
+      `Select a new image for "${brand.name}" first.`
+
+    return
+  }
+
+  replacingBrandId.value =
+    brand.id
+
+  formMessage.value = ''
+
+  try {
+    const formData =
+      new FormData()
+
+    formData.append(
+      'brandId',
+      brand.id
+    )
+
+    formData.append(
+      'image',
+      image
+    )
+
+    const response = await fetch(
+      '/.netlify/functions/brands',
+      {
+        method: 'PATCH',
+        body: formData
+      }
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data =
+        JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to update brand. HTTP ${response.status}`
+      )
+    }
+
+    formMessage.value =
+      `Updated "${brand.name}" logo successfully.`
+
+    delete replacementImages.value[
+      brand.id
+    ]
+
+    const imageInput =
+      document.getElementById(
+        `brand-replacement-${brand.id}`
+      )
+
+    if (imageInput) {
+      imageInput.value = ''
+    }
+
+    await loadBrands()
+  } catch (error) {
+    console.error(
+      'Unable to update brand image:',
+      error
+    )
+
+    formMessage.value =
+      error.message
+  } finally {
+    replacingBrandId.value = null
   }
 }
 
@@ -161,12 +274,18 @@ onMounted(() => {
 })
 </script>
 
+
 <template>
   <section class="brand-management">
 
     <h2 class="section-title">
       Brand Management
     </h2>
+
+
+    <!-- =====================================
+         ADD BRAND
+    ====================================== -->
 
     <form
       class="add-brand-form"
@@ -220,21 +339,31 @@ onMounted(() => {
         }}
       </button>
 
-      <p
-        v-if="formMessage"
-        class="form-message"
-      >
-        {{ formMessage }}
-      </p>
-
     </form>
 
+
+    <!-- =====================================
+         FORM MESSAGE
+    ====================================== -->
+
+    <p
+      v-if="formMessage"
+      class="form-message"
+    >
+      {{ formMessage }}
+    </p>
+
+
+    <!-- =====================================
+         EXISTING BRANDS
+    ====================================== -->
 
     <div class="existing-brands">
 
       <h3 class="existing-brands-title">
         Existing Brands
       </h3>
+
 
       <p
         v-if="isLoading"
@@ -243,12 +372,14 @@ onMounted(() => {
         Loading brands...
       </p>
 
+
       <p
         v-else-if="brands.length === 0"
         class="brand-status-message"
       >
         No brands have been added yet.
       </p>
+
 
       <div
         v-else
@@ -260,6 +391,8 @@ onMounted(() => {
           :key="brand.id"
           class="brand-list-item"
         >
+
+          <!-- CURRENT LOGO -->
 
           <div class="brand-logo-wrapper">
 
@@ -283,9 +416,85 @@ onMounted(() => {
 
           </div>
 
-          <span class="brand-name">
-            {{ brand.name }}
-          </span>
+
+          <!-- BRAND DETAILS -->
+
+          <div class="brand-details">
+
+            <span class="brand-name">
+              {{ brand.name }}
+            </span>
+
+
+            <label
+              :for="
+                `brand-replacement-${brand.id}`
+              "
+              class="change-logo-label"
+            >
+              Choose New Logo
+            </label>
+
+
+            <input
+              :id="
+                `brand-replacement-${brand.id}`
+              "
+              type="file"
+              accept="image/*"
+              class="replacement-image-input"
+              @change="
+                handleReplacementImageChange(
+                  brand.id,
+                  $event
+                )
+              "
+            >
+
+
+            <span
+              v-if="
+                replacementImages[
+                  brand.id
+                ]
+              "
+              class="replacement-file-name"
+            >
+              {{
+                replacementImages[
+                  brand.id
+                ].name
+              }}
+            </span>
+
+
+            <button
+              v-if="
+                replacementImages[
+                  brand.id
+                ]
+              "
+              type="button"
+              class="replace-logo-button"
+              :disabled="
+                replacingBrandId ===
+                brand.id
+              "
+              @click="
+                replaceBrandImage(
+                  brand
+                )
+              "
+            >
+              {{
+                replacingBrandId ===
+                brand.id
+                  ? 'Updating...'
+                  : 'Update Logo'
+              }}
+            </button>
+
+          </div>
 
         </div>
 
@@ -295,6 +504,7 @@ onMounted(() => {
 
   </section>
 </template>
+
 
 <style scoped>
 .brand-management {
@@ -322,7 +532,7 @@ onMounted(() => {
 
 
 /* ========================================
-   FORM
+   ADD BRAND FORM
 ======================================== */
 
 .add-brand-form {
@@ -403,6 +613,11 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+
+/* ========================================
+   FORM MESSAGE
+======================================== */
+
 .form-message {
   margin-top: 1rem;
 
@@ -439,9 +654,14 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
+
+/* ========================================
+   BRAND CARD
+======================================== */
+
 .brand-list-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 
   gap: 1rem;
 
@@ -451,6 +671,11 @@ onMounted(() => {
 
   border-radius: 6px;
 }
+
+
+/* ========================================
+   BRAND LOGO
+======================================== */
 
 .brand-logo-wrapper {
   display: flex;
@@ -484,10 +709,90 @@ onMounted(() => {
   font-size: 0.75rem;
 }
 
+
+/* ========================================
+   BRAND DETAILS
+======================================== */
+
+.brand-details {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 0.4rem;
+
+  min-width: 0;
+
+  flex: 1;
+}
+
 .brand-name {
   color: #703795;
 
   font-weight: 500;
+}
+
+.change-logo-label {
+  color: #703795;
+
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.replacement-image-input {
+  width: 100%;
+
+  font-family: inherit;
+  font-size: 0.8rem;
+
+  cursor: pointer;
+}
+
+.replacement-file-name {
+  max-width: 100%;
+
+  color: #777;
+
+  font-size: 0.75rem;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ========================================
+   UPDATE LOGO BUTTON
+======================================== */
+
+.replace-logo-button {
+  margin-top: 0.25rem;
+
+  padding: 0.5rem 0.75rem;
+
+  background: #703795;
+
+  color: white;
+
+  border: none;
+  border-radius: 5px;
+
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.replace-logo-button:hover {
+  opacity: 0.9;
+}
+
+.replace-logo-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
 }
 
 

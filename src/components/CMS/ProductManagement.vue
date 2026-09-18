@@ -8,14 +8,17 @@ const productImages = ref([])
 const productImageNames = ref([])
 const amazonLink = ref('')
 
-const productSeason = ref('')
-
 const brands = ref([])
 const selectedBrandIds = ref([])
 const isLoadingBrands = ref(false)
 
+const seasons = ref([])
+const selectedSeasonIds = ref([])
+const isLoadingSeasons = ref(false)
+
 const formMessage = ref('')
 const isSubmitting = ref(false)
+
 
 const handleImageChange = (event) => {
   productImages.value = Array.from(
@@ -27,6 +30,11 @@ const handleImageChange = (event) => {
       (file) => file.name
     )
 }
+
+
+/* ========================================
+   LOAD BRANDS
+======================================== */
 
 const loadBrands = async () => {
   isLoadingBrands.value = true
@@ -66,6 +74,54 @@ const loadBrands = async () => {
   }
 }
 
+
+/* ========================================
+   LOAD SEASONS
+======================================== */
+
+const loadSeasons = async () => {
+  isLoadingSeasons.value = true
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/seasons'
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to load seasons. HTTP ${response.status}`
+      )
+    }
+
+    seasons.value = data
+  } catch (error) {
+    console.error(
+      'Unable to load seasons:',
+      error
+    )
+  } finally {
+    isLoadingSeasons.value = false
+  }
+}
+
+
+/* ========================================
+   ADD PRODUCT
+======================================== */
+
 const addProduct = async () => {
   formMessage.value = ''
 
@@ -97,14 +153,14 @@ const addProduct = async () => {
     )
 
     formData.append(
-      'season',
-      productSeason.value
-    )
-
-    formData.append(
       'amazonLink',
       amazonLink.value
     )
+
+
+    /* ========================================
+       BRANDS
+    ======================================== */
 
     for (
       const brandId of
@@ -116,6 +172,26 @@ const addProduct = async () => {
       )
     }
 
+
+    /* ========================================
+       SEASONS
+    ======================================== */
+
+    for (
+      const seasonId of
+      selectedSeasonIds.value
+    ) {
+      formData.append(
+        'seasonIds',
+        seasonId
+      )
+    }
+
+
+    /* ========================================
+       IMAGES
+    ======================================== */
+
     for (
       const file of
       productImages.value
@@ -125,6 +201,7 @@ const addProduct = async () => {
         file
       )
     }
+
 
     const response = await fetch(
       '/.netlify/functions/products',
@@ -156,14 +233,20 @@ const addProduct = async () => {
     formMessage.value =
       `Added "${data.name}" successfully.`
 
+
+    /* ========================================
+       RESET FORM
+    ======================================== */
+
     productNumber.value = ''
     productName.value = ''
     productDescription.value = ''
     productImages.value = []
     productImageNames.value = []
-    productSeason.value = ''
     amazonLink.value = ''
+
     selectedBrandIds.value = []
+    selectedSeasonIds.value = []
 
     const imageInput =
       document.getElementById(
@@ -186,8 +269,10 @@ const addProduct = async () => {
   }
 }
 
+
 onMounted(() => {
   loadBrands()
+  loadSeasons()
 })
 </script>
 
@@ -216,6 +301,7 @@ onMounted(() => {
         >
       </div>
 
+
       <div class="form-group">
         <label for="amazon-link">
           Amazon Link
@@ -228,6 +314,7 @@ onMounted(() => {
           placeholder="https://www.amazon.com/..."
         >
       </div>
+
 
       <div class="form-group">
         <label for="product-name">
@@ -243,6 +330,7 @@ onMounted(() => {
         >
       </div>
 
+
       <div class="form-group">
         <label for="product-description">
           Description
@@ -256,20 +344,48 @@ onMounted(() => {
         ></textarea>
       </div>
 
+
+      <!-- ========================================
+           SEASONS
+      ========================================= -->
+
       <div class="form-group">
-        <label for="product-season">
-          Season
+        <label for="product-seasons">
+          Seasons
         </label>
 
-        <select
-          id="product-season"
-          v-model="productSeason"
+        <p
+          v-if="isLoadingSeasons"
+          class="season-status"
         >
-          <option value="">
-            Select season
+          Loading seasons...
+        </p>
+
+        <select
+          v-else
+          id="product-seasons"
+          v-model="selectedSeasonIds"
+          multiple
+          class="season-multi-select"
+        >
+          <option
+            v-for="season in seasons"
+            :key="season.id"
+            :value="season.id"
+          >
+            {{ season.name }}
           </option>
         </select>
+
+        <p class="season-help-text">
+          Hold Ctrl on Windows or Cmd on Mac to select multiple seasons.
+        </p>
       </div>
+
+
+      <!-- ========================================
+           BRANDS
+      ========================================= -->
 
       <div class="form-group">
         <label for="product-brands">
@@ -304,6 +420,11 @@ onMounted(() => {
         </p>
       </div>
 
+
+      <!-- ========================================
+           IMAGES
+      ========================================= -->
+
       <div class="form-group">
         <label for="product-image">
           Product Images
@@ -318,14 +439,17 @@ onMounted(() => {
         >
 
         <div class="selected-images">
+
           <p
             v-for="(imageName, index) in productImageNames"
             :key="index"
           >
             {{ imageName }}
           </p>
+
         </div>
       </div>
+
 
       <button
         type="submit"
@@ -337,6 +461,7 @@ onMounted(() => {
             : 'Add Product'
         }}
       </button>
+
 
       <p
         v-if="formMessage"
