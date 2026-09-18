@@ -7,11 +7,34 @@ export default async (req) => {
   if (req.method === 'GET') {
   const url = new URL(req.url)
 
+
+  // ========================================
+  // BRAND FILTERS
+  // ========================================
+
   const brandIds = url.searchParams
     .getAll('brand')
     .filter((id) => /^\d+$/.test(id))
 
-  const brandIdList = brandIds.join(',')
+  const brandIdList =
+    brandIds.join(',')
+
+
+  // ========================================
+  // SEASON FILTERS
+  // ========================================
+
+  const seasonIds = url.searchParams
+    .getAll('season')
+    .filter((id) => /^\d+$/.test(id))
+
+  const seasonIdList =
+    seasonIds.join(',')
+
+
+  // ========================================
+  // PRODUCTS
+  // ========================================
 
   const products = await db.sql`
     SELECT
@@ -52,7 +75,24 @@ export default async (req) => {
           WHERE pb.product_id = p.id
         ),
         '[]'::json
-      ) AS brands
+      ) AS brands,
+
+      COALESCE(
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', s.id,
+              'name', s.name
+            )
+            ORDER BY s.name
+          )
+          FROM product_seasons ps
+          JOIN seasons s
+            ON s.id = ps.season_id
+          WHERE ps.product_id = p.id
+        ),
+        '[]'::json
+      ) AS seasons
 
     FROM products p
 
@@ -65,6 +105,21 @@ export default async (req) => {
         AND pb_filter.brand_id = ANY(
           string_to_array(
             ${brandIdList},
+            ','
+          )::bigint[]
+        )
+      )
+    )
+
+    AND (
+      ${seasonIdList} = ''
+      OR EXISTS (
+        SELECT 1
+        FROM product_seasons ps_filter
+        WHERE ps_filter.product_id = p.id
+        AND ps_filter.season_id = ANY(
+          string_to_array(
+            ${seasonIdList},
             ','
           )::bigint[]
         )
