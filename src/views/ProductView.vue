@@ -1,6 +1,14 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import {
+  computed,
+  ref,
+  watch
+} from 'vue'
+
+import {
+  RouterLink,
+  useRoute
+} from 'vue-router'
 
 const route = useRoute()
 
@@ -10,61 +18,96 @@ const selectedImage = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
-const productId = route.params.id
+/* ========================================
+   PRODUCT ID
+======================================== */
+
+const productId = computed(() => {
+  return route.params.id
+})
+
+/* ========================================
+   PRODUCT IMAGE
+======================================== */
 
 const getProductImageUrl = (imageKey) => {
   if (!imageKey) {
     return ''
   }
 
-  return `/.netlify/functions/product-image?key=${encodeURIComponent(imageKey)}`
+  return `/.netlify/functions/product-image?key=${encodeURIComponent(
+    imageKey
+  )}`
 }
+
+/* ========================================
+   LOAD PRODUCT
+======================================== */
 
 const loadProduct = async () => {
   isLoading.value = true
   errorMessage.value = ''
+
   product.value = null
   selectedImage.value = null
 
   try {
-      const response = await fetch(
-  `/.netlify/functions/product?id=${encodeURIComponent(
-    productId
-  )}`
-)
+    const response = await fetch(
+      `/.netlify/functions/product?id=${encodeURIComponent(
+        productId.value
+      )}`
+    )
 
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.error || 'Unable to load product.')
+      throw new Error(
+        data.error ||
+        'Unable to load product.'
+      )
     }
 
     product.value = data
 
     if (data.images?.length) {
-      selectedImage.value = data.images[0].image_key
+      selectedImage.value =
+        data.images[0].image_key
     }
   } catch (error) {
-    console.error('Error loading product:', error)
+    console.error(
+      'Error loading product:',
+      error
+    )
 
     errorMessage.value =
-      error.message || 'Unable to load this product.'
+      error.message ||
+      'Unable to load this product.'
   } finally {
     isLoading.value = false
   }
 }
 
+/* ========================================
+   IMAGE SELECTION
+======================================== */
+
 const selectImage = (imageKey) => {
   selectedImage.value = imageKey
 }
 
-watch(itemNumber, () => {
-  loadProduct()
-})
+/* ========================================
+   PRODUCT ID CHANGE
+======================================== */
 
-onMounted(() => {
-  loadProduct()
-})
+watch(
+  productId,
+  () => {
+    loadProduct()
+  },
+  {
+    immediate: true
+  }
+)
 </script>
 
 <template>
