@@ -10,7 +10,7 @@ const selectedImage = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
-const itemNumber = computed(() => route.params.itemNumber)
+const productId = route.params.id
 
 const getProductImageUrl = (imageKey) => {
   if (!imageKey) {
@@ -27,9 +27,11 @@ const loadProduct = async () => {
   selectedImage.value = null
 
   try {
-    const response = await fetch(
-      `/.netlify/functions/product?itemNumber=${encodeURIComponent(itemNumber.value)}`
-    )
+      const response = await fetch(
+  `/.netlify/functions/product?id=${encodeURIComponent(
+    productId
+  )}`
+)
 
     const data = await response.json()
 

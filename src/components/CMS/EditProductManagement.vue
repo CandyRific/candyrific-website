@@ -1,50 +1,67 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import {
+  onMounted,
+  ref,
+  watch
+} from 'vue'
+
+/* ========================================
+   PROPS / EMITS
+======================================== */
+
+const props = defineProps({
+  productId: {
+    type: [Number, String],
+    required: true
+  }
+})
+
+const emit = defineEmits([
+  'close'
+])
 
 /* ========================================
    PRODUCT STATE
 ======================================== */
 
-const products = ref([])
-const isLoadingProducts = ref(false)
+const product = ref(null)
+
+const editableProductId = ref('')
+const editableProductName = ref('')
+const editableProductDescription = ref('')
+
+/* ========================================
+   LOADING STATE
+======================================== */
+
+const isLoadingProduct = ref(false)
 const productLoadMessage = ref('')
 
 /* ========================================
-   SORT PRODUCTS BY ITEM NUMBER
+   INDIVIDUAL SAVE STATE
 ======================================== */
 
-const sortProducts = (productList) => {
-  return [...productList].sort(
-    (productA, productB) => {
-      const itemNumberA =
-        productA.item_number ?? ''
+const isSavingId = ref(false)
+const isSavingName = ref(false)
+const isSavingDescription = ref(false)
 
-      const itemNumberB =
-        productB.item_number ?? ''
-
-      return String(itemNumberA).localeCompare(
-        String(itemNumberB),
-        undefined,
-        {
-          numeric: true,
-          sensitivity: 'base'
-        }
-      )
-    }
-  )
-}
+const idMessage = ref('')
+const nameMessage = ref('')
+const descriptionMessage = ref('')
 
 /* ========================================
-   LOAD PRODUCTS
+   LOAD PRODUCT
 ======================================== */
 
-const loadProducts = async () => {
-  isLoadingProducts.value = true
+const loadProduct = async () => {
+  isLoadingProduct.value = true
   productLoadMessage.value = ''
 
   try {
     const response = await fetch(
-      '/.netlify/functions/products'
+      `/.netlify/functions/product?id=${encodeURIComponent(
+        props.productId
+      )}`
     )
 
     const responseText =
@@ -62,175 +79,472 @@ const loadProducts = async () => {
       throw new Error(
         data?.error ||
         responseText ||
-        `Unable to load products. HTTP ${response.status}`
+        `Unable to load product. HTTP ${response.status}`
       )
     }
 
-    if (!Array.isArray(data)) {
+    if (!data) {
       throw new Error(
-        'Products response was not an array.'
+        'Product was not found.'
       )
     }
 
-    products.value =
-      sortProducts(data)
+    product.value = data
+
+    editableProductId.value =
+      data.id ?? ''
+
+    editableProductName.value =
+      data.name ?? ''
+
+    editableProductDescription.value =
+      data.description ?? ''
   } catch (error) {
     console.error(
-      'Unable to load products:',
+      'Unable to load product:',
       error
     )
 
     productLoadMessage.value =
       error.message
   } finally {
-    isLoadingProducts.value = false
+    isLoadingProduct.value = false
   }
 }
 
 /* ========================================
-   EDIT PRODUCT
+   SAVE PRODUCT ID
 ======================================== */
 
-const editProduct = (product) => {
-  /*
-    We'll build the actual editing functionality
-    here next.
+const saveProductId = async () => {
+  idMessage.value = ''
 
-    For now, this confirms that the Edit component
-    owns the selected product action.
+  /*
+    We will connect the product ID
+    endpoint here next.
   */
 
   console.log(
-    'Edit product:',
-    product
+    'Save product ID:',
+    {
+      currentProductId: props.productId,
+      newProductId: editableProductId.value
+    }
   )
+
+  idMessage.value =
+    'Product ID endpoint not connected yet.'
 }
+
+/* ========================================
+   SAVE PRODUCT NAME
+======================================== */
+
+const saveProductName = async () => {
+  nameMessage.value = ''
+
+  /*
+    We will connect the product name
+    endpoint here next.
+  */
+
+  console.log(
+    'Save product name:',
+    {
+      productId: props.productId,
+      name: editableProductName.value
+    }
+  )
+
+  nameMessage.value =
+    'Product name endpoint not connected yet.'
+}
+
+/* ========================================
+   SAVE PRODUCT DESCRIPTION
+======================================== */
+
+const saveProductDescription = async () => {
+  descriptionMessage.value = ''
+
+  /*
+    We will connect the product description
+    endpoint here next.
+  */
+
+  console.log(
+    'Save product description:',
+    {
+      productId: props.productId,
+      description:
+        editableProductDescription.value
+    }
+  )
+
+  descriptionMessage.value =
+    'Product description endpoint not connected yet.'
+}
+
+/* ========================================
+   CLOSE
+======================================== */
+
+const closeEditor = () => {
+  emit('close')
+}
+
+/* ========================================
+   WATCH PRODUCT ID
+======================================== */
+
+watch(
+  () => props.productId,
+  () => {
+    loadProduct()
+  }
+)
 
 /* ========================================
    INITIAL LOAD
 ======================================== */
 
 onMounted(() => {
-  loadProducts()
+  loadProduct()
 })
 </script>
 
 <template>
-  <div class="edit-product-section">
+  <section class="edit-product-management">
+
+    <!-- ========================================
+         HEADER
+    ========================================= -->
+
+    <div class="edit-product-header">
+      <div>
+        <p class="edit-label">
+          Editing Product
+        </p>
+
+        <h3 class="edit-product-title">
+          {{
+            product?.name ||
+            'Product'
+          }}
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="back-button"
+        @click="closeEditor"
+      >
+        Back to Products
+      </button>
+    </div>
+
+    <!-- ========================================
+         LOADING
+    ========================================= -->
+
     <p
-      v-if="isLoadingProducts"
-      class="product-list-status"
+      v-if="isLoadingProduct"
+      class="product-status"
     >
-      Loading products...
+      Loading product...
     </p>
+
+    <!-- ========================================
+         ERROR
+    ========================================= -->
 
     <p
       v-else-if="productLoadMessage"
-      class="product-list-error"
+      class="product-error"
     >
       {{ productLoadMessage }}
     </p>
 
-    <p
-      v-else-if="products.length === 0"
-      class="product-list-status"
-    >
-      No products found.
-    </p>
+    <!-- ========================================
+         PRODUCT FIELDS
+    ========================================= -->
 
     <div
-      v-else
-      class="product-list"
+      v-else-if="product"
+      class="product-fields"
     >
-      <div
-        v-for="product in products"
-        :key="product.id"
-        class="product-list-item"
-      >
-        <div class="product-list-info">
-          <span class="product-item-number">
-            {{ product.item_number }}
-          </span>
 
-          <span class="product-list-name">
-            {{ product.name }}
-          </span>
+      <!-- ========================================
+           PRODUCT ID
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Product ID
         </div>
 
-        <button
-          type="button"
-          class="edit-product-button"
-          @click="editProduct(product)"
+        <div class="field-editor">
+          <input
+            v-model="editableProductId"
+            type="text"
+            class="field-input"
+          >
+
+          <button
+            type="button"
+            class="save-button"
+            :disabled="isSavingId"
+            @click="saveProductId"
+          >
+            {{
+              isSavingId
+                ? 'Saving...'
+                : 'Save'
+            }}
+          </button>
+        </div>
+
+        <p
+          v-if="idMessage"
+          class="field-message"
         >
-          Edit
-        </button>
+          {{ idMessage }}
+        </p>
       </div>
+
+      <!-- ========================================
+           PRODUCT NAME
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Product Name
+        </div>
+
+        <div class="field-editor">
+          <input
+            v-model="editableProductName"
+            type="text"
+            class="field-input"
+          >
+
+          <button
+            type="button"
+            class="save-button"
+            :disabled="isSavingName"
+            @click="saveProductName"
+          >
+            {{
+              isSavingName
+                ? 'Saving...'
+                : 'Save'
+            }}
+          </button>
+        </div>
+
+        <p
+          v-if="nameMessage"
+          class="field-message"
+        >
+          {{ nameMessage }}
+        </p>
+      </div>
+
+      <!-- ========================================
+           PRODUCT DESCRIPTION
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Product Description
+        </div>
+
+        <div class="description-editor">
+          <textarea
+            v-model="editableProductDescription"
+            class="field-textarea"
+            rows="6"
+          ></textarea>
+
+          <button
+            type="button"
+            class="save-button"
+            :disabled="isSavingDescription"
+            @click="saveProductDescription"
+          >
+            {{
+              isSavingDescription
+                ? 'Saving...'
+                : 'Save'
+            }}
+          </button>
+        </div>
+
+        <p
+          v-if="descriptionMessage"
+          class="field-message"
+        >
+          {{ descriptionMessage }}
+        </p>
+      </div>
+
     </div>
-  </div>
+
+  </section>
 </template>
 
 <style scoped>
-.edit-product-section {
+.edit-product-management {
+  width: 100%;
+
   padding: clamp(1rem, 3vw, 2rem);
 
   background: white;
 
   border-radius: 10px;
 
+  box-sizing: border-box;
+
   font-family: 'Fredoka', sans-serif;
 }
 
-.product-list {
-  display: flex;
-  flex-direction: column;
+/* ========================================
+   HEADER
+======================================== */
 
-  gap: 0.75rem;
-}
-
-.product-list-item {
-  width: 100%;
-
-  padding: 1rem;
+.edit-product-header {
+  margin-bottom: 1.5rem;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   gap: 1rem;
-
-  border: 1px solid #ddd;
-  border-radius: 8px;
-
-  box-sizing: border-box;
 }
 
-.product-list-info {
-  min-width: 0;
+.edit-label {
+  margin: 0 0 0.2rem;
 
+  color: #777;
+
+  font-size: 0.85rem;
+}
+
+.edit-product-title {
+  margin: 0;
+
+  color: #703795;
+
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.back-button {
+  padding: 0.6rem 1rem;
+
+  background: white;
+
+  color: #703795;
+
+  border: 2px solid #703795;
+  border-radius: 6px;
+
+  font: inherit;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background: #f5eff8;
+}
+
+/* ========================================
+   FIELD LIST
+======================================== */
+
+.product-fields {
   display: flex;
-  align-items: center;
+  flex-direction: column;
 
   gap: 1rem;
 }
 
-.product-item-number {
-  min-width: 5rem;
+.product-field-card {
+  padding: 1.25rem;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.field-heading {
+  margin-bottom: 0.65rem;
 
   color: #703795;
 
   font-weight: 600;
 }
 
-.product-list-name {
-  color: #222;
+/* ========================================
+   STANDARD FIELD
+======================================== */
 
-  font-weight: 500;
+.field-editor {
+  display: flex;
+  align-items: center;
+
+  gap: 0.75rem;
 }
 
-.edit-product-button {
+.field-input {
+  min-width: 0;
+  flex: 1;
+
+  padding: 0.75rem;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  box-sizing: border-box;
+
+  font: inherit;
+}
+
+/* ========================================
+   DESCRIPTION
+======================================== */
+
+.description-editor {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.75rem;
+}
+
+.field-textarea {
+  min-width: 0;
+  flex: 1;
+
+  padding: 0.75rem;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  font: inherit;
+}
+
+/* ========================================
+   SAVE BUTTON
+======================================== */
+
+.save-button {
   flex-shrink: 0;
 
-  padding: 0.55rem 1rem;
+  padding: 0.7rem 1.1rem;
 
   background: #703795;
 
@@ -245,36 +559,58 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.edit-product-button:hover {
+.save-button:hover {
   opacity: 0.9;
 }
 
-.product-list-status {
+.save-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+/* ========================================
+   MESSAGES
+======================================== */
+
+.field-message {
+  margin: 0.65rem 0 0;
+
+  color: #703795;
+
+  font-size: 0.9rem;
+}
+
+.product-status {
   margin: 0;
 
   color: #703795;
 }
 
-.product-list-error {
+.product-error {
   margin: 0;
 
   color: #c62828;
 }
 
+/* ========================================
+   MOBILE
+======================================== */
+
 @media (max-width: 600px) {
-  .product-list-item {
+  .edit-product-header {
     align-items: flex-start;
-  }
-
-  .product-list-info {
     flex-direction: column;
-    align-items: flex-start;
-
-    gap: 0.25rem;
   }
 
-  .product-item-number {
-    min-width: 0;
+  .field-editor,
+  .description-editor {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-button {
+    width: 100%;
   }
 }
 </style>

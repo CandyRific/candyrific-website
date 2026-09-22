@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 import AddProductsManagement from './AddProductManagement.vue'
-import EditProductsManagement from './EditProductManagement.vue'
+import EditProductsManagement from './EditProductsManagement.vue'
 
 const managementMode = ref('add')
 

@@ -294,16 +294,16 @@ const selectImage = (
 ======================================== */
 
 const navigateToIndividualProduct = (
-  itemNumber
+  productId
 ) => {
-  if (!itemNumber) {
+  if (!productId) {
     return
   }
 
   router.push({
     name: 'product',
     params: {
-      itemNumber
+      id: productId
     }
   })
 }
@@ -711,15 +711,15 @@ onMounted(() => {
           >
 
             <article
-              v-for="product in products"
-              :key="product.id"
-              class="product-card-parent"
-              @click="
-                navigateToIndividualProduct(
-                  product.item_number
-                )
-              "
-            >
+  v-for="product in products"
+  :key="product.id"
+  class="product-card-parent"
+  @click="
+    navigateToIndividualProduct(
+      product.id
+    )
+  "
+>
 
               <div class="product-card">
 
