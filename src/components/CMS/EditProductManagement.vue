@@ -29,6 +29,7 @@ const product = ref(null)
 const editableItemNumber = ref('')
 const editableProductName = ref('')
 const editableProductDescription = ref('')
+const editableAmazonLink = ref('')
 
 /* ========================================
    LOADING STATE
@@ -44,10 +45,12 @@ const productLoadMessage = ref('')
 const isSavingItemNumber = ref(false)
 const isSavingName = ref(false)
 const isSavingDescription = ref(false)
+const isSavingAmazonLink = ref(false)
 
 const itemNumberMessage = ref('')
 const nameMessage = ref('')
 const descriptionMessage = ref('')
+const amazonLinkMessage = ref('')
 
 /* ========================================
    LOAD PRODUCT
@@ -99,6 +102,9 @@ const loadProduct = async () => {
 
     editableProductDescription.value =
       data.description ?? ''
+
+    editableAmazonLink.value =
+      data.amazon_link ?? ''
   } catch (error) {
     console.error(
       'Unable to load product:',
@@ -342,6 +348,77 @@ const saveProductDescription = async () => {
 }
 
 /* ========================================
+   SAVE AMAZON LINK
+======================================== */
+
+const saveAmazonLink = async () => {
+  amazonLinkMessage.value = ''
+
+  isSavingAmazonLink.value = true
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/product-amazon-link-update',
+      {
+        method: 'PATCH',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          productId: props.productId,
+
+          amazonLink:
+            editableAmazonLink.value
+        })
+      }
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to update Amazon link. HTTP ${response.status}`
+      )
+    }
+
+    editableAmazonLink.value =
+      data.product.amazon_link ?? ''
+
+    if (product.value) {
+      product.value.amazon_link =
+        data.product.amazon_link ?? ''
+    }
+
+    amazonLinkMessage.value =
+      data.message ||
+      'Amazon link updated successfully.'
+  } catch (error) {
+    console.error(
+      'Unable to update Amazon link:',
+      error
+    )
+
+    amazonLinkMessage.value =
+      error.message
+  } finally {
+    isSavingAmazonLink.value = false
+  }
+}
+
+/* ========================================
    CLOSE
 ======================================== */
 
@@ -541,6 +618,45 @@ onMounted(() => {
           class="field-message"
         >
           {{ descriptionMessage }}
+        </p>
+      </div>
+
+      <!-- ========================================
+           AMAZON LINK
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Amazon Link
+        </div>
+
+        <div class="field-editor">
+          <input
+            v-model="editableAmazonLink"
+            type="url"
+            class="field-input"
+            placeholder="https://www.amazon.com/..."
+          >
+
+          <button
+            type="button"
+            class="save-button"
+            :disabled="isSavingAmazonLink"
+            @click="saveAmazonLink"
+          >
+            {{
+              isSavingAmazonLink
+                ? 'Saving...'
+                : 'Save'
+            }}
+          </button>
+        </div>
+
+        <p
+          v-if="amazonLinkMessage"
+          class="field-message"
+        >
+          {{ amazonLinkMessage }}
         </p>
       </div>
 
