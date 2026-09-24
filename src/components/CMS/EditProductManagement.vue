@@ -26,7 +26,7 @@ const emit = defineEmits([
 
 const product = ref(null)
 
-const editableProductId = ref('')
+const editableItemNumber = ref('')
 const editableProductName = ref('')
 const editableProductDescription = ref('')
 
@@ -41,11 +41,11 @@ const productLoadMessage = ref('')
    INDIVIDUAL SAVE STATE
 ======================================== */
 
-const isSavingId = ref(false)
+const isSavingItemNumber = ref(false)
 const isSavingName = ref(false)
 const isSavingDescription = ref(false)
 
-const idMessage = ref('')
+const itemNumberMessage = ref('')
 const nameMessage = ref('')
 const descriptionMessage = ref('')
 
@@ -91,8 +91,8 @@ const loadProduct = async () => {
 
     product.value = data
 
-    editableProductId.value =
-      data.id ?? ''
+    editableItemNumber.value =
+      data.item_number ?? ''
 
     editableProductName.value =
       data.name ?? ''
@@ -113,27 +113,82 @@ const loadProduct = async () => {
 }
 
 /* ========================================
-   SAVE PRODUCT ID
+   SAVE ITEM NUMBER
 ======================================== */
 
-const saveProductId = async () => {
-  idMessage.value = ''
+const saveItemNumber = async () => {
+  itemNumberMessage.value = ''
 
-  /*
-    We will connect the product ID
-    endpoint here next.
-  */
+  const itemNumber =
+    editableItemNumber.value.trim()
 
-  console.log(
-    'Save product ID:',
-    {
-      currentProductId: props.productId,
-      newProductId: editableProductId.value
+  if (!itemNumber) {
+    itemNumberMessage.value =
+      'Item number is required.'
+
+    return
+  }
+
+  isSavingItemNumber.value = true
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/product-number-update',
+      {
+        method: 'PATCH',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          productId: props.productId,
+          itemNumber
+        })
+      }
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
     }
-  )
 
-  idMessage.value =
-    'Product ID endpoint not connected yet.'
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to update item number. HTTP ${response.status}`
+      )
+    }
+
+    editableItemNumber.value =
+      data.product.item_number
+
+    if (product.value) {
+      product.value.item_number =
+        data.product.item_number
+    }
+
+    itemNumberMessage.value =
+      data.message ||
+      'Item number updated successfully.'
+  } catch (error) {
+    console.error(
+      'Unable to update item number:',
+      error
+    )
+
+    itemNumberMessage.value =
+      error.message
+  } finally {
+    isSavingItemNumber.value = false
+  }
 }
 
 /* ========================================
@@ -143,21 +198,76 @@ const saveProductId = async () => {
 const saveProductName = async () => {
   nameMessage.value = ''
 
-  /*
-    We will connect the product name
-    endpoint here next.
-  */
+  const name =
+    editableProductName.value.trim()
 
-  console.log(
-    'Save product name:',
-    {
-      productId: props.productId,
-      name: editableProductName.value
+  if (!name) {
+    nameMessage.value =
+      'Product name is required.'
+
+    return
+  }
+
+  isSavingName.value = true
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/product-name-update',
+      {
+        method: 'PATCH',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          productId: props.productId,
+          name
+        })
+      }
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
     }
-  )
 
-  nameMessage.value =
-    'Product name endpoint not connected yet.'
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to update product name. HTTP ${response.status}`
+      )
+    }
+
+    editableProductName.value =
+      data.product.name
+
+    if (product.value) {
+      product.value.name =
+        data.product.name
+    }
+
+    nameMessage.value =
+      data.message ||
+      'Product name updated successfully.'
+  } catch (error) {
+    console.error(
+      'Unable to update product name:',
+      error
+    )
+
+    nameMessage.value =
+      error.message
+  } finally {
+    isSavingName.value = false
+  }
 }
 
 /* ========================================
@@ -167,22 +277,68 @@ const saveProductName = async () => {
 const saveProductDescription = async () => {
   descriptionMessage.value = ''
 
-  /*
-    We will connect the product description
-    endpoint here next.
-  */
+  isSavingDescription.value = true
 
-  console.log(
-    'Save product description:',
-    {
-      productId: props.productId,
-      description:
-        editableProductDescription.value
+  try {
+    const response = await fetch(
+      '/.netlify/functions/product-description-update',
+      {
+        method: 'PATCH',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          productId: props.productId,
+
+          description:
+            editableProductDescription.value
+        })
+      }
+    )
+
+    const responseText =
+      await response.text()
+
+    let data = null
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      // Response was not JSON.
     }
-  )
 
-  descriptionMessage.value =
-    'Product description endpoint not connected yet.'
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
+        responseText ||
+        `Unable to update product description. HTTP ${response.status}`
+      )
+    }
+
+    editableProductDescription.value =
+      data.product.description ?? ''
+
+    if (product.value) {
+      product.value.description =
+        data.product.description ?? ''
+    }
+
+    descriptionMessage.value =
+      data.message ||
+      'Product description updated successfully.'
+  } catch (error) {
+    console.error(
+      'Unable to update product description:',
+      error
+    )
+
+    descriptionMessage.value =
+      error.message
+  } finally {
+    isSavingDescription.value = false
+  }
 }
 
 /* ========================================
@@ -275,17 +431,17 @@ onMounted(() => {
     >
 
       <!-- ========================================
-           PRODUCT ID
+           ITEM NUMBER
       ========================================= -->
 
       <div class="product-field-card">
         <div class="field-heading">
-          Product ID
+          Item Number
         </div>
 
         <div class="field-editor">
           <input
-            v-model="editableProductId"
+            v-model="editableItemNumber"
             type="text"
             class="field-input"
           >
@@ -293,11 +449,11 @@ onMounted(() => {
           <button
             type="button"
             class="save-button"
-            :disabled="isSavingId"
-            @click="saveProductId"
+            :disabled="isSavingItemNumber"
+            @click="saveItemNumber"
           >
             {{
-              isSavingId
+              isSavingItemNumber
                 ? 'Saving...'
                 : 'Save'
             }}
@@ -305,10 +461,10 @@ onMounted(() => {
         </div>
 
         <p
-          v-if="idMessage"
+          v-if="itemNumberMessage"
           class="field-message"
         >
-          {{ idMessage }}
+          {{ itemNumberMessage }}
         </p>
       </div>
 
