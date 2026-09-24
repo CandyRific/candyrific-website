@@ -32,11 +32,49 @@ const editableProductDescription = ref('')
 const editableAmazonLink = ref('')
 
 /* ========================================
+   BRAND STATE
+======================================== */
+
+/*
+ * Every brand that exists in the
+ * brands table.
+ */
+const allBrands = ref([])
+
+/*
+ * Brands that are currently checked
+ * in the editor.
+ */
+const selectedBrandIds = ref([])
+
+/*
+ * Snapshot of the brands originally
+ * associated with this product.
+ */
+const originalBrandIds = ref([])
+
+/*
+ * Brands checked after the original
+ * product data was loaded.
+ */
+const newBrands = ref([])
+
+/*
+ * Brands unchecked after the original
+ * product data was loaded.
+ */
+const deleteBrands = ref([])
+
+const isBrandDropdownOpen = ref(false)
+
+/* ========================================
    LOADING STATE
 ======================================== */
 
 const isLoadingProduct = ref(false)
 const productLoadMessage = ref('')
+
+const isLoadingBrands = ref(false)
 
 /* ========================================
    INDIVIDUAL SAVE STATE
@@ -46,11 +84,128 @@ const isSavingItemNumber = ref(false)
 const isSavingName = ref(false)
 const isSavingDescription = ref(false)
 const isSavingAmazonLink = ref(false)
+const isSavingBrands = ref(false)
 
 const itemNumberMessage = ref('')
 const nameMessage = ref('')
 const descriptionMessage = ref('')
 const amazonLinkMessage = ref('')
+const brandsMessage = ref('')
+
+/* ========================================
+   RESPONSE HELPER
+======================================== */
+
+const readResponse = async (
+  response,
+  fallbackMessage
+) => {
+  const responseText =
+    await response.text()
+
+  let data = null
+
+  try {
+    data = JSON.parse(responseText)
+  } catch {
+    // Response was not JSON.
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+      responseText ||
+      `${fallbackMessage} HTTP ${response.status}`
+    )
+  }
+
+  return data
+}
+
+/* ========================================
+   LOAD ALL EXISTING BRANDS
+======================================== */
+
+const loadAllBrands = async () => {
+  const response = await fetch(
+    '/.netlify/functions/brands'
+  )
+
+  const data = await readResponse(
+    response,
+    'Unable to load brands.'
+  )
+
+  allBrands.value =
+    Array.isArray(data)
+      ? data
+      : []
+}
+
+/* ========================================
+   LOAD PRODUCT'S CURRENT BRANDS
+======================================== */
+
+const loadCurrentProductBrands =
+  async () => {
+    const response = await fetch(
+      `/.netlify/functions/product-update-brands?productId=${encodeURIComponent(
+        props.productId
+      )}`
+    )
+
+    const data = await readResponse(
+      response,
+      'Unable to load product brands.'
+    )
+
+    const currentIds =
+      data.map(
+        (brand) =>
+          Number(brand.id)
+      )
+
+    selectedBrandIds.value = [
+      ...currentIds
+    ]
+
+    originalBrandIds.value = [
+      ...currentIds
+    ]
+
+    /*
+     * There are no unsaved changes
+     * after loading from the server.
+     */
+    newBrands.value = []
+    deleteBrands.value = []
+  }
+
+/* ========================================
+   LOAD BRAND EDITOR
+======================================== */
+
+const loadBrandEditor = async () => {
+  isLoadingBrands.value = true
+  brandsMessage.value = ''
+
+  try {
+    await Promise.all([
+      loadAllBrands(),
+      loadCurrentProductBrands()
+    ])
+  } catch (error) {
+    console.error(
+      'Unable to load brand editor:',
+      error
+    )
+
+    brandsMessage.value =
+      error.message
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
 
 /* ========================================
    LOAD PRODUCT
@@ -67,24 +222,10 @@ const loadProduct = async () => {
       )}`
     )
 
-    const responseText =
-      await response.text()
-
-    let data = null
-
-    try {
-      data = JSON.parse(responseText)
-    } catch {
-      // Response was not JSON.
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        responseText ||
-        `Unable to load product. HTTP ${response.status}`
-      )
-    }
+    const data = await readResponse(
+      response,
+      'Unable to load product.'
+    )
 
     if (!data) {
       throw new Error(
@@ -105,6 +246,8 @@ const loadProduct = async () => {
 
     editableAmazonLink.value =
       data.amazon_link ?? ''
+
+    await loadBrandEditor()
   } catch (error) {
     console.error(
       'Unable to load product:',
@@ -144,34 +287,23 @@ const saveItemNumber = async () => {
         method: 'PATCH',
 
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type':
+            'application/json'
         },
 
         body: JSON.stringify({
-          productId: props.productId,
+          productId:
+            props.productId,
+
           itemNumber
         })
       }
     )
 
-    const responseText =
-      await response.text()
-
-    let data = null
-
-    try {
-      data = JSON.parse(responseText)
-    } catch {
-      // Response was not JSON.
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        responseText ||
-        `Unable to update item number. HTTP ${response.status}`
-      )
-    }
+    const data = await readResponse(
+      response,
+      'Unable to update item number.'
+    )
 
     editableItemNumber.value =
       data.product.item_number
@@ -223,34 +355,23 @@ const saveProductName = async () => {
         method: 'PATCH',
 
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type':
+            'application/json'
         },
 
         body: JSON.stringify({
-          productId: props.productId,
+          productId:
+            props.productId,
+
           name
         })
       }
     )
 
-    const responseText =
-      await response.text()
-
-    let data = null
-
-    try {
-      data = JSON.parse(responseText)
-    } catch {
-      // Response was not JSON.
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        responseText ||
-        `Unable to update product name. HTTP ${response.status}`
-      )
-    }
+    const data = await readResponse(
+      response,
+      'Unable to update product name.'
+    )
 
     editableProductName.value =
       data.product.name
@@ -280,72 +401,61 @@ const saveProductName = async () => {
    SAVE PRODUCT DESCRIPTION
 ======================================== */
 
-const saveProductDescription = async () => {
-  descriptionMessage.value = ''
+const saveProductDescription =
+  async () => {
+    descriptionMessage.value = ''
 
-  isSavingDescription.value = true
-
-  try {
-    const response = await fetch(
-      '/.netlify/functions/product-description-update',
-      {
-        method: 'PATCH',
-
-        headers: {
-          'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
-          productId: props.productId,
-
-          description:
-            editableProductDescription.value
-        })
-      }
-    )
-
-    const responseText =
-      await response.text()
-
-    let data = null
+    isSavingDescription.value = true
 
     try {
-      data = JSON.parse(responseText)
-    } catch {
-      // Response was not JSON.
-    }
+      const response = await fetch(
+        '/.netlify/functions/product-description-update',
+        {
+          method: 'PATCH',
 
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        responseText ||
-        `Unable to update product description. HTTP ${response.status}`
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body: JSON.stringify({
+            productId:
+              props.productId,
+
+            description:
+              editableProductDescription.value
+          })
+        }
       )
-    }
 
-    editableProductDescription.value =
-      data.product.description ?? ''
+      const data = await readResponse(
+        response,
+        'Unable to update product description.'
+      )
 
-    if (product.value) {
-      product.value.description =
+      editableProductDescription.value =
         data.product.description ?? ''
+
+      if (product.value) {
+        product.value.description =
+          data.product.description ?? ''
+      }
+
+      descriptionMessage.value =
+        data.message ||
+        'Product description updated successfully.'
+    } catch (error) {
+      console.error(
+        'Unable to update product description:',
+        error
+      )
+
+      descriptionMessage.value =
+        error.message
+    } finally {
+      isSavingDescription.value = false
     }
-
-    descriptionMessage.value =
-      data.message ||
-      'Product description updated successfully.'
-  } catch (error) {
-    console.error(
-      'Unable to update product description:',
-      error
-    )
-
-    descriptionMessage.value =
-      error.message
-  } finally {
-    isSavingDescription.value = false
   }
-}
 
 /* ========================================
    SAVE AMAZON LINK
@@ -363,11 +473,13 @@ const saveAmazonLink = async () => {
         method: 'PATCH',
 
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type':
+            'application/json'
         },
 
         body: JSON.stringify({
-          productId: props.productId,
+          productId:
+            props.productId,
 
           amazonLink:
             editableAmazonLink.value
@@ -375,24 +487,10 @@ const saveAmazonLink = async () => {
       }
     )
 
-    const responseText =
-      await response.text()
-
-    let data = null
-
-    try {
-      data = JSON.parse(responseText)
-    } catch {
-      // Response was not JSON.
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        responseText ||
-        `Unable to update Amazon link. HTTP ${response.status}`
-      )
-    }
+    const data = await readResponse(
+      response,
+      'Unable to update Amazon link.'
+    )
 
     editableAmazonLink.value =
       data.product.amazon_link ?? ''
@@ -419,6 +517,234 @@ const saveAmazonLink = async () => {
 }
 
 /* ========================================
+   TOGGLE BRAND DROPDOWN
+======================================== */
+
+const toggleBrandDropdown = () => {
+  isBrandDropdownOpen.value =
+    !isBrandDropdownOpen.value
+}
+
+/* ========================================
+   BRAND CHECKBOX CHANGE
+======================================== */
+
+const handleBrandChange = (
+  brandId,
+  checked
+) => {
+  const id = Number(brandId)
+
+  const wasOriginallySelected =
+    originalBrandIds.value.includes(id)
+
+  /*
+   * CHECKED
+   */
+  if (checked) {
+    if (
+      !selectedBrandIds.value.includes(id)
+    ) {
+      selectedBrandIds.value.push(id)
+    }
+
+    /*
+     * Newly added brand.
+     */
+    if (
+      !wasOriginallySelected &&
+      !newBrands.value.includes(id)
+    ) {
+      newBrands.value.push(id)
+    }
+
+    /*
+     * If the user unchecked an original
+     * brand and then checked it again,
+     * remove it from the delete array.
+     */
+    deleteBrands.value =
+      deleteBrands.value.filter(
+        (brandId) =>
+          brandId !== id
+      )
+
+    return
+  }
+
+  /*
+   * UNCHECKED
+   */
+
+  selectedBrandIds.value =
+    selectedBrandIds.value.filter(
+      (brandId) =>
+        brandId !== id
+    )
+
+  /*
+   * If this brand originally belonged
+   * to the product, mark it for deletion.
+   */
+  if (
+    wasOriginallySelected &&
+    !deleteBrands.value.includes(id)
+  ) {
+    deleteBrands.value.push(id)
+  }
+
+  /*
+   * If it was newly selected and then
+   * unchecked before saving, it no
+   * longer needs to be added.
+   */
+  newBrands.value =
+    newBrands.value.filter(
+      (brandId) =>
+        brandId !== id
+    )
+}
+
+/* ========================================
+   CHECK WHETHER BRAND IS SELECTED
+======================================== */
+
+const isBrandSelected = (
+  brandId
+) => {
+  return selectedBrandIds.value.includes(
+    Number(brandId)
+  )
+}
+
+/* ========================================
+   SAVE BRANDS
+======================================== */
+
+const saveBrands = async () => {
+  brandsMessage.value = ''
+
+  if (
+    newBrands.value.length === 0 &&
+    deleteBrands.value.length === 0
+  ) {
+    brandsMessage.value =
+      'No brand changes to save.'
+
+    return
+  }
+
+  isSavingBrands.value = true
+
+  try {
+    /*
+     * REMOVE BRANDS
+     */
+    if (
+      deleteBrands.value.length > 0
+    ) {
+      const deleteResponse =
+        await fetch(
+          '/.netlify/functions/product-update-brands',
+          {
+            method: 'DELETE',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              productId:
+                props.productId,
+
+              brandIds:
+                deleteBrands.value
+            })
+          }
+        )
+
+      await readResponse(
+        deleteResponse,
+        'Unable to remove brands.'
+      )
+    }
+
+    /*
+     * ADD BRANDS
+     */
+    if (
+      newBrands.value.length > 0
+    ) {
+      const postResponse =
+        await fetch(
+          '/.netlify/functions/product-update-brands',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              productId:
+                props.productId,
+
+              brandIds:
+                newBrands.value
+            })
+          }
+        )
+
+      await readResponse(
+        postResponse,
+        'Unable to add brands.'
+      )
+    }
+
+    /*
+     * Reload from the database after
+     * both operations succeed.
+     */
+    await loadCurrentProductBrands()
+
+    brandsMessage.value =
+      'Brands updated successfully.'
+
+    isBrandDropdownOpen.value = false
+  } catch (error) {
+    console.error(
+      'Unable to update product brands:',
+      error
+    )
+
+    /*
+     * Because POST and DELETE are two
+     * separate HTTP requests, one could
+     * theoretically succeed while the
+     * other fails.
+     *
+     * Reload the database state so the
+     * UI reflects what actually happened.
+     */
+    try {
+      await loadCurrentProductBrands()
+    } catch (reloadError) {
+      console.error(
+        'Unable to reload product brands:',
+        reloadError
+      )
+    }
+
+    brandsMessage.value =
+      error.message
+  } finally {
+    isSavingBrands.value = false
+  }
+}
+
+/* ========================================
    CLOSE
 ======================================== */
 
@@ -433,6 +759,8 @@ const closeEditor = () => {
 watch(
   () => props.productId,
   () => {
+    isBrandDropdownOpen.value = false
+
     loadProduct()
   }
 )
@@ -660,6 +988,150 @@ onMounted(() => {
         </p>
       </div>
 
+      <!-- ========================================
+           BRANDS
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Brands
+        </div>
+
+        <p
+          v-if="isLoadingBrands"
+          class="brand-loading"
+        >
+          Loading brands...
+        </p>
+
+        <template v-else>
+
+          <div class="brand-editor">
+
+            <!-- DROPDOWN -->
+
+            <div class="brand-dropdown">
+
+              <button
+                type="button"
+                class="brand-dropdown-button"
+                @click="toggleBrandDropdown"
+              >
+                <span>
+                  {{
+                    selectedBrandIds.length
+                  }}
+                  brand{{
+                    selectedBrandIds.length === 1
+                      ? ''
+                      : 's'
+                  }}
+                  selected
+                </span>
+
+                <span
+                  class="brand-dropdown-arrow"
+                  :class="{
+                    open:
+                      isBrandDropdownOpen
+                  }"
+                >
+                  ▼
+                </span>
+              </button>
+
+              <!-- CHECKBOX LIST -->
+
+              <div
+                v-if="isBrandDropdownOpen"
+                class="brand-dropdown-menu"
+              >
+                <label
+                  v-for="brand in allBrands"
+                  :key="brand.id"
+                  class="brand-option"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="
+                      isBrandSelected(
+                        brand.id
+                      )
+                    "
+                    @change="
+                      handleBrandChange(
+                        brand.id,
+                        $event.target.checked
+                      )
+                    "
+                  >
+
+                  <span>
+                    {{ brand.name }}
+                  </span>
+                </label>
+
+                <p
+                  v-if="
+                    allBrands.length === 0
+                  "
+                  class="brand-empty"
+                >
+                  No brands available.
+                </p>
+              </div>
+
+            </div>
+
+            <!-- SAVE -->
+
+            <button
+              type="button"
+              class="save-button"
+              :disabled="isSavingBrands"
+              @click="saveBrands"
+            >
+              {{
+                isSavingBrands
+                  ? 'Saving...'
+                  : 'Save'
+              }}
+            </button>
+
+          </div>
+
+          <!-- CURRENTLY SELECTED -->
+
+          <div
+            v-if="
+              selectedBrandIds.length > 0
+            "
+            class="selected-brand-list"
+          >
+            <span
+              v-for="brand in allBrands.filter(
+                (brand) =>
+                  selectedBrandIds.includes(
+                    Number(brand.id)
+                  )
+              )"
+              :key="brand.id"
+              class="selected-brand-pill"
+            >
+              {{ brand.name }}
+            </span>
+          </div>
+
+        </template>
+
+        <p
+          v-if="brandsMessage"
+          class="field-message"
+        >
+          {{ brandsMessage }}
+        </p>
+      </div>
+
     </div>
 
   </section>
@@ -810,6 +1282,147 @@ onMounted(() => {
 }
 
 /* ========================================
+   BRANDS
+======================================== */
+
+.brand-editor {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.75rem;
+}
+
+.brand-dropdown {
+  position: relative;
+
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-dropdown-button {
+  width: 100%;
+
+  padding: 0.75rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: white;
+
+  color: #333;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.brand-dropdown-button:hover {
+  border-color: #703795;
+}
+
+.brand-dropdown-arrow {
+  margin-left: 1rem;
+
+  color: #703795;
+
+  font-size: 0.75rem;
+
+  transition: transform 0.2s ease;
+}
+
+.brand-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.brand-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+
+  width: 100%;
+  max-height: 250px;
+
+  overflow-y: auto;
+
+  padding: 0.4rem;
+
+  background: white;
+
+  border: 1px solid #ccc;
+  border-radius: 6px;
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 6px 18px
+    rgba(0, 0, 0, 0.12);
+
+  z-index: 20;
+}
+
+.brand-option {
+  padding: 0.65rem;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.6rem;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+}
+
+.brand-option:hover {
+  background: #f5eff8;
+}
+
+.brand-option input {
+  width: 17px;
+  height: 17px;
+
+  accent-color: #703795;
+
+  cursor: pointer;
+}
+
+.selected-brand-list {
+  margin-top: 0.8rem;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 0.45rem;
+}
+
+.selected-brand-pill {
+  padding: 0.35rem 0.65rem;
+
+  background: #f5eff8;
+
+  color: #703795;
+
+  border-radius: 999px;
+
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.brand-loading,
+.brand-empty {
+  margin: 0;
+
+  color: #777;
+
+  font-size: 0.9rem;
+}
+
+/* ========================================
    SAVE BUTTON
 ======================================== */
 
@@ -876,7 +1489,8 @@ onMounted(() => {
   }
 
   .field-editor,
-  .description-editor {
+  .description-editor,
+  .brand-editor {
     flex-direction: column;
     align-items: stretch;
   }
