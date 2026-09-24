@@ -35,37 +35,29 @@ const editableAmazonLink = ref('')
    BRAND STATE
 ======================================== */
 
-/*
- * Every brand that exists in the
- * brands table.
- */
 const allBrands = ref([])
 
-/*
- * Brands that are currently checked
- * in the editor.
- */
 const selectedBrandIds = ref([])
-
-/*
- * Snapshot of the brands originally
- * associated with this product.
- */
 const originalBrandIds = ref([])
 
-/*
- * Brands checked after the original
- * product data was loaded.
- */
 const newBrands = ref([])
-
-/*
- * Brands unchecked after the original
- * product data was loaded.
- */
 const deleteBrands = ref([])
 
 const isBrandDropdownOpen = ref(false)
+
+/* ========================================
+   SEASON STATE
+======================================== */
+
+const allSeasons = ref([])
+
+const selectedSeasonIds = ref([])
+const originalSeasonIds = ref([])
+
+const newSeasons = ref([])
+const deleteSeasons = ref([])
+
+const isSeasonDropdownOpen = ref(false)
 
 /* ========================================
    LOADING STATE
@@ -75,6 +67,7 @@ const isLoadingProduct = ref(false)
 const productLoadMessage = ref('')
 
 const isLoadingBrands = ref(false)
+const isLoadingSeasons = ref(false)
 
 /* ========================================
    INDIVIDUAL SAVE STATE
@@ -84,13 +77,17 @@ const isSavingItemNumber = ref(false)
 const isSavingName = ref(false)
 const isSavingDescription = ref(false)
 const isSavingAmazonLink = ref(false)
+
 const isSavingBrands = ref(false)
+const isSavingSeasons = ref(false)
 
 const itemNumberMessage = ref('')
 const nameMessage = ref('')
 const descriptionMessage = ref('')
 const amazonLinkMessage = ref('')
+
 const brandsMessage = ref('')
+const seasonsMessage = ref('')
 
 /* ========================================
    RESPONSE HELPER
@@ -123,7 +120,7 @@ const readResponse = async (
 }
 
 /* ========================================
-   LOAD ALL EXISTING BRANDS
+   LOAD ALL BRANDS
 ======================================== */
 
 const loadAllBrands = async () => {
@@ -143,7 +140,7 @@ const loadAllBrands = async () => {
 }
 
 /* ========================================
-   LOAD PRODUCT'S CURRENT BRANDS
+   LOAD CURRENT PRODUCT BRANDS
 ======================================== */
 
 const loadCurrentProductBrands =
@@ -173,10 +170,6 @@ const loadCurrentProductBrands =
       ...currentIds
     ]
 
-    /*
-     * There are no unsaved changes
-     * after loading from the server.
-     */
     newBrands.value = []
     deleteBrands.value = []
   }
@@ -204,6 +197,87 @@ const loadBrandEditor = async () => {
       error.message
   } finally {
     isLoadingBrands.value = false
+  }
+}
+
+/* ========================================
+   LOAD ALL SEASONS
+======================================== */
+
+const loadAllSeasons = async () => {
+  const response = await fetch(
+    '/.netlify/functions/seasons'
+  )
+
+  const data = await readResponse(
+    response,
+    'Unable to load seasons.'
+  )
+
+  allSeasons.value =
+    Array.isArray(data)
+      ? data
+      : []
+}
+
+/* ========================================
+   LOAD CURRENT PRODUCT SEASONS
+======================================== */
+
+const loadCurrentProductSeasons =
+  async () => {
+    const response = await fetch(
+      `/.netlify/functions/product-update-seasons?productId=${encodeURIComponent(
+        props.productId
+      )}`
+    )
+
+    const data = await readResponse(
+      response,
+      'Unable to load product seasons.'
+    )
+
+    const currentIds =
+      data.map(
+        (season) =>
+          Number(season.id)
+      )
+
+    selectedSeasonIds.value = [
+      ...currentIds
+    ]
+
+    originalSeasonIds.value = [
+      ...currentIds
+    ]
+
+    newSeasons.value = []
+    deleteSeasons.value = []
+  }
+
+/* ========================================
+   LOAD SEASON EDITOR
+======================================== */
+
+const loadSeasonEditor = async () => {
+  isLoadingSeasons.value = true
+  seasonsMessage.value = ''
+
+  try {
+    await Promise.all([
+      loadAllSeasons(),
+      loadCurrentProductSeasons()
+    ])
+  } catch (error) {
+    console.error(
+      'Unable to load season editor:',
+      error
+    )
+
+    seasonsMessage.value =
+      error.message
+  } finally {
+    isLoadingSeasons.value = false
   }
 }
 
@@ -247,7 +321,10 @@ const loadProduct = async () => {
     editableAmazonLink.value =
       data.amazon_link ?? ''
 
-    await loadBrandEditor()
+    await Promise.all([
+      loadBrandEditor(),
+      loadSeasonEditor()
+    ])
   } catch (error) {
     console.error(
       'Unable to load product:',
@@ -317,11 +394,6 @@ const saveItemNumber = async () => {
       data.message ||
       'Item number updated successfully.'
   } catch (error) {
-    console.error(
-      'Unable to update item number:',
-      error
-    )
-
     itemNumberMessage.value =
       error.message
   } finally {
@@ -385,11 +457,6 @@ const saveProductName = async () => {
       data.message ||
       'Product name updated successfully.'
   } catch (error) {
-    console.error(
-      'Unable to update product name:',
-      error
-    )
-
     nameMessage.value =
       error.message
   } finally {
@@ -445,11 +512,6 @@ const saveProductDescription =
         data.message ||
         'Product description updated successfully.'
     } catch (error) {
-      console.error(
-        'Unable to update product description:',
-        error
-      )
-
       descriptionMessage.value =
         error.message
     } finally {
@@ -504,11 +566,6 @@ const saveAmazonLink = async () => {
       data.message ||
       'Amazon link updated successfully.'
   } catch (error) {
-    console.error(
-      'Unable to update Amazon link:',
-      error
-    )
-
     amazonLinkMessage.value =
       error.message
   } finally {
@@ -517,7 +574,7 @@ const saveAmazonLink = async () => {
 }
 
 /* ========================================
-   TOGGLE BRAND DROPDOWN
+   BRAND DROPDOWN
 ======================================== */
 
 const toggleBrandDropdown = () => {
@@ -526,7 +583,7 @@ const toggleBrandDropdown = () => {
 }
 
 /* ========================================
-   BRAND CHECKBOX CHANGE
+   BRAND CHANGE
 ======================================== */
 
 const handleBrandChange = (
@@ -538,9 +595,6 @@ const handleBrandChange = (
   const wasOriginallySelected =
     originalBrandIds.value.includes(id)
 
-  /*
-   * CHECKED
-   */
   if (checked) {
     if (
       !selectedBrandIds.value.includes(id)
@@ -548,9 +602,6 @@ const handleBrandChange = (
       selectedBrandIds.value.push(id)
     }
 
-    /*
-     * Newly added brand.
-     */
     if (
       !wasOriginallySelected &&
       !newBrands.value.includes(id)
@@ -558,11 +609,6 @@ const handleBrandChange = (
       newBrands.value.push(id)
     }
 
-    /*
-     * If the user unchecked an original
-     * brand and then checked it again,
-     * remove it from the delete array.
-     */
     deleteBrands.value =
       deleteBrands.value.filter(
         (brandId) =>
@@ -572,20 +618,12 @@ const handleBrandChange = (
     return
   }
 
-  /*
-   * UNCHECKED
-   */
-
   selectedBrandIds.value =
     selectedBrandIds.value.filter(
       (brandId) =>
         brandId !== id
     )
 
-  /*
-   * If this brand originally belonged
-   * to the product, mark it for deletion.
-   */
   if (
     wasOriginallySelected &&
     !deleteBrands.value.includes(id)
@@ -593,21 +631,12 @@ const handleBrandChange = (
     deleteBrands.value.push(id)
   }
 
-  /*
-   * If it was newly selected and then
-   * unchecked before saving, it no
-   * longer needs to be added.
-   */
   newBrands.value =
     newBrands.value.filter(
       (brandId) =>
         brandId !== id
     )
 }
-
-/* ========================================
-   CHECK WHETHER BRAND IS SELECTED
-======================================== */
 
 const isBrandSelected = (
   brandId
@@ -637,9 +666,6 @@ const saveBrands = async () => {
   isSavingBrands.value = true
 
   try {
-    /*
-     * REMOVE BRANDS
-     */
     if (
       deleteBrands.value.length > 0
     ) {
@@ -670,9 +696,6 @@ const saveBrands = async () => {
       )
     }
 
-    /*
-     * ADD BRANDS
-     */
     if (
       newBrands.value.length > 0
     ) {
@@ -703,10 +726,6 @@ const saveBrands = async () => {
       )
     }
 
-    /*
-     * Reload from the database after
-     * both operations succeed.
-     */
     await loadCurrentProductBrands()
 
     brandsMessage.value =
@@ -719,15 +738,6 @@ const saveBrands = async () => {
       error
     )
 
-    /*
-     * Because POST and DELETE are two
-     * separate HTTP requests, one could
-     * theoretically succeed while the
-     * other fails.
-     *
-     * Reload the database state so the
-     * UI reflects what actually happened.
-     */
     try {
       await loadCurrentProductBrands()
     } catch (reloadError) {
@@ -741,6 +751,192 @@ const saveBrands = async () => {
       error.message
   } finally {
     isSavingBrands.value = false
+  }
+}
+
+/* ========================================
+   SEASON DROPDOWN
+======================================== */
+
+const toggleSeasonDropdown = () => {
+  isSeasonDropdownOpen.value =
+    !isSeasonDropdownOpen.value
+}
+
+/* ========================================
+   SEASON CHANGE
+======================================== */
+
+const handleSeasonChange = (
+  seasonId,
+  checked
+) => {
+  const id = Number(seasonId)
+
+  const wasOriginallySelected =
+    originalSeasonIds.value.includes(id)
+
+  if (checked) {
+    if (
+      !selectedSeasonIds.value.includes(id)
+    ) {
+      selectedSeasonIds.value.push(id)
+    }
+
+    if (
+      !wasOriginallySelected &&
+      !newSeasons.value.includes(id)
+    ) {
+      newSeasons.value.push(id)
+    }
+
+    deleteSeasons.value =
+      deleteSeasons.value.filter(
+        (seasonId) =>
+          seasonId !== id
+      )
+
+    return
+  }
+
+  selectedSeasonIds.value =
+    selectedSeasonIds.value.filter(
+      (seasonId) =>
+        seasonId !== id
+    )
+
+  if (
+    wasOriginallySelected &&
+    !deleteSeasons.value.includes(id)
+  ) {
+    deleteSeasons.value.push(id)
+  }
+
+  newSeasons.value =
+    newSeasons.value.filter(
+      (seasonId) =>
+        seasonId !== id
+    )
+}
+
+const isSeasonSelected = (
+  seasonId
+) => {
+  return selectedSeasonIds.value.includes(
+    Number(seasonId)
+  )
+}
+
+/* ========================================
+   SAVE SEASONS
+======================================== */
+
+const saveSeasons = async () => {
+  seasonsMessage.value = ''
+
+  if (
+    newSeasons.value.length === 0 &&
+    deleteSeasons.value.length === 0
+  ) {
+    seasonsMessage.value =
+      'No season changes to save.'
+
+    return
+  }
+
+  isSavingSeasons.value = true
+
+  try {
+
+    /* REMOVE SEASONS */
+
+    if (
+      deleteSeasons.value.length > 0
+    ) {
+      const deleteResponse =
+        await fetch(
+          '/.netlify/functions/product-update-seasons',
+          {
+            method: 'DELETE',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              productId:
+                props.productId,
+
+              seasonIds:
+                deleteSeasons.value
+            })
+          }
+        )
+
+      await readResponse(
+        deleteResponse,
+        'Unable to remove seasons.'
+      )
+    }
+
+    /* ADD SEASONS */
+
+    if (
+      newSeasons.value.length > 0
+    ) {
+      const postResponse =
+        await fetch(
+          '/.netlify/functions/product-update-seasons',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+              productId:
+                props.productId,
+
+              seasonIds:
+                newSeasons.value
+            })
+          }
+        )
+
+      await readResponse(
+        postResponse,
+        'Unable to add seasons.'
+      )
+    }
+
+    await loadCurrentProductSeasons()
+
+    seasonsMessage.value =
+      'Seasons updated successfully.'
+
+    isSeasonDropdownOpen.value = false
+  } catch (error) {
+    console.error(
+      'Unable to update product seasons:',
+      error
+    )
+
+    try {
+      await loadCurrentProductSeasons()
+    } catch (reloadError) {
+      console.error(
+        'Unable to reload product seasons:',
+        reloadError
+      )
+    }
+
+    seasonsMessage.value =
+      error.message
+  } finally {
+    isSavingSeasons.value = false
   }
 }
 
@@ -760,6 +956,7 @@ watch(
   () => props.productId,
   () => {
     isBrandDropdownOpen.value = false
+    isSeasonDropdownOpen.value = false
 
     loadProduct()
   }
@@ -1008,8 +1205,6 @@ onMounted(() => {
 
           <div class="brand-editor">
 
-            <!-- DROPDOWN -->
-
             <div class="brand-dropdown">
 
               <button
@@ -1039,8 +1234,6 @@ onMounted(() => {
                   ▼
                 </span>
               </button>
-
-              <!-- CHECKBOX LIST -->
 
               <div
                 v-if="isBrandDropdownOpen"
@@ -1083,8 +1276,6 @@ onMounted(() => {
 
             </div>
 
-            <!-- SAVE -->
-
             <button
               type="button"
               class="save-button"
@@ -1099,8 +1290,6 @@ onMounted(() => {
             </button>
 
           </div>
-
-          <!-- CURRENTLY SELECTED -->
 
           <div
             v-if="
@@ -1129,6 +1318,142 @@ onMounted(() => {
           class="field-message"
         >
           {{ brandsMessage }}
+        </p>
+      </div>
+
+      <!-- ========================================
+           SEASONS
+      ========================================= -->
+
+      <div class="product-field-card">
+        <div class="field-heading">
+          Seasons
+        </div>
+
+        <p
+          v-if="isLoadingSeasons"
+          class="brand-loading"
+        >
+          Loading seasons...
+        </p>
+
+        <template v-else>
+
+          <div class="brand-editor">
+
+            <div class="brand-dropdown">
+
+              <button
+                type="button"
+                class="brand-dropdown-button"
+                @click="toggleSeasonDropdown"
+              >
+                <span>
+                  {{
+                    selectedSeasonIds.length
+                  }}
+                  season{{
+                    selectedSeasonIds.length === 1
+                      ? ''
+                      : 's'
+                  }}
+                  selected
+                </span>
+
+                <span
+                  class="brand-dropdown-arrow"
+                  :class="{
+                    open:
+                      isSeasonDropdownOpen
+                  }"
+                >
+                  ▼
+                </span>
+              </button>
+
+              <div
+                v-if="isSeasonDropdownOpen"
+                class="brand-dropdown-menu"
+              >
+                <label
+                  v-for="season in allSeasons"
+                  :key="season.id"
+                  class="brand-option"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="
+                      isSeasonSelected(
+                        season.id
+                      )
+                    "
+                    @change="
+                      handleSeasonChange(
+                        season.id,
+                        $event.target.checked
+                      )
+                    "
+                  >
+
+                  <span>
+                    {{ season.name }}
+                  </span>
+                </label>
+
+                <p
+                  v-if="
+                    allSeasons.length === 0
+                  "
+                  class="brand-empty"
+                >
+                  No seasons available.
+                </p>
+              </div>
+
+            </div>
+
+            <button
+              type="button"
+              class="save-button"
+              :disabled="isSavingSeasons"
+              @click="saveSeasons"
+            >
+              {{
+                isSavingSeasons
+                  ? 'Saving...'
+                  : 'Save'
+              }}
+            </button>
+
+          </div>
+
+          <div
+            v-if="
+              selectedSeasonIds.length > 0
+            "
+            class="selected-brand-list"
+          >
+            <span
+              v-for="season in allSeasons.filter(
+                (season) =>
+                  selectedSeasonIds.includes(
+                    Number(season.id)
+                  )
+              )"
+              :key="season.id"
+              class="selected-brand-pill"
+            >
+              {{ season.name }}
+            </span>
+          </div>
+
+        </template>
+
+        <p
+          v-if="seasonsMessage"
+          class="field-message"
+        >
+          {{ seasonsMessage }}
         </p>
       </div>
 
