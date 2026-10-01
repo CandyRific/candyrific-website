@@ -21,7 +21,7 @@ const state = ref('')
 const zipCode = ref('')
 
 const message = ref('')
-const newsletter = ref(false)
+
 
 /* ========================================
    FORM OPTIONS
@@ -119,7 +119,8 @@ const resetForm = () => {
   zipCode.value = ''
 
   message.value = ''
-  newsletter.value = false
+
+  
 }
 
 /* ========================================
@@ -534,29 +535,8 @@ const handleSubmit = async () => {
               ></textarea>
             </div>
 
-            <label
-              class="newsletter-field"
-              for="newsletter"
-            >
-              <input
-                id="newsletter"
-                v-model="newsletter"
-                type="checkbox"
-                name="newsletter"
-                value="Yes"
-              />
-
-              <span class="checkbox-display">
-                <span class="check">
-                  ✓
-                </span>
-              </span>
-
-              <span>
-                I'd like to receive the
-                CandyRific Newsletter.
-              </span>
-            </label>
+            
+            
 
             <button
               type="submit"
@@ -697,10 +677,9 @@ const handleSubmit = async () => {
   background:
     linear-gradient(
       90deg,
-      #703795,
-      #f04d86,
-      #01aef0,
-      #fad141
+      #703795 0%,
+      #f04d86 50%,
+      #01aef0 100%
     );
 
   border-radius: 0 0 4px 4px;
@@ -977,98 +956,7 @@ const handleSubmit = async () => {
   flex: 1;
 }
 
-/* ========================================
-   NEWSLETTER
-======================================== */
 
-.newsletter-field {
-  margin: 0.3rem 0 1.5rem;
-
-  display: flex;
-  align-items: center;
-
-  gap: 0.7rem;
-
-  color: #444;
-
-  font-size: 0.95rem;
-
-  cursor: pointer;
-}
-
-.newsletter-field input {
-  position: absolute;
-
-  opacity: 0;
-
-  pointer-events: none;
-}
-
-.checkbox-display {
-  width: 1.5rem;
-  height: 1.5rem;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: white;
-
-  border: 2px solid #703795;
-  border-radius: 6px;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.check {
-  color: white;
-
-  font-size: 1rem;
-  font-weight: 600;
-
-  opacity: 0;
-
-  transform: scale(0.5);
-
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-
-.newsletter-field
-input:checked
-+
-.checkbox-display {
-  background: #703795;
-
-  transform: rotate(-3deg);
-}
-
-.newsletter-field
-input:checked
-+
-.checkbox-display
-.check {
-  opacity: 1;
-
-  transform: scale(1);
-}
-
-.newsletter-field:hover
-.checkbox-display {
-  background: #f5eff8;
-}
-
-.newsletter-field
-input:checked
-+
-.checkbox-display:hover {
-  background: #703795;
-}
 
 /* ========================================
    SUBMIT BUTTON
