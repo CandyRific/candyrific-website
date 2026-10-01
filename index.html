@@ -17,83 +17,174 @@
   <body>
     <div id="app"></div>
     <form
-  name="contact"
-  netlify
-  netlify-honeypot="bot-field"
-  hidden
->
-  <input
-    type="hidden"
-    name="form-name"
-    value="contact"
-  />
+      name="customer_form"
+      method="POST"
+      data-netlify="true"
+      data-netlify-honeypot="bot-field"
+      hidden
+    >
+      <input
+        type="hidden"
+        name="form-name"
+        value="customer_form"
+      />
 
-  <input
-    type="text"
-    name="bot-field"
-  />
+      <input
+        type="text"
+        name="bot-field"
+      />
 
-  <select name="customerType">
-    <option value="Consumer">
-      Consumer
-    </option>
-  </select>
+      <select name="customerType">
+        <option value="Consumer">
+          Consumer
+        </option>
+      </select>
 
-  <select name="contactSubject">
-    <option value="Customer Feedback">
-      Customer Feedback
-    </option>
-  </select>
+      <select name="contactSubject">
+        <option value="Customer Feedback">
+          Customer Feedback
+        </option>
 
-  <input
-    type="text"
-    name="firstName"
-  />
+        <option value="Sales - International">
+          Sales - International
+        </option>
 
-  <input
-    type="text"
-    name="lastName"
-  />
+        <option value="Sales - USA">
+          Sales - USA
+        </option>
+      </select>
 
-  <input
-    type="email"
-    name="email"
-  />
+      <input
+        type="text"
+        name="firstName"
+      />
 
-  <input
-    type="text"
-    name="companyName"
-  />
+      <input
+        type="text"
+        name="lastName"
+      />
 
-  <input
-    type="text"
-    name="address"
-  />
+      <input
+        type="email"
+        name="email"
+      />
 
-  <input
-    type="text"
-    name="city"
-  />
+      <input
+        type="text"
+        name="companyName"
+      />
 
-  <select name="state">
-    <option value="">
-      State
-    </option>
-  </select>
+      <input
+        type="text"
+        name="address"
+      />
 
-  <input
-    type="text"
-    name="zipCode"
-  />
+      <input
+        type="text"
+        name="city"
+      />
 
-  <textarea name="message"></textarea>
+      <select name="state">
+        <option value="">
+          Choose...
+        </option>
+      </select>
 
-  <input
-    type="checkbox"
-    name="newsletter"
-    value="Yes"
-  />
-</form>
+      <input
+        type="text"
+        name="zipCode"
+      />
+
+      <textarea name="message"></textarea>
+    </form>
+
+    <!-- SALES FORM -->
+
+    <form
+      name="sales_form"
+      method="POST"
+      data-netlify="true"
+      data-netlify-honeypot="bot-field"
+      hidden
+    >
+      <input
+        type="hidden"
+        name="form-name"
+        value="sales_form"
+      />
+
+      <input
+        type="text"
+        name="bot-field"
+      />
+
+      <select name="customerType">
+        <option value="Distributor">
+          Distributor
+        </option>
+
+        <option value="Retail Store">
+          Retail Store
+        </option>
+      </select>
+
+      <select name="contactSubject">
+        <option value="Customer Feedback">
+          Customer Feedback
+        </option>
+
+        <option value="Sales - International">
+          Sales - International
+        </option>
+
+        <option value="Sales - USA">
+          Sales - USA
+        </option>
+      </select>
+
+      <input
+        type="text"
+        name="firstName"
+      />
+
+      <input
+        type="text"
+        name="lastName"
+      />
+
+      <input
+        type="email"
+        name="email"
+      />
+
+      <input
+        type="text"
+        name="companyName"
+      />
+
+      <input
+        type="text"
+        name="address"
+      />
+
+      <input
+        type="text"
+        name="city"
+      />
+
+      <select name="state">
+        <option value="">
+          Choose...
+        </option>
+      </select>
+
+      <input
+        type="text"
+        name="zipCode"
+      />
+
+      <textarea name="message"></textarea>
+    </form>
     <script type="module" src="/src/main.js"></script>
     
 

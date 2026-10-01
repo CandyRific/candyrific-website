@@ -1,5 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import {
+  computed,
+  ref
+} from 'vue'
 
 /* ========================================
    FORM STATE
@@ -22,6 +25,15 @@ const zipCode = ref('')
 
 const message = ref('')
 
+/* ========================================
+   NETLIFY FORM
+======================================== */
+
+const netlifyFormName = computed(() => {
+  return customerType.value === 'Consumer'
+    ? 'customer_form'
+    : 'sales_form'
+})
 
 /* ========================================
    FORM OPTIONS
@@ -97,6 +109,7 @@ const states = [
 ======================================== */
 
 const isSubmitting = ref(false)
+
 const formMessage = ref('')
 const formSuccess = ref(false)
 
@@ -119,8 +132,6 @@ const resetForm = () => {
   zipCode.value = ''
 
   message.value = ''
-
-  
 }
 
 /* ========================================
@@ -129,13 +140,13 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
   isSubmitting.value = true
+
   formMessage.value = ''
   formSuccess.value = false
 
   try {
-    const formData = new FormData(
-      formRef.value
-    )
+    const formData =
+      new FormData(formRef.value)
 
     const encodedData =
       new URLSearchParams()
@@ -154,10 +165,12 @@ const handleSubmit = async () => {
       '/',
       {
         method: 'POST',
+
         headers: {
           'Content-Type':
             'application/x-www-form-urlencoded'
         },
+
         body: encodedData.toString()
       }
     )
@@ -241,7 +254,7 @@ const handleSubmit = async () => {
 
     <form
       ref="formRef"
-      name="contact"
+      :name="netlifyFormName"
       method="POST"
       data-netlify="true"
       data-netlify-honeypot="bot-field"
@@ -251,7 +264,7 @@ const handleSubmit = async () => {
       <input
         type="hidden"
         name="form-name"
-        value="contact"
+        :value="netlifyFormName"
       />
 
       <div class="honeypot-field">
@@ -326,8 +339,7 @@ const handleSubmit = async () => {
               >
                 <option
                   v-for="
-                    subjectOption
-                    in subjects
+                    subjectOption in subjects
                   "
                   :key="subjectOption"
                   :value="subjectOption"
@@ -368,6 +380,7 @@ const handleSubmit = async () => {
             <div class="form-field">
               <label for="first-name">
                 First Name
+
                 <span class="required">
                   *
                 </span>
@@ -386,6 +399,7 @@ const handleSubmit = async () => {
             <div class="form-field">
               <label for="last-name">
                 Last Name
+
                 <span class="required">
                   *
                 </span>
@@ -404,6 +418,7 @@ const handleSubmit = async () => {
             <div class="form-field">
               <label for="email">
                 Email
+
                 <span class="required">
                   *
                 </span>
@@ -487,8 +502,7 @@ const handleSubmit = async () => {
 
                     <option
                       v-for="
-                        stateName
-                        in states
+                        stateName in states
                       "
                       :key="stateName"
                       :value="stateName"
@@ -521,6 +535,7 @@ const handleSubmit = async () => {
             <div class="form-field message-field">
               <label for="message">
                 Message
+
                 <span class="required">
                   *
                 </span>
@@ -534,9 +549,6 @@ const handleSubmit = async () => {
                 required
               ></textarea>
             </div>
-
-            
-            
 
             <button
               type="submit"
@@ -956,8 +968,6 @@ const handleSubmit = async () => {
   flex: 1;
 }
 
-
-
 /* ========================================
    SUBMIT BUTTON
 ======================================== */
@@ -1037,8 +1047,7 @@ const handleSubmit = async () => {
   transition: transform 0.2s ease;
 }
 
-.submit-button:hover
-.button-arrow {
+.submit-button:hover .button-arrow {
   transform: translateX(4px);
 }
 
@@ -1088,15 +1097,17 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
 
-  background: currentColor;
+  background: #703795;
+
+  color: white;
 
   border-radius: 50%;
 
   font-weight: 600;
 }
 
-.form-message-icon::first-letter {
-  color: white;
+.form-message.error .form-message-icon {
+  background: #f04d86;
 }
 
 /* ========================================
@@ -1112,6 +1123,8 @@ const handleSubmit = async () => {
   overflow: hidden;
 
   clip: rect(0 0 0 0);
+
+  white-space: nowrap;
 }
 
 /* ========================================
