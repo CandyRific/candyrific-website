@@ -1,11 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 
-const formRef = ref(null)
+/* ========================================
+   FORM STATE
+======================================== */
 
-const isSubmitting = ref(false)
-const submitSuccess = ref(false)
-const submitError = ref('')
+const formRef = ref(null)
 
 const customerType = ref('Consumer')
 const subject = ref('Customer Feedback')
@@ -13,13 +13,19 @@ const subject = ref('Customer Feedback')
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
+
 const companyName = ref('')
 const address = ref('')
 const city = ref('')
 const state = ref('')
 const zipCode = ref('')
+
 const message = ref('')
 const newsletter = ref(false)
+
+/* ========================================
+   FORM OPTIONS
+======================================== */
 
 const customerTypes = [
   'Consumer',
@@ -86,6 +92,18 @@ const states = [
   'Wyoming'
 ]
 
+/* ========================================
+   SUBMISSION STATE
+======================================== */
+
+const isSubmitting = ref(false)
+const formMessage = ref('')
+const formSuccess = ref(false)
+
+/* ========================================
+   RESET FORM
+======================================== */
+
 const resetForm = () => {
   customerType.value = 'Consumer'
   subject.value = 'Customer Feedback'
@@ -93,42 +111,55 @@ const resetForm = () => {
   firstName.value = ''
   lastName.value = ''
   email.value = ''
+
   companyName.value = ''
   address.value = ''
   city.value = ''
   state.value = ''
   zipCode.value = ''
+
   message.value = ''
   newsletter.value = false
 }
 
+/* ========================================
+   SUBMIT FORM
+======================================== */
+
 const handleSubmit = async () => {
   isSubmitting.value = true
-  submitSuccess.value = false
-  submitError.value = ''
+  formMessage.value = ''
+  formSuccess.value = false
 
   try {
     const formData = new FormData(
       formRef.value
     )
 
-    const body = new URLSearchParams()
+    const encodedData =
+      new URLSearchParams()
 
-    for (const [key, value] of formData.entries()) {
-      body.append(
+    for (
+      const [key, value]
+      of formData.entries()
+    ) {
+      encodedData.append(
         key,
         value.toString()
       )
     }
 
-    const response = await fetch('/', {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/x-www-form-urlencoded'
-      },
-      body: body.toString()
-    })
+    const response = await fetch(
+      '/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/x-www-form-urlencoded'
+        },
+        body: encodedData.toString()
+      }
+    )
 
     if (!response.ok) {
       throw new Error(
@@ -136,26 +167,22 @@ const handleSubmit = async () => {
       )
     }
 
-    submitSuccess.value = true
+    formSuccess.value = true
+
+    formMessage.value =
+      'Thanks for reaching out! Your message was sent successfully. Someone from CandyRific will be in contact with you soon.'
 
     resetForm()
-
-    window.scrollTo({
-      top:
-        formRef.value
-          ?.getBoundingClientRect().top +
-        window.scrollY -
-        140,
-      behavior: 'smooth'
-    })
   } catch (error) {
     console.error(
       'Contact form submission failed:',
       error
     )
 
-    submitError.value =
-      'We were unable to send your message. Please try again.'
+    formSuccess.value = false
+
+    formMessage.value =
+      'We had trouble sending your message. Please try again.'
   } finally {
     isSubmitting.value = false
   }
@@ -163,83 +190,105 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <section class="contact-form-section">
-    <div class="contact-form-container">
-      <div class="contact-heading">
-        <span class="contact-eyebrow">
-          GET IN TOUCH
-        </span>
+  <section class="contact-view">
+    <!-- =====================================
+         PAGE INTRO
+    ====================================== -->
 
-        <h1>
-          Contact CandyRific
-        </h1>
-
-        <p>
-          Have a question, comment, or sales inquiry?
-          Send us a message and someone from our team
-          will be in touch.
-        </p>
+    <div class="contact-heading">
+      <div class="heading-accent">
+        LET'S TALK
       </div>
 
-      <div
-        v-if="submitSuccess"
-        class="form-status form-status-success"
-        role="status"
-      >
-        <div class="status-icon">
-          ✓
+      <h1 class="section-title">
+        Contact Us
+      </h1>
+
+      <p class="section-description">
+        Have a question, some feedback, or want
+        to talk CandyRific? Fill out the form
+        below and we'll make sure your message
+        gets to the right place.
+      </p>
+    </div>
+
+    <!-- =====================================
+         FORM MESSAGE
+    ====================================== -->
+
+    <div
+      v-if="formMessage"
+      class="form-message"
+      :class="{
+        success: formSuccess,
+        error: !formSuccess
+      }"
+      role="status"
+    >
+      <div class="form-message-icon">
+        {{ formSuccess ? '✓' : '!' }}
+      </div>
+
+      <span>
+        {{ formMessage }}
+      </span>
+    </div>
+
+    <!-- =====================================
+         FORM
+    ====================================== -->
+
+    <form
+      ref="formRef"
+      name="contact"
+      method="POST"
+      data-netlify="true"
+      data-netlify-honeypot="bot-field"
+      class="contact-form"
+      @submit.prevent="handleSubmit"
+    >
+      <input
+        type="hidden"
+        name="form-name"
+        value="contact"
+      />
+
+      <div class="honeypot-field">
+        <label>
+          Do not fill this out:
+          <input
+            name="bot-field"
+            type="text"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </label>
+      </div>
+
+      <!-- =====================================
+           TOP SELECTIONS
+      ====================================== -->
+
+      <div class="form-section">
+        <div class="form-section-heading">
+          <span class="section-number">
+            1
+          </span>
+
+          <div>
+            <h2>
+              Tell us a little about you
+            </h2>
+
+            <p>
+              This helps us route your message
+              to the right people.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h2>
-            Message sent!
-          </h2>
-
-          <p>
-            Thank you for contacting CandyRific.
-            Your message has been received and someone
-            from our team will be in contact with you.
-          </p>
-        </div>
-      </div>
-
-      <div
-        v-if="submitError"
-        class="form-status form-status-error"
-        role="alert"
-      >
-        {{ submitError }}
-      </div>
-
-      <form
-        ref="formRef"
-        name="contact"
-        method="POST"
-        data-netlify="true"
-        data-netlify-honeypot="bot-field"
-        class="contact-form"
-        @submit.prevent="handleSubmit"
-      >
-        <input
-          type="hidden"
-          name="form-name"
-          value="contact"
-        />
-
-        <p class="honeypot-field">
-          <label>
-            Do not fill this out if you are human:
-            <input
-              name="bot-field"
-              type="text"
-              tabindex="-1"
-              autocomplete="off"
-            />
-          </label>
-        </p>
-
-        <div class="form-top-grid">
-          <div class="form-group">
+        <div class="form-row">
+          <div class="form-field">
             <label for="customer-type">
               Select Which Describes You Best
             </label>
@@ -262,7 +311,7 @@ const handleSubmit = async () => {
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-field">
             <label for="subject">
               Subject
             </label>
@@ -275,7 +324,10 @@ const handleSubmit = async () => {
                 required
               >
                 <option
-                  v-for="subjectOption in subjects"
+                  v-for="
+                    subjectOption
+                    in subjects
+                  "
                   :key="subjectOption"
                   :value="subjectOption"
                 >
@@ -285,12 +337,39 @@ const handleSubmit = async () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-main-grid">
-          <div class="form-left">
-            <div class="form-group">
+      <!-- =====================================
+           CONTACT INFORMATION
+      ====================================== -->
+
+      <div class="form-section">
+        <div class="form-section-heading">
+          <span class="section-number blue">
+            2
+          </span>
+
+          <div>
+            <h2>
+              Your information
+            </h2>
+
+            <p>
+              Let us know how we can reach you.
+            </p>
+          </div>
+        </div>
+
+        <div class="form-columns">
+          <!-- LEFT COLUMN -->
+
+          <div class="form-column">
+            <div class="form-field">
               <label for="first-name">
                 First Name
+                <span class="required">
+                  *
+                </span>
               </label>
 
               <input
@@ -303,9 +382,12 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
               <label for="last-name">
                 Last Name
+                <span class="required">
+                  *
+                </span>
               </label>
 
               <input
@@ -318,9 +400,12 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
               <label for="email">
                 Email
+                <span class="required">
+                  *
+                </span>
               </label>
 
               <input
@@ -333,9 +418,9 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-divider"></div>
+            <div class="small-divider"></div>
 
-            <div class="form-group">
+            <div class="form-field">
               <label for="company-name">
                 Company Name
               </label>
@@ -349,13 +434,15 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
               <label for="address">
                 Address
-                <span>
-                  (If Consumer, use personal address)
-                </span>
               </label>
+
+              <span class="field-note">
+                If you're a consumer, use your
+                personal address.
+              </span>
 
               <input
                 id="address"
@@ -366,7 +453,7 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-group">
+            <div class="form-field">
               <label for="city">
                 City
               </label>
@@ -380,8 +467,8 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="state-zip-grid">
-              <div class="form-group">
+            <div class="state-zip-row">
+              <div class="form-field">
                 <label for="state">
                   State
                 </label>
@@ -398,7 +485,10 @@ const handleSubmit = async () => {
                     </option>
 
                     <option
-                      v-for="stateName in states"
+                      v-for="
+                        stateName
+                        in states
+                      "
                       :key="stateName"
                       :value="stateName"
                     >
@@ -408,7 +498,7 @@ const handleSubmit = async () => {
                 </div>
               </div>
 
-              <div class="form-group">
+              <div class="form-field">
                 <label for="zip-code">
                   Zip Code
                 </label>
@@ -418,30 +508,34 @@ const handleSubmit = async () => {
                   v-model="zipCode"
                   type="text"
                   name="zipCode"
-                  inputmode="numeric"
                   autocomplete="postal-code"
-                  maxlength="10"
                 />
               </div>
             </div>
           </div>
 
-          <div class="form-right">
-            <div class="form-group message-group">
+          <!-- RIGHT COLUMN -->
+
+          <div class="form-column right-column">
+            <div class="form-field message-field">
               <label for="message">
                 Message
+                <span class="required">
+                  *
+                </span>
               </label>
 
               <textarea
                 id="message"
                 v-model="message"
                 name="message"
+                placeholder="What's on your mind?"
                 required
               ></textarea>
             </div>
 
             <label
-              class="newsletter-option"
+              class="newsletter-field"
               for="newsletter"
             >
               <input
@@ -452,8 +546,8 @@ const handleSubmit = async () => {
                 value="Yes"
               />
 
-              <span class="custom-checkbox">
-                <span>
+              <span class="checkbox-display">
+                <span class="check">
                   ✓
                 </span>
               </span>
@@ -469,169 +563,334 @@ const handleSubmit = async () => {
               class="submit-button"
               :disabled="isSubmitting"
             >
-              <span v-if="!isSubmitting">
-                Send Message
+              <span>
+                {{
+                  isSubmitting
+                    ? 'Sending...'
+                    : 'Send Message'
+                }}
               </span>
 
-              <span v-else>
-                Sending...
+              <span
+                v-if="!isSubmitting"
+                class="button-arrow"
+              >
+                →
               </span>
             </button>
           </div>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </section>
 </template>
 
 <style scoped>
-.contact-form-section {
-  width: 100%;
-  padding: 70px 24px 90px;
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #faf7fc 100%
-    );
+/* ========================================
+   PAGE
+======================================== */
+
+.contact-view {
+  width: min(90%, 70rem);
+
+  margin: 0 auto;
+  padding: 2.5rem 0 5rem;
+
+  font-family: 'Fredoka', sans-serif;
 }
 
-.contact-form-container {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-}
+/* ========================================
+   HEADING
+======================================== */
 
 .contact-heading {
-  max-width: 700px;
-  margin-bottom: 38px;
+  margin-bottom: 2rem;
 }
 
-.contact-eyebrow {
-  display: inline-block;
-  margin-bottom: 8px;
+.heading-accent {
+  width: fit-content;
+
+  margin-bottom: 0.4rem;
+
   color: #f04d86;
+
   font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+
+  letter-spacing: 0.12rem;
 }
 
-.contact-heading h1 {
-  margin: 0 0 10px;
+.section-title {
+  margin: 0;
+
   color: #703795;
-  font-size: clamp(
-    2.2rem,
-    4vw,
-    3.4rem
-  );
-  font-weight: 700;
+
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 600;
+
   line-height: 1;
 }
 
-.contact-heading p {
-  margin: 0;
-  color: #555;
+.section-description {
+  max-width: 42rem;
+
+  margin: 0.85rem 0 0;
+
+  color: #444;
+
   font-size: 1.05rem;
-  line-height: 1.6;
+  line-height: 1.55;
 }
+
+/* ========================================
+   MAIN FORM
+======================================== */
 
 .contact-form {
-  padding: 36px;
-  border: 1px solid #e7ddec;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow:
-    0 12px 35px
-    rgba(112, 55, 149, 0.09);
+  width: 100%;
 }
 
-.form-top-grid,
-.form-main-grid {
+/* ========================================
+   FORM SECTIONS
+======================================== */
+
+.form-section {
+  position: relative;
+
+  margin-bottom: 1.5rem;
+  padding: 1.75rem;
+
+  background: white;
+
+  border: 2px solid #eee8f1;
+  border-radius: 14px;
+
+  box-shadow:
+    0 5px 16px
+    rgba(112, 55, 149, 0.07);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.form-section:hover {
+  border-color: #d8c5e4;
+
+  box-shadow:
+    0 8px 22px
+    rgba(112, 55, 149, 0.1);
+}
+
+.form-section::before {
+  content: '';
+
+  position: absolute;
+
+  top: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+
+  height: 4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #703795,
+      #f04d86,
+      #01aef0,
+      #fad141
+    );
+
+  border-radius: 0 0 4px 4px;
+}
+
+/* ========================================
+   SECTION HEADINGS
+======================================== */
+
+.form-section-heading {
+  margin-bottom: 1.5rem;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+}
+
+.section-number {
+  width: 2.5rem;
+  height: 2.5rem;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #703795;
+
+  color: white;
+
+  border-radius: 50%;
+
+  font-size: 1.1rem;
+  font-weight: 600;
+
+  box-shadow:
+    0 4px 0
+    #51236e;
+}
+
+.section-number.blue {
+  background: #01aef0;
+
+  box-shadow:
+    0 4px 0
+    #0088bb;
+}
+
+.form-section-heading h2 {
+  margin: 0;
+
+  color: #703795;
+
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.form-section-heading p {
+  margin: 0.1rem 0 0;
+
+  color: #777;
+
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   LAYOUT
+======================================== */
+
+.form-row,
+.form-columns {
   display: grid;
+
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
-  gap: 30px;
+
+  gap: 1.5rem;
 }
 
-.form-top-grid {
-  margin-bottom: 26px;
-}
-
-.form-main-grid {
-  align-items: stretch;
-}
-
-.form-left,
-.form-right {
+.form-column {
   min-width: 0;
 }
 
-.form-right {
+.right-column {
   display: flex;
   flex-direction: column;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
+/* ========================================
+   FORM FIELDS
+======================================== */
 
-.form-group label {
-  display: block;
-  margin-bottom: 7px;
-  color: #333;
-  font-size: 0.96rem;
-  font-weight: 600;
-}
-
-.form-group label span {
-  font-weight: 400;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-field {
   width: 100%;
-  box-sizing: border-box;
-  border: 2px solid #ddd6e2;
-  border-radius: 8px;
-  outline: none;
-  background: #fff;
-  color: #333;
-  font-family: inherit;
+
+  margin-bottom: 1rem;
+}
+
+.form-field label {
+  display: block;
+
+  margin-bottom: 0.35rem;
+
+  color: #3b3b3b;
+
   font-size: 1rem;
+  font-weight: 500;
+}
+
+.required {
+  color: #f04d86;
+}
+
+.field-note {
+  display: block;
+
+  margin-top: -0.2rem;
+  margin-bottom: 0.4rem;
+
+  color: #777;
+
+  font-size: 0.82rem;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  background: white;
+
+  color: #333;
+
+  border: 2px solid #ddd6e1;
+  border-radius: 8px;
+
+  outline: none;
+
+  font: inherit;
+
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    background-color 0.2s ease;
+    transform 0.2s ease;
 }
 
-.form-group input,
-.form-group select {
-  height: 52px;
-  padding: 0 15px;
+.form-field input,
+.form-field select {
+  min-height: 3.1rem;
+
+  padding: 0.7rem 0.85rem;
 }
 
-.form-group textarea {
-  min-height: 378px;
-  padding: 14px 15px;
+.form-field textarea {
+  min-height: 31rem;
+
+  padding: 0.85rem;
+
   resize: vertical;
+
   line-height: 1.5;
 }
 
-.form-group input:hover,
-.form-group select:hover,
-.form-group textarea:hover {
+.form-field textarea::placeholder {
+  color: #aaa;
+}
+
+.form-field input:hover,
+.form-field select:hover,
+.form-field textarea:hover {
   border-color: #bda9c9;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
   border-color: #703795;
+
   box-shadow:
-    0 0 0 4px
+    0 0 0 3px
     rgba(112, 55, 149, 0.1);
 }
+
+/* ========================================
+   SELECT
+======================================== */
 
 .select-wrapper {
   position: relative;
@@ -639,265 +898,416 @@ const handleSubmit = async () => {
 
 .select-wrapper::after {
   content: '';
+
   position: absolute;
+
   top: 50%;
-  right: 18px;
-  width: 10px;
-  height: 10px;
+  right: 1rem;
+
+  width: 0.55rem;
+  height: 0.55rem;
+
   border-right: 3px solid #703795;
   border-bottom: 3px solid #703795;
+
   pointer-events: none;
+
   transform:
-    translateY(-70%)
+    translateY(-65%)
     rotate(45deg);
 }
 
 .select-wrapper select {
   appearance: none;
-  -webkit-appearance: none;
-  padding-right: 48px;
+
+  padding-right: 2.8rem;
+
   color: #703795;
+
   cursor: pointer;
 }
 
-.form-divider {
-  width: 100%;
-  height: 1px;
-  margin: 8px 0 28px;
-  background: #e2dce5;
-}
+/* ========================================
+   DIVIDER
+======================================== */
 
-.state-zip-grid {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(0, 1fr);
-  gap: 18px;
-}
+.small-divider {
+  height: 2px;
 
-.message-group {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
+  margin: 0.4rem 0 1.5rem;
 
-.message-group textarea {
-  flex: 1;
-}
-
-.newsletter-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 3px 0 28px;
-  color: #444;
-  font-size: 0.96rem;
-  line-height: 1.4;
-  cursor: pointer;
-}
-
-.newsletter-option input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.custom-checkbox {
-  display: flex;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #b9adbF;
-  border-radius: 4px;
-  background: #fff;
-  color: transparent;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.newsletter-option
-input:checked +
-.custom-checkbox {
-  border-color: #703795;
-  background: #703795;
-  color: #fff;
-}
-
-.newsletter-option
-input:focus-visible +
-.custom-checkbox {
-  box-shadow:
-    0 0 0 4px
-    rgba(112, 55, 149, 0.15);
-}
-
-.submit-button {
-  width: 100%;
-  min-height: 62px;
-  margin-top: auto;
-  border: 0;
-  border-radius: 8px;
   background:
     linear-gradient(
       90deg,
-      #f04d86 0%,
-      #d9166b 100%
+      #703795,
+      #f04d86,
+      transparent
     );
-  color: #fff;
-  font-family: inherit;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+
+  border-radius: 10px;
+
+  opacity: 0.3;
+}
+
+/* ========================================
+   STATE / ZIP
+======================================== */
+
+.state-zip-row {
+  display: grid;
+
+  grid-template-columns:
+    1.2fr 1fr;
+
+  gap: 1rem;
+}
+
+/* ========================================
+   MESSAGE
+======================================== */
+
+.message-field {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.message-field textarea {
+  flex: 1;
+}
+
+/* ========================================
+   NEWSLETTER
+======================================== */
+
+.newsletter-field {
+  margin: 0.3rem 0 1.5rem;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.7rem;
+
+  color: #444;
+
+  font-size: 0.95rem;
+
   cursor: pointer;
+}
+
+.newsletter-field input {
+  position: absolute;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.checkbox-display {
+  width: 1.5rem;
+  height: 1.5rem;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: white;
+
+  border: 2px solid #703795;
+  border-radius: 6px;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.check {
+  color: white;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  opacity: 0;
+
+  transform: scale(0.5);
+
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.newsletter-field
+input:checked
++
+.checkbox-display {
+  background: #703795;
+
+  transform: rotate(-3deg);
+}
+
+.newsletter-field
+input:checked
++
+.checkbox-display
+.check {
+  opacity: 1;
+
+  transform: scale(1);
+}
+
+.newsletter-field:hover
+.checkbox-display {
+  background: #f5eff8;
+}
+
+.newsletter-field
+input:checked
++
+.checkbox-display:hover {
+  background: #703795;
+}
+
+/* ========================================
+   SUBMIT BUTTON
+======================================== */
+
+.submit-button {
+  width: 100%;
+
+  min-height: 3.8rem;
+
+  margin-top: auto;
+  padding: 0.9rem 1.4rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.7rem;
+
+  background:
+    linear-gradient(
+      110deg,
+      #703795 0%,
+      #8c42a7 45%,
+      #f04d86 100%
+    );
+
+  background-size: 160% 100%;
+
+  color: white;
+
+  border: none;
+  border-radius: 8px;
+
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
   box-shadow:
-    0 7px 18px
-    rgba(240, 77, 134, 0.2);
+    0 5px 0
+    #51236e;
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    opacity 0.2s ease;
+    background-position 0.3s ease;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
+
+  background-position: 100% 0;
+
   box-shadow:
-    0 10px 24px
-    rgba(240, 77, 134, 0.28);
+    0 7px 0
+    #51236e;
 }
 
 .submit-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(3px);
+
+  box-shadow:
+    0 2px 0
+    #51236e;
 }
 
 .submit-button:disabled {
   opacity: 0.65;
+
   cursor: wait;
 }
 
-.form-status {
+.button-arrow {
+  font-size: 1.4rem;
+
+  transition: transform 0.2s ease;
+}
+
+.submit-button:hover
+.button-arrow {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   FORM RESPONSE
+======================================== */
+
+.form-message {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.2rem;
+
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 24px;
-  padding: 20px 22px;
-  border-radius: 12px;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  border: 2px solid;
+  border-radius: 10px;
+
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
-.form-status-success {
-  border: 1px solid
-    rgba(112, 55, 149, 0.2);
-  background:
-    rgba(112, 55, 149, 0.07);
-  color: #46205f;
-}
+.form-message.success {
+  background: #f5eff8;
 
-.form-status-success h2 {
-  margin: 0 0 4px;
   color: #703795;
-  font-size: 1.2rem;
+
+  border-color: #703795;
 }
 
-.form-status-success p {
-  margin: 0;
-  line-height: 1.5;
+.form-message.error {
+  background: #fff3f7;
+
+  color: #c42c61;
+
+  border-color: #f04d86;
 }
 
-.status-icon {
+.form-message-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+
+  flex-shrink: 0;
+
   display: flex;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
   align-items: center;
   justify-content: center;
+
+  background: currentColor;
+
   border-radius: 50%;
-  background: #703795;
-  color: #fff;
-  font-weight: 700;
+
+  font-weight: 600;
 }
 
-.form-status-error {
-  border: 1px solid
-    rgba(240, 77, 134, 0.3);
-  background:
-    rgba(240, 77, 134, 0.08);
-  color: #9a244d;
+.form-message-icon::first-letter {
+  color: white;
 }
+
+/* ========================================
+   HONEYPOT
+======================================== */
 
 .honeypot-field {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-  clip: rect(0 0 0 0) !important;
-  white-space: nowrap !important;
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
 }
 
-@media (max-width: 850px) {
-  .contact-form-section {
-    padding:
-      50px 18px
-      70px;
+/* ========================================
+   TABLET / MOBILE
+======================================== */
+
+@media (max-width: 800px) {
+  .contact-view {
+    width: min(92%, 40rem);
+
+    padding-top: 2rem;
   }
 
-  .contact-form {
-    padding: 26px 22px;
+  .form-section {
+    padding: 1.4rem;
   }
 
-  .form-top-grid,
-  .form-main-grid {
+  .form-row,
+  .form-columns {
     grid-template-columns: 1fr;
+
     gap: 0;
   }
 
-  .form-top-grid {
+  .form-row .form-field:last-child {
     margin-bottom: 0;
   }
 
-  .form-group textarea {
-    min-height: 240px;
+  .right-column {
+    margin-top: 0.5rem;
   }
 
-  .form-right {
-    margin-top: 2px;
-  }
-
-  .newsletter-option {
-    margin-top: 0;
+  .form-field textarea {
+    min-height: 16rem;
   }
 }
 
-@media (max-width: 520px) {
-  .contact-form-section {
-    padding:
-      38px 14px
-      55px;
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (max-width: 500px) {
+  .contact-view {
+    width: 92%;
+
+    padding-bottom: 3rem;
   }
 
-  .contact-form {
-    padding: 22px 16px;
-    border-radius: 12px;
+  .section-title {
+    font-size: 2.6rem;
   }
 
-  .state-zip-grid {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .contact-heading {
-    margin-bottom: 26px;
-  }
-
-  .contact-heading p {
+  .section-description {
     font-size: 0.98rem;
   }
 
+  .form-section {
+    padding: 1.25rem 1rem;
+
+    border-radius: 10px;
+  }
+
+  .form-section::before {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .form-section-heading {
+    align-items: flex-start;
+  }
+
+  .section-number {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .state-zip-row {
+    grid-template-columns: 1fr;
+
+    gap: 0;
+  }
+
   .submit-button {
-    min-height: 56px;
+    min-height: 3.5rem;
   }
 }
 </style>
