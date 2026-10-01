@@ -33,6 +33,11 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue'),
     },
     {
+      path: '/contact',
+      name: 'contact',
+      component: () => import('../views/ContactView.vue'),
+    },
+    {
       path: '/content-management',
       name: 'content-management',
       component: ContentManagementView,
@@ -41,10 +46,10 @@ const router = createRouter({
       }
     },
     {
-  path: '/product/:id',
-  name: 'product',
-  component: ProductView
-}
+        path: '/product/:id',
+        name: 'product',
+        component: ProductView
+    }
   ],
 })
 
