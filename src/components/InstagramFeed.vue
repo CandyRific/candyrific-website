@@ -1,331 +1,142 @@
-<script setup>
-import { onMounted } from 'vue'
-
-const instagramProfileUrl =
-  'https://www.instagram.com/candyrificllc/'
-
-const instagramPostUrl =
-  'https://www.instagram.com/candyrificllc/p/DeARJiMJ4pO/'
-
-const loadInstagramEmbed = () => {
-  if (window.instgrm?.Embeds) {
-    window.instgrm.Embeds.process()
-    return
-  }
-
-  const existingScript =
-    document.querySelector(
-      'script[src="https://www.instagram.com/embed.js"]'
-    )
-
-  if (existingScript) {
-    existingScript.addEventListener(
-      'load',
-      () => {
-        window.instgrm?.Embeds?.process()
-      }
-    )
-
-    return
-  }
-
-  const script =
-    document.createElement('script')
-
-  script.src =
-    'https://www.instagram.com/embed.js'
-
-  script.async = true
-
-  script.onload = () => {
-    window.instgrm?.Embeds?.process()
-  }
-
-  document.body.appendChild(script)
-}
-
-onMounted(() => {
-  loadInstagramEmbed()
-})
-</script>
-
 <template>
-  <section class="instagram-section">
-    <div class="instagram-container">
-      <div class="instagram-profile">
-        <div class="instagram-profile-left">
-          <div class="instagram-avatar">
-            <span>C</span>
-          </div>
-
-          <div class="instagram-profile-info">
-            <div class="instagram-name-row">
-              <a
-                :href="instagramProfileUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="instagram-username"
-              >
-                candyrificllc
-              </a>
-
-              <span class="instagram-icon">
-                ◎
-              </span>
-            </div>
-
-            <div class="instagram-display-name">
-              CandyRific
-            </div>
-
-            <p class="instagram-bio">
-              The candy EXPERIENCE company!
-              Making candy more fun with
-              world-class brands.
-            </p>
-          </div>
-        </div>
-
-        <a
-          :href="instagramProfileUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="instagram-follow-button"
-        >
-          Follow on Instagram
-        </a>
-      </div>
-
-      <div class="instagram-divider"></div>
-
-      <div class="instagram-feed">
-        <div class="instagram-post">
-          <blockquote
-            class="instagram-media"
-            :data-instgrm-permalink="instagramPostUrl"
-            data-instgrm-version="14"
-          ></blockquote>
-        </div>
-      </div>
+  <div class="meta-embed-container">
+    
+    <div class="embed-header">
+      <h3>Featured Social Post</h3>
     </div>
-  </section>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="embed-status loading">
+      <span>Loading post preview...</span>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="embed-status error">
+      {{ error }}
+    </div>
+
+    <!-- Container where the native tokenless oEmbed media mounts -->
+    <div 
+      v-else-if="embedHtml" 
+      ref="embedWrapper" 
+      class="embed-content"
+      v-html="embedHtml"
+    ></div>
+  </div>
 </template>
 
+<script setup>
+import { ref, onMounted, nextTick } from 'vue';
+
+// 1. HARDCODE YOUR POST URL DIRECTLY HERE (No parent binding needed)
+const targetPostUrl = 'https://instagram.com';
+
+const embedHtml = ref('');
+const loading = ref(true);
+const error = ref(null);
+const embedWrapper = ref(null);
+
+// Decodes the layout endpoint matching the graph structure
+const getEndpoint = (url) => {
+  if (url.includes('instagram.com')) {
+    return 'https://facebook.com';
+  } else if (url.includes('facebook.com')) {
+    return 'https://facebook.com';
+  }
+  return null;
+};
+
+const fetchEmbedData = async () => {
+  loading.value = true;
+  error.value = null;
+
+  const apiEndpoint = getEndpoint(targetPostUrl);
+  if (!apiEndpoint) {
+    error.value = 'The provided URL is not a supported Facebook or Instagram layout link.';
+    loading.value = false;
+    return;
+  }
+
+  try {
+    // Making a clean tokenless GET request directly to Meta Graph API
+    const targetUrl = `${apiEndpoint}?url=${encodeURIComponent(targetPostUrl)}&omitscript=false`;
+    const response = await fetch(targetUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Meta API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    embedHtml.value = data.html;
+    
+    // Trigger script parsing once HTML is painted into DOM
+    await nextTick();
+    processMetaScripts();
+  } catch (err) {
+    error.value = 'Failed to load media preview. Ensure the post is public and embeds are enabled.';
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Re-triggers native layouts scripts (embed.js) to convert plain block quotes into functional frames
+const processMetaScripts = () => {
+  if (window.instgrm?.Embeds) {
+    window.instgrm.Embeds.process();
+  } else if (window.FB) {
+    window.FB.XFBML.parse();
+  } else {
+    // If the window scripts haven't been globally cached yet, force evaluate nested scripts
+    const scripts = embedWrapper.value?.querySelectorAll('script') || [];
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+  }
+};
+
+onMounted(() => {
+  fetchEmbedData();
+});
+</script>
+
 <style scoped>
-.instagram-section {
+.meta-embed-container {
   width: 100%;
-  padding: 70px 24px;
-  background: #ffffff;
+  max-width: 540px; 
+  margin: 1.5rem auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-
-.instagram-container {
-  max-width: 1180px;
-  margin: 0 auto;
+.embed-header {
+  margin-bottom: 1rem;
+  text-align: center;
 }
-
-.instagram-profile {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  padding: 28px 0 34px;
+.embed-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
 }
-
-.instagram-profile-left {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  min-width: 0;
-}
-
-.instagram-avatar {
-  width: 92px;
-  height: 92px;
-  flex-shrink: 0;
-  border-radius: 50%;
-
+.embed-status {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  padding: 4px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #f04d86,
-      #703795,
-      #01aef0
-    );
+  padding: 3rem 1.5rem;
+  border: 1px dashed #dbdbdb;
+  border-radius: 8px;
+  background-color: #fafafa;
+  color: #8e8e8e;
 }
-
-.instagram-avatar span {
+.embed-status.error {
+  color: #ed4956;
+  border-color: #ed4956;
+  background-color: #fff2f3;
+}
+.embed-content {
   width: 100%;
-  height: 100%;
-  border-radius: 50%;
-
   display: flex;
-  align-items: center;
   justify-content: center;
-
-  background: #ffffff;
-
-  font-size: 38px;
-  font-weight: 700;
-  color: #703795;
-}
-
-.instagram-profile-info {
-  min-width: 0;
-}
-
-.instagram-name-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.instagram-username {
-  color: #111111;
-  text-decoration: none;
-
-  font-size: 23px;
-  font-weight: 600;
-}
-
-.instagram-username:hover {
-  text-decoration: underline;
-}
-
-.instagram-icon {
-  color: #703795;
-  font-size: 22px;
-}
-
-.instagram-display-name {
-  margin-top: 6px;
-
-  color: #222222;
-
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.instagram-bio {
-  max-width: 520px;
-
-  margin: 10px 0 0;
-
-  color: #555555;
-
-  font-size: 15px;
-  line-height: 1.55;
-}
-
-.instagram-follow-button {
-  flex-shrink: 0;
-
-  padding: 13px 22px;
-
-  border-radius: 10px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #703795,
-      #01aef0
-    );
-
-  color: #ffffff;
-  text-decoration: none;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.instagram-follow-button:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 8px 20px
-    rgba(112, 55, 149, 0.25);
-}
-
-.instagram-divider {
-  height: 1px;
-  background: #e8e8e8;
-}
-
-.instagram-feed {
-  padding-top: 30px;
-
-  display: grid;
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-
-  gap: 18px;
-}
-
-.instagram-post {
-  width: 100%;
-  min-width: 0;
-
-  border-radius: 14px;
-  overflow: hidden;
-
-  background: #fafafa;
-}
-
-.instagram-post :deep(.instagram-media) {
-  width: 100% !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-}
-
-@media (max-width: 900px) {
-  .instagram-profile {
-    align-items: flex-start;
-  }
-
-  .instagram-feed {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 650px) {
-  .instagram-section {
-    padding: 45px 18px;
-  }
-
-  .instagram-profile {
-    flex-direction: column;
-  }
-
-  .instagram-profile-left {
-    align-items: flex-start;
-  }
-
-  .instagram-avatar {
-    width: 72px;
-    height: 72px;
-  }
-
-  .instagram-avatar span {
-    font-size: 30px;
-  }
-
-  .instagram-follow-button {
-    width: 100%;
-    text-align: center;
-  }
-
-  .instagram-feed {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
