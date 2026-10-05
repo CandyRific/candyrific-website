@@ -5,6 +5,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import LandingPageWelcome from '../components/LandingPageWelcome.vue';
 import CarouselSectionWelcome from '../components/CarouselSectionWelcome.vue';
 import AmazonStoreFront from '../components/AmazonStoreFront.vue';
+import InstagramFeed from '../components/InstagramFeed.vue';
 
 
 </script>
@@ -19,6 +20,7 @@ import AmazonStoreFront from '../components/AmazonStoreFront.vue';
     <RouterView />
     <WelcomeBrands />
     <AmazonStoreFront/>
+    <InstagramFeed/>  
     
   </main>
 

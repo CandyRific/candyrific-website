@@ -10,9 +10,11 @@
                 <a href="/about">
                     About Us
                 </a>  </div>
-            <!-- <div>Contact Us</div>
-            <div>Resources</div>
-            <div>FAQ</div> -->
+                 <div>
+                <a href="/contact">
+                    Contact Us
+                </a>
+                </div>
         </div>
         <div class="social-media-links">
             <div><a href="https://www.youtube.com/@Candyrific" target="_blank" rel="noopener noreferrer"><img src="../assets/youtube_icon.png" alt="YouTube"></a></div>
