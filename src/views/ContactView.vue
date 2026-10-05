@@ -226,27 +226,6 @@ const handleSubmit = async () => {
       </p>
     </div>
 
-    <!-- =====================================
-         FORM MESSAGE
-    ====================================== -->
-
-    <div
-      v-if="formMessage"
-      class="form-message"
-      :class="{
-        success: formSuccess,
-        error: !formSuccess
-      }"
-      role="status"
-    >
-      <div class="form-message-icon">
-        {{ formSuccess ? '✓' : '!' }}
-      </div>
-
-      <span>
-        {{ formMessage }}
-      </span>
-    </div>
 
     <!-- =====================================
          FORM
@@ -570,6 +549,25 @@ const handleSubmit = async () => {
                 →
               </span>
             </button>
+
+            <div
+  v-if="formMessage"
+  class="form-message"
+  :class="{
+    success: formSuccess,
+    error: !formSuccess
+  }"
+  role="status"
+  aria-live="polite"
+>
+  <div class="form-message-icon">
+    {{ formSuccess ? '✓' : '!' }}
+  </div>
+
+  <span>
+    {{ formMessage }}
+  </span>
+</div>
           </div>
         </div>
       </div>
