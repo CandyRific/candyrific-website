@@ -32,26 +32,47 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted } from 'vue'
 
 onMounted(() => {
-  // If Instagram script is already loaded globally, instruct it to parse new targets
-  if (window.instgrm && window.instgrm.Embeds) {
-    window.instgrm.Embeds.process();
-  } else {
-    // Inject the script element manually into the header layout
-    const script = document.createElement('script');
-    script.src = 'https://instagram.com';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (window.instgrm && window.instgrm.Embeds) {
-        window.instgrm.Embeds.process();
-      }
-    };
-    document.head.appendChild(script);
+  if (
+    window.instgrm &&
+    window.instgrm.Embeds
+  ) {
+    window.instgrm.Embeds.process()
+    return
   }
-});
+
+  const existingScript =
+    document.querySelector(
+      'script[src="https://www.instagram.com/embed.js"]'
+    )
+
+  if (existingScript) {
+    existingScript.addEventListener(
+      'load',
+      () => {
+        window.instgrm?.Embeds?.process()
+      }
+    )
+
+    return
+  }
+
+  const script =
+    document.createElement('script')
+
+  script.src =
+    'https://www.instagram.com/embed.js'
+
+  script.async = true
+
+  script.onload = () => {
+    window.instgrm?.Embeds?.process()
+  }
+
+  document.body.appendChild(script)
+})
 </script>
 
 <style scoped>
