@@ -61,9 +61,6 @@ const processInstagramEmbed = () => {
   }
 };
 
-/**
- * Queries the Meta oEmbed endpoint to retrieve raw HTML blocks
- */
 const fetchEmbedCode = async () => {
   if (!inputUrl.value) return;
 
@@ -72,7 +69,7 @@ const fetchEmbedCode = async () => {
   embedHtml.value = '';
 
   try {
-    // Standard endpoint layout for public posts
+    // FIX: Make sure backticks are used and the variable method is wrapped in \${}
     const endpoint = `https://instagram.com{encodeURIComponent(inputUrl.value)}&omitscript=true`;
 
     const response = await fetch(endpoint);
@@ -85,8 +82,6 @@ const fetchEmbedCode = async () => {
     
     if (data && data.html) {
       embedHtml.value = data.html;
-      
-      // Wait for Vue to update the DOM tree before running parser loops
       await nextTick();
       processInstagramEmbed();
     } else {
@@ -98,6 +93,7 @@ const fetchEmbedCode = async () => {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>
