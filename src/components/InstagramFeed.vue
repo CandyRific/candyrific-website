@@ -37,11 +37,13 @@
               rx="5"
               ry="5"
             />
+
             <circle
               cx="12"
               cy="12"
               r="4"
             />
+
             <circle
               cx="17.5"
               cy="6.5"
@@ -56,7 +58,6 @@
         </a>
       </div>
 
-      <!-- Decorative divider -->
       <div class="instagram-divider">
         <span></span>
       </div>
@@ -88,7 +89,6 @@
         </article>
       </div>
 
-      <!-- Bottom CTA -->
       <div class="instagram-bottom">
         <p>
           There&apos;s always something sweet happening.
@@ -100,6 +100,7 @@
           rel="noopener noreferrer"
         >
           See more from CandyRific
+
           <span aria-hidden="true">
             →
           </span>
@@ -179,58 +180,28 @@ onMounted(async () => {
 
 <style scoped>
 .instagram-section {
-  position: relative;
+  padding: 4rem 1.5rem;
+  background: #ffffff;
+}
+
+.instagram-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2.5rem;
   overflow: hidden;
+  border: 1px solid
+    rgba(112, 55, 149, 0.12);
+  border-radius: 24px;
   background:
     linear-gradient(
       180deg,
       #ffffff 0%,
       #fbf8fd 100%
     );
-  padding: 5rem 1.5rem;
-}
-
-/* Soft background decorations */
-.instagram-section::before,
-.instagram-section::after {
-  position: absolute;
-  border-radius: 50%;
-  content: '';
-  pointer-events: none;
-}
-
-.instagram-section::before {
-  width: 22rem;
-  height: 22rem;
-  top: -13rem;
-  left: -10rem;
-  background:
-    radial-gradient(
-      circle,
-      rgba(112, 55, 149, 0.12),
-      rgba(112, 55, 149, 0)
-    );
-}
-
-.instagram-section::after {
-  width: 26rem;
-  height: 26rem;
-  right: -13rem;
-  bottom: -15rem;
-  background:
-    radial-gradient(
-      circle,
-      rgba(1, 174, 240, 0.13),
-      rgba(1, 174, 240, 0)
-    );
-}
-
-.instagram-container {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  box-shadow:
+    0 12px 35px
+    rgba(74, 42, 97, 0.08);
 }
 
 /* ========================================
@@ -241,20 +212,20 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 3rem;
-  margin-bottom: 2rem;
+  gap: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .instagram-heading {
-  max-width: 720px;
+  max-width: 750px;
 }
 
 .instagram-eyebrow {
   display: inline-block;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.4rem;
   color: #703795;
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.08em;
 }
 
@@ -264,29 +235,26 @@ onMounted(async () => {
     linear-gradient(
       90deg,
       #703795 0%,
-      #f04d86 48%,
+      #f04d86 45%,
       #01aef0 100%
     );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   font-size: clamp(
-    2.2rem,
-    5vw,
-    3.8rem
+    2rem,
+    4vw,
+    3.4rem
   );
-  font-weight: 700;
   line-height: 1.05;
-  letter-spacing: -0.035em;
 }
 
 .instagram-heading p {
   max-width: 650px;
-  margin: 1rem 0 0;
+  margin: 0.8rem 0 0;
   color: #63348a;
-  font-size: 1.15rem;
-  font-weight: 450;
-  line-height: 1.55;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 /* ========================================
@@ -299,24 +267,21 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
-  min-height: 54px;
-  padding: 0.85rem 1.5rem;
+  padding: 0.85rem 1.4rem;
   border-radius: 14px;
   background:
     linear-gradient(
       110deg,
-      #703795 0%,
-      #99429f 30%,
-      #147ec5 70%,
-      #01aef0 100%
+      #703795,
+      #f04d86,
+      #01aef0
     );
   box-shadow:
     0 10px 24px
     rgba(112, 55, 149, 0.2);
   color: #ffffff;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
   text-decoration: none;
   transition:
     transform 0.2s ease,
@@ -324,20 +289,15 @@ onMounted(async () => {
 }
 
 .instagram-follow-button:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow:
-    0 15px 30px
+    0 14px 30px
     rgba(112, 55, 149, 0.28);
 }
 
-.instagram-follow-button:focus-visible {
-  outline: 3px solid #fad141;
-  outline-offset: 4px;
-}
-
 .instagram-icon {
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -355,11 +315,10 @@ onMounted(async () => {
 ======================================== */
 
 .instagram-divider {
-  width: 100%;
   height: 2px;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: 20px;
   background: #eee8f2;
 }
 
@@ -367,7 +326,6 @@ onMounted(async () => {
   display: block;
   width: 180px;
   height: 100%;
-  border-radius: inherit;
   background:
     linear-gradient(
       90deg,
@@ -378,193 +336,207 @@ onMounted(async () => {
 }
 
 /* ========================================
-   INSTAGRAM GRID
+   GRID
+
+   DESKTOP:
+   4 ACROSS
 ======================================== */
 
 .instagram-grid {
   display: grid;
+
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 2rem;
+    repeat(4, minmax(0, 1fr));
+
+  gap: 1.25rem;
+
+  width: 100%;
+
   align-items: start;
 }
 
+/* ========================================
+   CARD
+======================================== */
+
 .instagram-card {
-  position: relative;
   min-width: 0;
   overflow: hidden;
   border: 1px solid
-    rgba(112, 55, 149, 0.12);
-  border-radius: 22px;
+    rgba(112, 55, 149, 0.14);
+  border-radius: 18px;
   background: #ffffff;
   box-shadow:
-    0 10px 35px
-    rgba(77, 48, 99, 0.1);
+    0 8px 25px
+    rgba(77, 48, 99, 0.08);
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .instagram-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   box-shadow:
-    0 18px 45px
-    rgba(77, 48, 99, 0.16);
+    0 14px 32px
+    rgba(77, 48, 99, 0.14);
 }
 
 .instagram-card-accent {
-  height: 7px;
+  height: 6px;
   background:
     linear-gradient(
       90deg,
-      #703795 0%,
-      #f04d86 45%,
-      #01aef0 100%
+      #703795,
+      #f04d86,
+      #01aef0
     );
 }
 
+/* ========================================
+   EMBEDS
+======================================== */
+
 .instagram-embed-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 0.9rem;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
 }
 
 /*
-  These styles apply to the blockquote
-  before Instagram converts it.
+  Instagram normally wants its embeds
+  to have a minimum width.
+
+  We override that so the post respects
+  the width of each grid column.
 */
 .instagram-embed-wrapper
 :deep(.instagram-media) {
   width: 100% !important;
   min-width: 0 !important;
-  max-width: 540px !important;
-  margin: 0 auto !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+
   border: 0 !important;
+
   box-shadow: none !important;
 }
 
 /*
-  Instagram creates an iframe dynamically.
-  We cannot style the contents of the iframe,
-  but we can control its outer positioning.
+  Instagram replaces the blockquote with
+  an iframe after embed.js runs.
+
+  Force that iframe to remain inside
+  the card.
 */
 .instagram-embed-wrapper
 :deep(iframe) {
+  display: block !important;
+
   width: 100% !important;
-  max-width: 540px !important;
-  margin: 0 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
 }
 
 /* ========================================
-   BOTTOM CTA
+   BOTTOM
 ======================================== */
 
 .instagram-bottom {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.7rem 1.5rem;
-  margin-top: 2.75rem;
-  text-align: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
 }
 
 .instagram-bottom p {
   margin: 0;
   color: #63348a;
-  font-size: 1rem;
 }
 
 .instagram-bottom a {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   color: #703795;
   font-weight: 650;
   text-decoration: none;
-}
-
-.instagram-bottom a span {
-  transition:
-    transform 0.2s ease;
 }
 
 .instagram-bottom a:hover {
   color: #01aef0;
 }
 
-.instagram-bottom a:hover span {
-  transform: translateX(4px);
-}
-
 /* ========================================
    TABLET
 ======================================== */
 
-@media (max-width: 900px) {
-  .instagram-section {
-    padding:
-      4rem 1.25rem;
+@media (max-width: 1000px) {
+  .instagram-container {
+    padding: 2rem;
   }
 
   .instagram-header {
-    flex-direction: column;
     align-items: flex-start;
-    gap: 1.5rem;
-  }
-
-  .instagram-follow-button {
-    align-self: flex-start;
+    flex-direction: column;
   }
 
   .instagram-grid {
-    grid-template-columns: 1fr;
-    max-width: 600px;
-    margin: 0 auto;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 
 /* ========================================
    MOBILE
+
+   2 x 2
 ======================================== */
 
 @media (max-width: 600px) {
   .instagram-section {
-    padding:
-      3rem 0.85rem;
+    padding: 2rem 0.75rem;
+  }
+
+  .instagram-container {
+    padding: 1.25rem;
+    border-radius: 18px;
   }
 
   .instagram-heading h2 {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
 
   .instagram-heading p {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .instagram-follow-button {
     width: 100%;
   }
 
-  .instagram-divider {
-    margin-bottom: 1.75rem;
-  }
-
   .instagram-grid {
-    gap: 1.5rem;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 0.65rem;
   }
 
   .instagram-card {
-    border-radius: 16px;
+    border-radius: 12px;
   }
 
-  .instagram-embed-wrapper {
-    padding: 0.35rem;
+  .instagram-card-accent {
+    height: 4px;
   }
 
   .instagram-bottom {
     flex-direction: column;
-    margin-top: 2rem;
+    gap: 0.5rem;
+    text-align: center;
   }
 }
 </style>
