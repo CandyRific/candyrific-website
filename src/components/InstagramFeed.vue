@@ -1,142 +1,167 @@
 <template>
-  <div class="meta-embed-container">
-    
-    <div class="embed-header">
-      <h3>Featured Social Post</h3>
+  <div class="instagram-embed-container">
+    <!-- Input Section -->
+    <div class="input-group">
+      <label for="instagram-url">Instagram Post URL:</label>
+      <input
+        id="instagram-url"
+        v-model="inputUrl"
+        type="text"
+        placeholder="https://www.instagram.com/p/..."
+        @keyup.enter="fetchEmbedCode"
+      />
+      <button :disabled="loading || !inputUrl" @click="fetchEmbedCode">
+        {{ loading ? 'Loading...' : 'Load Post' }}
+      </button>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="embed-status loading">
-      <span>Loading post preview...</span>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="error" class="embed-status error">
+    <!-- Error Message Display -->
+    <div v-if="error" class="error-banner">
       {{ error }}
     </div>
 
-    <!-- Container where the native tokenless oEmbed media mounts -->
-    <div 
-      v-else-if="embedHtml" 
-      ref="embedWrapper" 
-      class="embed-content"
-      v-html="embedHtml"
-    ></div>
+    <!-- Target area where the script renders the post -->
+    <div ref="embedContainer" class="embed-wrapper">
+      <div v-html="embedHtml"></div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
 
-// 1. HARDCODE YOUR POST URL DIRECTLY HERE (No parent binding needed)
-const targetPostUrl = 'https://instagram.com';
+// Template template reference for DOM targeting
+const embedContainer = ref(null);
 
+// Component State
+const inputUrl = ref('');
 const embedHtml = ref('');
-const loading = ref(true);
+const loading = ref(false);
 const error = ref(null);
-const embedWrapper = ref(null);
 
-// Decodes the layout endpoint matching the graph structure
-const getEndpoint = (url) => {
-  if (url.includes('instagram.com')) {
-    return 'https://facebook.com';
-  } else if (url.includes('facebook.com')) {
-    return 'https://facebook.com';
+/**
+ * Loads and executes the native Instagram embed script to render the UI
+ */
+const processInstagramEmbed = () => {
+  // Check if script is already present on the page window object
+  if (window.instgrm && window.instgrm.Embeds) {
+    window.instgrm.Embeds.process();
+  } else {
+    // If not loaded yet, inject the standard widgets script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://instagram.com';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.instgrm && window.instgrm.Embeds) {
+        window.instgrm.Embeds.process();
+      }
+    };
+    document.head.appendChild(script);
   }
-  return null;
 };
 
-const fetchEmbedData = async () => {
+/**
+ * Queries the Meta oEmbed endpoint to retrieve raw HTML blocks
+ */
+const fetchEmbedCode = async () => {
+  if (!inputUrl.value) return;
+
   loading.value = true;
   error.value = null;
-
-  const apiEndpoint = getEndpoint(targetPostUrl);
-  if (!apiEndpoint) {
-    error.value = 'The provided URL is not a supported Facebook or Instagram layout link.';
-    loading.value = false;
-    return;
-  }
+  embedHtml.value = '';
 
   try {
-    // Making a clean tokenless GET request directly to Meta Graph API
-    const targetUrl = `${apiEndpoint}?url=${encodeURIComponent(targetPostUrl)}&omitscript=false`;
-    const response = await fetch(targetUrl);
+    // Standard endpoint layout for public posts
+    const endpoint = `https://instagram.com{encodeURIComponent(inputUrl.value)}&omitscript=true`;
+
+    const response = await fetch(endpoint);
     
     if (!response.ok) {
-      throw new Error(`Meta API error: ${response.statusText}`);
+      throw new Error(`Failed to fetch metadata. Status: ${response.status}`);
     }
 
     const data = await response.json();
-    embedHtml.value = data.html;
     
-    // Trigger script parsing once HTML is painted into DOM
-    await nextTick();
-    processMetaScripts();
+    if (data && data.html) {
+      embedHtml.value = data.html;
+      
+      // Wait for Vue to update the DOM tree before running parser loops
+      await nextTick();
+      processInstagramEmbed();
+    } else {
+      throw new Error('No embed code returned from the api payload.');
+    }
   } catch (err) {
-    error.value = 'Failed to load media preview. Ensure the post is public and embeds are enabled.';
-    console.error(err);
+    error.value = err.message || 'An error occurred while trying to process the endpoint string.';
   } finally {
     loading.value = false;
   }
 };
-
-// Re-triggers native layouts scripts (embed.js) to convert plain block quotes into functional frames
-const processMetaScripts = () => {
-  if (window.instgrm?.Embeds) {
-    window.instgrm.Embeds.process();
-  } else if (window.FB) {
-    window.FB.XFBML.parse();
-  } else {
-    // If the window scripts haven't been globally cached yet, force evaluate nested scripts
-    const scripts = embedWrapper.value?.querySelectorAll('script') || [];
-    scripts.forEach((oldScript) => {
-      const newScript = document.createElement('script');
-      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-      oldScript.parentNode.replaceChild(newScript, oldScript);
-    });
-  }
-};
-
-onMounted(() => {
-  fetchEmbedData();
-});
 </script>
 
 <style scoped>
-.meta-embed-container {
-  width: 100%;
-  max-width: 540px; 
-  margin: 1.5rem auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+.instagram-embed-container {
+  max-width: 550px;
+  margin: 2rem auto;
+  font-family: sans-serif;
 }
-.embed-header {
-  margin-bottom: 1rem;
-  text-align: center;
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
-.embed-header h3 {
-  margin: 0;
+
+.input-group label {
+  font-weight: bold;
   color: #333;
-  font-size: 1.25rem;
 }
-.embed-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  border: 1px dashed #dbdbdb;
-  border-radius: 8px;
-  background-color: #fafafa;
-  color: #8e8e8e;
-}
-.embed-status.error {
-  color: #ed4956;
-  border-color: #ed4956;
-  background-color: #fff2f3;
-}
-.embed-content {
+
+.input-group input {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.input-group button {
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: #006699;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.input-group button:hover:not(:disabled) {
+  background-color: #004f81;
+}
+
+.input-group button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.error-banner {
+  background-color: #fce8e6;
+  color: #c5221f;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #fad2cf;
+}
+
+.embed-wrapper {
   display: flex;
   justify-content: center;
+  width: 100%;
+  min-height: 300px;
 }
 </style>
