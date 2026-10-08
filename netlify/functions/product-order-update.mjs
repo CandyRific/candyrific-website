@@ -24,14 +24,19 @@ export default async (req) => {
   }
 
   /* ========================================
-     REQUEST VALIDATION
+     PARSE REQUEST BODY
   ======================================== */
 
   let body
 
   try {
     body = await req.json()
-  } catch {
+  } catch (error) {
+    console.error(
+      'Invalid product order JSON:',
+      error
+    )
+
     return Response.json(
       {
         error: 'Invalid JSON payload.'
@@ -48,6 +53,10 @@ export default async (req) => {
     !Array.isArray(products) ||
     products.length === 0
   ) {
+    console.error(
+      'Invalid product order payload.'
+    )
+
     return Response.json(
       {
         error: 'A product order is required.'
@@ -58,20 +67,63 @@ export default async (req) => {
     )
   }
 
+  /* ========================================
+     VALIDATE PRODUCT ORDER
+  ======================================== */
+
   const productIds = new Set()
 
-  for (const [index, product] of products.entries()) {
+  for (
+    const [index, product]
+    of products.entries()
+  ) {
+
+    const rawProductId =
+      product?.id
+
+    const productId =
+      String(rawProductId ?? '')
+
+    const isValidId =
+      /^\d+$/.test(productId) &&
+      BigInt(productId) > 0n &&
+      BigInt(productId) <= 9223372036854775807n
+
+    const isValidOrder =
+      Number.isSafeInteger(
+        product?.display_order
+      ) &&
+      product.display_order === index + 1
+
+    const normalizedProductId =
+      isValidId
+        ? BigInt(productId).toString()
+        : null
+
+    const isDuplicate =
+      normalizedProductId !== null &&
+      productIds.has(normalizedProductId)
+
     if (
-      !product ||
-      !Number.isSafeInteger(product.id) ||
-      product.id <= 0 ||
-      !Number.isSafeInteger(product.display_order) ||
-      product.display_order !== index + 1 ||
-      productIds.has(product.id)
+      !isValidId ||
+      !isValidOrder ||
+      isDuplicate
     ) {
+      console.error(
+        'Invalid product ordering:',
+        {
+          index,
+          product,
+          isValidId,
+          isValidOrder,
+          isDuplicate
+        }
+      )
+
       return Response.json(
         {
-          error: 'Invalid or duplicate product ordering.'
+          error:
+            'Invalid or duplicate product ordering.'
         },
         {
           status: 400
@@ -79,22 +131,26 @@ export default async (req) => {
       )
     }
 
-    productIds.add(product.id)
+    productIds.add(normalizedProductId)
   }
 
   /* ========================================
-     UPDATE PRODUCT ORDER
+     DATABASE TRANSACTION
   ======================================== */
 
   let client
+  let transactionStarted = false
 
   try {
     client = await db.pool.connect()
 
     await client.query('BEGIN')
 
-    // Prevent concurrent changes to the product
-    // table while validating and saving the order.
+    transactionStarted = true
+
+    /* ========================================
+       LOCK PRODUCTS TABLE
+    ======================================== */
 
     await client.query(`
       LOCK TABLE products
@@ -102,28 +158,47 @@ export default async (req) => {
     `)
 
     /* ========================================
-       VERIFY ALL PRODUCTS ARE INCLUDED
+       VERIFY EXISTING PRODUCTS
     ======================================== */
 
-    const existingProducts = await client.query(`
-      SELECT id
-      FROM products
-    `)
+    const existingProducts =
+      await client.query(`
+        SELECT id
+        FROM products
+      `)
 
     const existingIds = new Set(
       existingProducts.rows.map(
-        (product) => String(product.id)
+        (product) =>
+          String(product.id)
       )
     )
 
     const validProductSet =
       existingIds.size === productIds.size &&
-      products.every(
-        (product) => existingIds.has(String(product.id))
+      [...productIds].every(
+        (id) => existingIds.has(id)
       )
 
     if (!validProductSet) {
+      console.error(
+        'Product order mismatch:',
+        {
+          submittedCount: productIds.size,
+          databaseCount: existingIds.size,
+          missingFromRequest:
+            [...existingIds].filter(
+              (id) => !productIds.has(id)
+            ),
+          unknownProductIds:
+            [...productIds].filter(
+              (id) => !existingIds.has(id)
+            )
+        }
+      )
+
       await client.query('ROLLBACK')
+      transactionStarted = false
 
       return Response.json(
         {
@@ -137,13 +212,28 @@ export default async (req) => {
     }
 
     /* ========================================
-       BULK UPDATE DISPLAY ORDER
+       PREPARE PRODUCT ORDER
+    ======================================== */
+
+    const updatedOrder =
+      products.map(
+        (product, index) => ({
+          id: BigInt(
+            String(product.id)
+          ).toString(),
+          display_order: index + 1
+        })
+      )
+
+    /* ========================================
+       UPDATE DISPLAY ORDER
     ======================================== */
 
     const result = await client.query(
       `
         UPDATE products AS p
-        SET display_order = ordered.display_order
+        SET
+          display_order = ordered.display_order
         FROM jsonb_to_recordset($1::jsonb)
           AS ordered(
             id bigint,
@@ -152,11 +242,26 @@ export default async (req) => {
         WHERE p.id = ordered.id
       `,
       [
-        JSON.stringify(products)
+        JSON.stringify(updatedOrder)
       ]
     )
 
-    if (result.rowCount !== products.length) {
+    /* ========================================
+       VERIFY UPDATE COUNT
+    ======================================== */
+
+    if (
+      result.rowCount !==
+      updatedOrder.length
+    ) {
+      console.error(
+        'Product order update count mismatch:',
+        {
+          expected: updatedOrder.length,
+          updated: result.rowCount
+        }
+      )
+
       throw new Error(
         'Not all product positions were updated.'
       )
@@ -167,10 +272,19 @@ export default async (req) => {
     ======================================== */
 
     await client.query('COMMIT')
+    transactionStarted = false
+
+    console.log(
+      'Product order updated successfully:',
+      {
+        updatedCount: result.rowCount
+      }
+    )
 
     return Response.json(
       {
-        message: 'Product order updated successfully.',
+        message:
+          'Product order updated successfully.',
         updatedCount: result.rowCount
       },
       {
@@ -179,12 +293,20 @@ export default async (req) => {
     )
 
   } catch (error) {
-    if (client) {
+
+    /* ========================================
+       ROLLBACK ON ERROR
+    ======================================== */
+
+    if (
+      client &&
+      transactionStarted
+    ) {
       try {
         await client.query('ROLLBACK')
       } catch (rollbackError) {
         console.error(
-          'Unable to roll back product order:',
+          'Product order rollback failed:',
           rollbackError
         )
       }
@@ -197,7 +319,8 @@ export default async (req) => {
 
     return Response.json(
       {
-        error: 'Unable to update product order.'
+        error:
+          'Unable to update product order.'
       },
       {
         status: 500
@@ -205,6 +328,11 @@ export default async (req) => {
     )
 
   } finally {
+
+    /* ========================================
+       RELEASE DATABASE CONNECTION
+    ======================================== */
+
     client?.release()
   }
 }
