@@ -132,7 +132,7 @@ export default async (req) => {
   return Response.json(products)
 }
 
-  if (req.method === 'POST') {
+ if (req.method === 'POST') {
   const formData =
     await req.formData()
 
@@ -161,6 +161,15 @@ export default async (req) => {
   const brandIds =
     formData
       .getAll('brandIds')
+      .map((id) => Number(id))
+      .filter((id) =>
+        Number.isInteger(id)
+      )
+
+
+  const seasonIds =
+    formData
+      .getAll('seasonIds')
       .map((id) => Number(id))
       .filter((id) =>
         Number.isInteger(id)
@@ -284,6 +293,24 @@ export default async (req) => {
         VALUES (
           ${product.id},
           ${brandId}
+        )
+      `
+    }
+  }
+
+
+  if (seasonIds.length > 0) {
+
+    for (const seasonId of seasonIds) {
+
+      await db.sql`
+        INSERT INTO product_seasons (
+          product_id,
+          season_id
+        )
+        VALUES (
+          ${product.id},
+          ${seasonId}
         )
       `
     }

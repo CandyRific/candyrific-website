@@ -1,7 +1,9 @@
 <template>
   <section class="instagram-section">
     <div class="instagram-container">
-      <h2>
+      
+
+        <h2 class="title">
         Follow Us on Instagram
       </h2>
 
@@ -103,6 +105,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
+
 .instagram-section {
   padding: 3rem 1.5rem;
   background: #ffffff;
@@ -122,9 +126,9 @@ onMounted(async () => {
   margin: 0 0 2rem;
   color: #703795;
   font-family: 'Fredoka', sans-serif;
-  font-size: 2rem;
-  font-weight: 600;
-  line-height: 1.2;
+    font-size: 3.5rem;
+    line-height: 2.5rem;
+    font-weight: 600;
 }
 
 /* ========================================
