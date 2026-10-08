@@ -17,30 +17,6 @@ const productLoadMessage = ref('')
 
 const selectedProductId = ref(null)
 
-/* ========================================
-   SORT PRODUCTS
-======================================== */
-
-const sortProducts = (productList) => {
-  return [...productList].sort(
-    (productA, productB) => {
-      const itemNumberA =
-        productA.item_number ?? ''
-
-      const itemNumberB =
-        productB.item_number ?? ''
-
-      return String(itemNumberA).localeCompare(
-        String(itemNumberB),
-        undefined,
-        {
-          numeric: true,
-          sensitivity: 'base'
-        }
-      )
-    }
-  )
-}
 
 /* ========================================
    LOAD PRODUCTS
@@ -79,9 +55,7 @@ const loadProducts = async () => {
         'Products response was not an array.'
       )
     }
-
-    products.value =
-      sortProducts(data)
+products.value = data
   } catch (error) {
     console.error(
       'Unable to load products:',
