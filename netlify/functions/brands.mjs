@@ -1,11 +1,19 @@
+
 import { getDatabase } from '@netlify/database'
 import { getStore } from '@netlify/blobs'
+import { verifyRequestOrigin } from '@netlify/identity'
+
+import { requireAuth } from './utils/requireAuth.mjs'
 
 export default async (req) => {
-  const db = getDatabase()
 
+  /* ========================================
+     GET ALL BRANDS (PUBLIC)
+  ======================================== */
 
   if (req.method === 'GET') {
+    const db = getDatabase()
+
     const brands = await db.sql`
       SELECT
         id,
@@ -19,8 +27,26 @@ export default async (req) => {
     return Response.json(brands)
   }
 
+  /* ========================================
+     CREATE BRAND (ADMIN ONLY)
+  ======================================== */
 
   if (req.method === 'POST') {
+
+    /* ========================================
+       AUTHORIZATION
+    ======================================== */
+
+    const { response } = await requireAuth()
+
+    if (response) {
+      return response
+    }
+
+    verifyRequestOrigin(req)
+
+    const db = getDatabase()
+
     const formData =
       await req.formData()
 
@@ -32,7 +58,6 @@ export default async (req) => {
 
     const image =
       formData.get('image')
-
 
     if (!name) {
       return Response.json(
@@ -46,7 +71,6 @@ export default async (req) => {
       )
     }
 
-
     const existingBrands =
       await db.sql`
         SELECT
@@ -56,7 +80,6 @@ export default async (req) => {
         WHERE LOWER(name) = LOWER(${name})
         LIMIT 1
       `
-
 
     if (existingBrands.length > 0) {
       return Response.json(
@@ -70,9 +93,7 @@ export default async (req) => {
       )
     }
 
-
     let imageKey = null
-
 
     if (
       image &&
@@ -95,7 +116,6 @@ export default async (req) => {
       )
     }
 
-
     const brands =
       await db.sql`
         INSERT INTO brands (
@@ -113,7 +133,6 @@ export default async (req) => {
           created_at
       `
 
-
     return Response.json(
       brands[0],
       {
@@ -122,146 +141,177 @@ export default async (req) => {
     )
   }
 
+  /* ========================================
+     UPDATE BRAND IMAGE (ADMIN ONLY)
+  ======================================== */
+
   if (req.method === 'PATCH') {
-  const formData =
-    await req.formData()
 
-  const brandId =
-    formData.get('brandId')
+    /* ========================================
+       AUTHORIZATION
+    ======================================== */
 
-  const image =
-    formData.get('image')
+    const { response } = await requireAuth()
 
+    if (response) {
+      return response
+    }
 
-  if (!brandId) {
-    return Response.json(
-      {
-        error:
-          'Brand ID is required.'
-      },
-      {
-        status: 400
-      }
-    )
-  }
+    verifyRequestOrigin(req)
 
+    const db = getDatabase()
 
-  if (
-    !image ||
-    image.size === 0
-  ) {
-    return Response.json(
-      {
-        error:
-          'A new brand image is required.'
-      },
-      {
-        status: 400
-      }
-    )
-  }
+    const formData =
+      await req.formData()
 
+    const brandId =
+      formData.get('brandId')
 
-  const existingBrands =
-    await db.sql`
-      SELECT
-        id,
-        name,
-        image_key
-      FROM brands
-      WHERE id = ${brandId}
-      LIMIT 1
-    `
+    const image =
+      formData.get('image')
 
-
-  if (existingBrands.length === 0) {
-    return Response.json(
-      {
-        error:
-          'Brand not found.'
-      },
-      {
-        status: 404
-      }
-    )
-  }
-
-
-  const existingBrand =
-    existingBrands[0]
-
-  const oldImageKey =
-    existingBrand.image_key
-
-  const imageStore =
-    getStore('brand-images')
-
-
-  const extension =
-    image.name
-      .split('.')
-      .pop()
-
-  const newImageKey =
-    `${crypto.randomUUID()}.${extension}`
-
-
-  /*
-   * 1. Upload the new image first.
-   */
-  await imageStore.set(
-    newImageKey,
-    image
-  )
-
-
-  try {
-    /*
-     * 2. Point the database at
-     *    the new image.
-     */
-    const updatedBrands =
-      await db.sql`
-        UPDATE brands
-        SET image_key = ${newImageKey}
-        WHERE id = ${brandId}
-        RETURNING
-          id,
-          name,
-          image_key,
-          created_at
-      `
-
-
-    /*
-     * 3. The database now points
-     *    at the new image, so the
-     *    old blob can be deleted.
-     */
-    if (oldImageKey) {
-      await imageStore.delete(
-        oldImageKey
+    if (!brandId) {
+      return Response.json(
+        {
+          error:
+            'Brand ID is required.'
+        },
+        {
+          status: 400
+        }
       )
     }
 
+    if (
+      !image ||
+      image.size === 0
+    ) {
+      return Response.json(
+        {
+          error:
+            'A new brand image is required.'
+        },
+        {
+          status: 400
+        }
+      )
+    }
+
+    const existingBrands =
+      await db.sql`
+        SELECT
+          id,
+          name,
+          image_key
+        FROM brands
+        WHERE id = ${brandId}
+        LIMIT 1
+      `
+
+    if (existingBrands.length === 0) {
+      return Response.json(
+        {
+          error:
+            'Brand not found.'
+        },
+        {
+          status: 404
+        }
+      )
+    }
+
+    const existingBrand =
+      existingBrands[0]
+
+    const oldImageKey =
+      existingBrand.image_key
+
+    const imageStore =
+      getStore('brand-images')
+
+    const extension =
+      image.name
+        .split('.')
+        .pop()
+
+    const newImageKey =
+      `${crypto.randomUUID()}.${extension}`
+
+    /*
+     * 1. Upload the new image first.
+     */
+    await imageStore.set(
+      newImageKey,
+      image
+    )
+
+    let updatedBrand
+
+    try {
+      /*
+       * 2. Point the database at
+       *    the new image.
+       */
+      const updatedBrands =
+        await db.sql`
+          UPDATE brands
+          SET image_key = ${newImageKey}
+          WHERE id = ${brandId}
+          RETURNING
+            id,
+            name,
+            image_key,
+            created_at
+        `
+
+      updatedBrand =
+        updatedBrands[0]
+
+    } catch (error) {
+      /*
+       * The database update failed.
+       * Remove the newly uploaded blob.
+       */
+      try {
+        await imageStore.delete(
+          newImageKey
+        )
+      } catch (cleanupError) {
+        console.error(
+          'Unable to clean up new brand image:',
+          cleanupError
+        )
+      }
+
+      throw error
+    }
+
+    /*
+     * 3. The database now references
+     *    the new image. Delete the old
+     *    blob as a separate operation.
+     */
+    if (oldImageKey) {
+      try {
+        await imageStore.delete(
+          oldImageKey
+        )
+      } catch (cleanupError) {
+        console.error(
+          'Brand image updated, but old blob cleanup failed:',
+          cleanupError
+        )
+      }
+    }
 
     return Response.json(
-      updatedBrands[0]
+      updatedBrand
     )
-  } catch (error) {
-    /*
-     * The DB update failed.
-     *
-     * Clean up the NEW blob because
-     * nothing references it.
-     */
-    await imageStore.delete(
-      newImageKey
-    )
-
-    throw error
   }
-}
+
+  /* ========================================
+     METHOD NOT ALLOWED
+  ======================================== */
 
   return Response.json(
     {
@@ -269,7 +319,10 @@ export default async (req) => {
         'Method not allowed.'
     },
     {
-      status: 405
+      status: 405,
+      headers: {
+        Allow: 'GET, POST, PATCH'
+      }
     }
   )
 }

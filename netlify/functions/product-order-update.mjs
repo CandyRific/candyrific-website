@@ -1,7 +1,8 @@
 
 import { getDatabase } from '@netlify/database'
+import { verifyRequestOrigin } from '@netlify/identity'
 
-const db = getDatabase()
+import { requireAuth } from './utils/requireAuth.mjs'
 
 export default async (req) => {
 
@@ -22,6 +23,22 @@ export default async (req) => {
       }
     )
   }
+
+  /* ========================================
+     AUTHORIZATION (ADMIN ONLY)
+  ======================================== */
+
+  const { response } = await requireAuth()
+
+  if (response) {
+    return response
+  }
+
+  // Protect against cross-site requests.
+  verifyRequestOrigin(req)
+
+  // Initialize database after authorization.
+  const db = getDatabase()
 
   /* ========================================
      PARSE REQUEST BODY

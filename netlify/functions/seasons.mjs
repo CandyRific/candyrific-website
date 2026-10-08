@@ -1,14 +1,19 @@
+
 import { getDatabase } from '@netlify/database'
+import { verifyRequestOrigin } from '@netlify/identity'
+
+import { requireAuth } from './utils/requireAuth.mjs'
 
 export default async (req) => {
   try {
-    const db = getDatabase()
 
     /* ========================================
-       GET ALL SEASONS
+       GET ALL SEASONS (PUBLIC)
     ======================================== */
 
     if (req.method === 'GET') {
+      const db = getDatabase()
+
       const seasons = await db.sql`
         SELECT
           id,
@@ -23,10 +28,26 @@ export default async (req) => {
 
 
     /* ========================================
-       ADD SEASON
+       ADD SEASON (ADMIN ONLY)
     ======================================== */
 
     if (req.method === 'POST') {
+
+      /* ========================================
+         AUTHORIZATION
+      ======================================== */
+
+      const { response } = await requireAuth()
+
+      if (response) {
+        return response
+      }
+
+      // Protect against cross-site requests.
+      verifyRequestOrigin(req)
+
+      const db = getDatabase()
+
       const body = await req.json()
 
       const name =
@@ -79,7 +100,10 @@ export default async (req) => {
         error: 'Method not allowed.'
       },
       {
-        status: 405
+        status: 405,
+        headers: {
+          Allow: 'GET, POST'
+        }
       }
     )
 

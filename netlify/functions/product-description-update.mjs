@@ -1,7 +1,14 @@
+
 import { getDatabase } from '@netlify/database'
+import { verifyRequestOrigin } from '@netlify/identity'
+
+import { requireAuth } from './utils/requireAuth.mjs'
 
 export default async (req) => {
-  const db = getDatabase()
+
+  /* ========================================
+     METHOD VALIDATION
+  ======================================== */
 
   if (req.method !== 'PATCH') {
     return Response.json(
@@ -9,12 +16,34 @@ export default async (req) => {
         error: 'Method not allowed.'
       },
       {
-        status: 405
+        status: 405,
+        headers: {
+          Allow: 'PATCH'
+        }
       }
     )
   }
 
+  /* ========================================
+     AUTHORIZATION (ADMIN ONLY)
+  ======================================== */
+
+  const { response } = await requireAuth()
+
+  if (response) {
+    return response
+  }
+
+  // Protect against cross-site requests.
+  verifyRequestOrigin(req)
+
+  /* ========================================
+     UPDATE PRODUCT DESCRIPTION
+  ======================================== */
+
   try {
+    const db = getDatabase()
+
     const body = await req.json()
 
     const productId = body.productId
@@ -62,6 +91,7 @@ export default async (req) => {
         'Product description updated successfully.',
       product: updatedProduct
     })
+
   } catch (error) {
     console.error(
       'Unable to update product description:',

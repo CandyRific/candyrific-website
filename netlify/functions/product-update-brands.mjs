@@ -1,4 +1,8 @@
+
 import { getDatabase } from '@netlify/database'
+import { verifyRequestOrigin } from '@netlify/identity'
+
+import { requireAuth } from './utils/requireAuth.mjs'
 
 /* ========================================
    GET CURRENT PRODUCT BRANDS
@@ -26,17 +30,18 @@ const getProductBrands = async (
 ======================================== */
 
 export default async (req) => {
-  const db = getDatabase()
 
   /* ========================================
-     GET
-     
+     GET (PUBLIC)
+
      Retrieve brands currently associated
      with a product.
   ======================================== */
 
   if (req.method === 'GET') {
     try {
+      const db = getDatabase()
+
       const url = new URL(req.url)
 
       const productId =
@@ -81,13 +86,28 @@ export default async (req) => {
   }
 
   /* ========================================
-     POST
-     
+     POST (ADMIN ONLY)
+
      Add existing brands to the product.
   ======================================== */
 
   if (req.method === 'POST') {
+
+    /* ========================================
+       AUTHORIZATION
+    ======================================== */
+
+    const { response } = await requireAuth()
+
+    if (response) {
+      return response
+    }
+
+    verifyRequestOrigin(req)
+
     try {
+      const db = getDatabase()
+
       const body = await req.json()
 
       const productId =
@@ -125,6 +145,7 @@ export default async (req) => {
       }
 
       for (const brandId of brandIds) {
+
         /*
          * Make sure the brand actually
          * exists before associating it.
@@ -215,13 +236,28 @@ export default async (req) => {
   }
 
   /* ========================================
-     DELETE
-     
+     DELETE (ADMIN ONLY)
+
      Remove brands from the product.
   ======================================== */
 
   if (req.method === 'DELETE') {
+
+    /* ========================================
+       AUTHORIZATION
+    ======================================== */
+
+    const { response } = await requireAuth()
+
+    if (response) {
+      return response
+    }
+
+    verifyRequestOrigin(req)
+
     try {
+      const db = getDatabase()
+
       const body = await req.json()
 
       const productId =
@@ -306,7 +342,10 @@ export default async (req) => {
         'Method not allowed.'
     },
     {
-      status: 405
+      status: 405,
+      headers: {
+        Allow: 'GET, POST, DELETE'
+      }
     }
   )
 }
