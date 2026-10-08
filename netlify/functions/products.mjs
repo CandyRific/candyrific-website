@@ -38,11 +38,12 @@ export default async (req) => {
 
   const products = await db.sql`
     SELECT
-      p.id,
-      p.item_number,
-      p.name,
-      p.description,
-      p.amazon_link,
+  p.id,
+  p.item_number,
+  p.name,
+  p.description,
+  p.amazon_link,
+  p.display_order,
 
       COALESCE(
         (
@@ -126,7 +127,10 @@ export default async (req) => {
       )
     )
 
-    ORDER BY p.item_number ASC
+    ORDER BY
+  p.display_order ASC NULLS LAST,
+  p.item_number ASC,
+  p.id ASC
   `
 
   return Response.json(products)
@@ -232,21 +236,28 @@ export default async (req) => {
 
 
   const products =
-    await db.sql`
-      INSERT INTO products (
-        name,
-        description,
-        item_number,
-        amazon_link
+  await db.sql`
+    INSERT INTO products (
+      name,
+      description,
+      item_number,
+      amazon_link,
+      display_order
+    )
+    VALUES (
+      ${name},
+      ${description},
+      ${productNumber},
+      ${amazonLink},
+      (
+        SELECT COALESCE(
+          MAX(display_order), 0
+        ) + 1
+        FROM products
       )
-      VALUES (
-        ${name},
-        ${description},
-        ${productNumber},
-        ${amazonLink}
-      )
-      RETURNING *
-    `
+    )
+    RETURNING *
+  `
 
 
   const product =
