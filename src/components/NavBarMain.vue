@@ -27,6 +27,12 @@ import { RouterLink } from 'vue-router'
             </RouterLink>
           </li>
 
+          <li>
+            <RouterLink to="/contact" class="main-nav-link">
+              CONTACT US
+            </RouterLink>
+          </li>
+
           <!-- <li>
             <a href="#contact" class="main-nav-link">
               CONTACT US

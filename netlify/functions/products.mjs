@@ -1,300 +1,392 @@
+
 import { getDatabase } from '@netlify/database'
 import { getStore } from '@netlify/blobs'
+import { verifyRequestOrigin } from '@netlify/identity'
+
+import { requireAuth } from './utils/requireAuth.mjs'
 
 export default async (req) => {
-  const db = getDatabase()
+
+  // ========================================
+  // GET PRODUCTS (PUBLIC)
+  // ========================================
 
   if (req.method === 'GET') {
-  const url = new URL(req.url)
+    const db = getDatabase()
+    const url = new URL(req.url)
 
+    // ========================================
+    // BRAND FILTERS
+    // ========================================
 
-  // ========================================
-  // BRAND FILTERS
-  // ========================================
+    const brandIds = url.searchParams
+      .getAll('brand')
+      .filter((id) => /^\d+$/.test(id))
 
-  const brandIds = url.searchParams
-    .getAll('brand')
-    .filter((id) => /^\d+$/.test(id))
+    const brandIdList =
+      brandIds.join(',')
 
-  const brandIdList =
-    brandIds.join(',')
+    // ========================================
+    // SEASON FILTERS
+    // ========================================
 
+    const seasonIds = url.searchParams
+      .getAll('season')
+      .filter((id) => /^\d+$/.test(id))
 
-  // ========================================
-  // SEASON FILTERS
-  // ========================================
+    const seasonIdList =
+      seasonIds.join(',')
 
-  const seasonIds = url.searchParams
-    .getAll('season')
-    .filter((id) => /^\d+$/.test(id))
+    // ========================================
+    // PRODUCTS
+    // ========================================
 
-  const seasonIdList =
-    seasonIds.join(',')
+    const products = await db.sql`
+      SELECT
+        p.id,
+        p.item_number,
+        p.name,
+        p.description,
+        p.amazon_link,
+        p.display_order,
 
-
-  // ========================================
-  // PRODUCTS
-  // ========================================
-
-  const products = await db.sql`
-    SELECT
-      p.id,
-      p.item_number,
-      p.name,
-      p.description,
-      p.amazon_link,
-
-      COALESCE(
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', pi.id,
-              'image_key', pi.image_key,
-              'display_order', pi.display_order
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', pi.id,
+                'image_key', pi.image_key,
+                'display_order', pi.display_order
+              )
+              ORDER BY pi.display_order, pi.id
             )
-            ORDER BY pi.display_order, pi.id
-          )
-          FROM product_images pi
-          WHERE pi.product_id = p.id
-        ),
-        '[]'::json
-      ) AS images,
+            FROM product_images pi
+            WHERE pi.product_id = p.id
+          ),
+          '[]'::json
+        ) AS images,
 
-      COALESCE(
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', b.id,
-              'name', b.name
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', b.id,
+                'name', b.name
+              )
+              ORDER BY b.name
             )
-            ORDER BY b.name
-          )
-          FROM product_brands pb
-          JOIN brands b
-            ON b.id = pb.brand_id
-          WHERE pb.product_id = p.id
-        ),
-        '[]'::json
-      ) AS brands,
+            FROM product_brands pb
+            JOIN brands b
+              ON b.id = pb.brand_id
+            WHERE pb.product_id = p.id
+          ),
+          '[]'::json
+        ) AS brands,
 
-      COALESCE(
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', s.id,
-              'name', s.name
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', s.id,
+                'name', s.name
+              )
+              ORDER BY s.name
             )
-            ORDER BY s.name
+            FROM product_seasons ps
+            JOIN seasons s
+              ON s.id = ps.season_id
+            WHERE ps.product_id = p.id
+          ),
+          '[]'::json
+        ) AS seasons
+
+      FROM products p
+
+      WHERE (
+        ${brandIdList} = ''
+        OR EXISTS (
+          SELECT 1
+          FROM product_brands pb_filter
+          WHERE pb_filter.product_id = p.id
+          AND pb_filter.brand_id = ANY(
+            string_to_array(
+              ${brandIdList},
+              ','
+            )::bigint[]
           )
-          FROM product_seasons ps
-          JOIN seasons s
-            ON s.id = ps.season_id
-          WHERE ps.product_id = p.id
-        ),
-        '[]'::json
-      ) AS seasons
-
-    FROM products p
-
-    WHERE (
-      ${brandIdList} = ''
-      OR EXISTS (
-        SELECT 1
-        FROM product_brands pb_filter
-        WHERE pb_filter.product_id = p.id
-        AND pb_filter.brand_id = ANY(
-          string_to_array(
-            ${brandIdList},
-            ','
-          )::bigint[]
         )
       )
-    )
 
-    AND (
-      ${seasonIdList} = ''
-      OR EXISTS (
-        SELECT 1
-        FROM product_seasons ps_filter
-        WHERE ps_filter.product_id = p.id
-        AND ps_filter.season_id = ANY(
-          string_to_array(
-            ${seasonIdList},
-            ','
-          )::bigint[]
+      AND (
+        ${seasonIdList} = ''
+        OR EXISTS (
+          SELECT 1
+          FROM product_seasons ps_filter
+          WHERE ps_filter.product_id = p.id
+          AND ps_filter.season_id = ANY(
+            string_to_array(
+              ${seasonIdList},
+              ','
+            )::bigint[]
+          )
         )
       )
-    )
 
-    ORDER BY p.item_number ASC
-  `
-
-  return Response.json(products)
-}
-
-  if (req.method === 'POST') {
-  const formData =
-    await req.formData()
-
-
-  const productNumber =
-    formData.get('productNumber')
-
-  const name =
-    formData.get('name')
-
-  const description =
-    formData.get('description')
-
-
-  const amazonLinkValue =
-    formData.get('amazonLink')
-
-  const amazonLink =
-    amazonLinkValue?.trim() || null
-
-
-  const images =
-    formData.getAll('image')
-
-
-  const brandIds =
-    formData
-      .getAll('brandIds')
-      .map((id) => Number(id))
-      .filter((id) =>
-        Number.isInteger(id)
-      )
-
-
-  if (!name) {
-    return Response.json(
-      {
-        error:
-          'Product name is required.'
-      },
-      {
-        status: 400
-      }
-    )
-  }
-
-
-  const imageKeys = []
-
-
-  if (
-    images &&
-    images.length > 0
-  ) {
-    const imageStore =
-      getStore('product-images')
-
-
-    for (const img of images) {
-
-      if (
-        !img ||
-        img.size === 0
-      ) {
-        continue
-      }
-
-
-      const extension =
-        img.name
-          .split('.')
-          .pop()
-
-
-      const key =
-        `${crypto.randomUUID()}.${extension}`
-
-
-      await imageStore.set(
-        key,
-        img
-      )
-
-
-      imageKeys.push(key)
-    }
-  }
-
-
-  const products =
-    await db.sql`
-      INSERT INTO products (
-        name,
-        description,
-        item_number,
-        amazon_link
-      )
-      VALUES (
-        ${name},
-        ${description},
-        ${productNumber},
-        ${amazonLink}
-      )
-      RETURNING *
+      ORDER BY
+        p.display_order ASC NULLS LAST,
+        p.item_number ASC,
+        p.id ASC
     `
 
+    return Response.json(products)
+  }
 
-  const product =
-    products[0]
+  // ========================================
+  // CREATE PRODUCT (ADMIN ONLY)
+  // ========================================
 
+  if (req.method === 'POST') {
 
-  if (imageKeys.length > 0) {
+    // ========================================
+    // AUTHORIZATION
+    // ========================================
 
-    for (
-      let index = 0;
-      index < imageKeys.length;
-      index++
+    const { response } = await requireAuth()
+
+    if (response) {
+      return response
+    }
+
+    // Protect cookie-authenticated mutations
+    // against cross-site requests.
+    verifyRequestOrigin(req)
+
+    const db = getDatabase()
+
+    // ========================================
+    // FORM DATA
+    // ========================================
+
+    const formData =
+      await req.formData()
+
+    const productNumber =
+      formData.get('productNumber')
+
+    const name =
+      formData.get('name')
+
+    const description =
+      formData.get('description')
+
+    const amazonLinkValue =
+      formData.get('amazonLink')
+
+    const amazonLink =
+      amazonLinkValue?.trim() || null
+
+    const images =
+      formData.getAll('image')
+
+    const brandIds =
+      formData
+        .getAll('brandIds')
+        .map((id) => Number(id))
+        .filter((id) =>
+          Number.isInteger(id)
+        )
+
+    const seasonIds =
+      formData
+        .getAll('seasonIds')
+        .map((id) => Number(id))
+        .filter((id) =>
+          Number.isInteger(id)
+        )
+
+    // ========================================
+    // VALIDATION
+    // ========================================
+
+    if (!name) {
+      return Response.json(
+        {
+          error:
+            'Product name is required.'
+        },
+        {
+          status: 400
+        }
+      )
+    }
+
+    // ========================================
+    // UPLOAD IMAGES
+    // ========================================
+
+    const imageKeys = []
+
+    if (
+      images &&
+      images.length > 0
     ) {
+      const imageStore =
+        getStore('product-images')
 
-      const key =
-        imageKeys[index]
+      for (const img of images) {
 
+        if (
+          !img ||
+          img.size === 0
+        ) {
+          continue
+        }
 
+        const extension =
+          img.name
+            .split('.')
+            .pop()
+
+        const key =
+          `${crypto.randomUUID()}.${extension}`
+
+        await imageStore.set(
+          key,
+          img
+        )
+
+        imageKeys.push(key)
+      }
+    }
+
+    // ========================================
+    // INSERT PRODUCT
+    // ========================================
+
+    const products =
       await db.sql`
-        INSERT INTO product_images (
-          product_id,
-          image_key,
+        INSERT INTO products (
+          name,
+          description,
+          item_number,
+          amazon_link,
           display_order
         )
         VALUES (
-          ${product.id},
-          ${key},
-          ${index + 1}
+          ${name},
+          ${description},
+          ${productNumber},
+          ${amazonLink},
+          (
+            SELECT COALESCE(
+              MAX(display_order), 0
+            ) + 1
+            FROM products
+          )
         )
+        RETURNING *
       `
+
+    const product =
+      products[0]
+
+    // ========================================
+    // INSERT PRODUCT IMAGES
+    // ========================================
+
+    if (imageKeys.length > 0) {
+
+      for (
+        let index = 0;
+        index < imageKeys.length;
+        index++
+      ) {
+
+        const key =
+          imageKeys[index]
+
+        await db.sql`
+          INSERT INTO product_images (
+            product_id,
+            image_key,
+            display_order
+          )
+          VALUES (
+            ${product.id},
+            ${key},
+            ${index + 1}
+          )
+        `
+      }
     }
+
+    // ========================================
+    // INSERT PRODUCT BRANDS
+    // ========================================
+
+    if (brandIds.length > 0) {
+
+      for (const brandId of brandIds) {
+
+        await db.sql`
+          INSERT INTO product_brands (
+            product_id,
+            brand_id
+          )
+          VALUES (
+            ${product.id},
+            ${brandId}
+          )
+        `
+      }
+    }
+
+    // ========================================
+    // INSERT PRODUCT SEASONS
+    // ========================================
+
+    if (seasonIds.length > 0) {
+
+      for (const seasonId of seasonIds) {
+
+        await db.sql`
+          INSERT INTO product_seasons (
+            product_id,
+            season_id
+          )
+          VALUES (
+            ${product.id},
+            ${seasonId}
+          )
+        `
+      }
+    }
+
+    // ========================================
+    // SUCCESS
+    // ========================================
+
+    return Response.json(
+      product,
+      {
+        status: 201
+      }
+    )
   }
 
-
-  if (brandIds.length > 0) {
-
-    for (const brandId of brandIds) {
-
-      await db.sql`
-        INSERT INTO product_brands (
-          product_id,
-          brand_id
-        )
-        VALUES (
-          ${product.id},
-          ${brandId}
-        )
-      `
-    }
-  }
-
+  // ========================================
+  // UNSUPPORTED METHODS
+  // ========================================
 
   return Response.json(
-    product,
     {
-      status: 201
+      error: 'Method not allowed.'
+    },
+    {
+      status: 405,
+      headers: {
+        Allow: 'GET, POST'
+      }
     }
   )
-}
 }
