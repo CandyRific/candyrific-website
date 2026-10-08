@@ -108,8 +108,38 @@ onMounted(async () => {
 
 
 .instagram-section {
-  padding: 3rem 1.5rem;
-  background: #ffffff;
+  position: relative;
+
+  padding: 3.5rem 1.5rem 3rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(112, 55, 149, 0.055) 0%,
+      rgba(112, 55, 149, 0.02) 22%,
+      #ffffff 65%
+    );
+}
+
+.instagram-section::before {
+  content: '';
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #703795,
+      #f04d86,
+      #01aef0
+    );
+
+  opacity: 0.75;
 }
 
 .instagram-container {
@@ -243,7 +273,7 @@ onMounted(async () => {
 
 @media (max-width: 600px) {
   .instagram-section {
-    padding: 2rem 0.75rem;
+    padding: 2.5rem 0.75rem 2rem;
   }
 
   .instagram-container h2 {
