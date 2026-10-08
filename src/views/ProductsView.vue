@@ -793,21 +793,26 @@ onMounted(() => {
               </div>
 
               <div
-                v-if="product.amazon_link"
-                class="amazon-link-wrapper"
-              >
+  v-if="product.amazon_link"
+  class="amazon-link-wrapper"
+>
+  <a
+    class="amazon-link"
+    :href="product.amazon_link"
+    target="_blank"
+    rel="noopener noreferrer"
+    @click.stop
+  >
+    <span>Buy on Amazon</span>
 
-                <a
-                  class="amazon-link"
-                  :href="product.amazon_link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  @click.stop
-                >
-                  Buy on Amazon
-                </a>
-
-              </div>
+    <span
+      class="amazon-link-arrow"
+      aria-hidden="true"
+    >
+      →
+    </span>
+  </a>
+</div>
 
             </article>
 
@@ -1297,26 +1302,76 @@ onMounted(() => {
 ======================================== */
 
 .amazon-link-wrapper {
-  margin-top: 0.45rem;
+  margin-top: 0.65rem;
 
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .amazon-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  color: #078fc9;
+  gap: 0.45rem;
 
-  font-size: 0.72rem;
-  font-weight: 500;
+  width: 100%;
+
+  padding: 0.65rem 0.8rem;
+
+  box-sizing: border-box;
+
+  background: #078fc9;
+
+  color: white;
+
+  border-radius: 7px;
+
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  line-height: 1;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 3px 8px
+    rgba(7, 143, 201, 0.2);
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.amazon-link:hover {
+  background: #087eaf;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 12px
+    rgba(7, 143, 201, 0.28);
 
   text-decoration: none;
 }
 
-.amazon-link:hover {
-  text-decoration: underline;
+.amazon-link:active {
+  transform: translateY(0);
 }
 
+.amazon-link-arrow {
+  font-size: 1rem;
+  line-height: 1;
+
+  transition:
+    transform 0.15s ease;
+}
+
+.amazon-link:hover .amazon-link-arrow {
+  transform: translateX(2px);
+}
 
 /* ========================================
    DECORATIVE ART
