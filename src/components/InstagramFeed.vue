@@ -1,9 +1,8 @@
 <template>
   <section class="instagram-section">
     <div class="instagram-container">
-      
 
-        <h2 class="title">
+      <h2 class="title">
         Follow Us on Instagram
       </h2>
 
@@ -32,6 +31,7 @@
           </div>
         </article>
       </div>
+
     </div>
   </section>
 </template>
@@ -105,12 +105,19 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-
+/* ========================================
+   SECTION
+======================================== */
 
 .instagram-section {
   position: relative;
 
-  padding: 3.5rem 1.5rem 3rem;
+  width: 100%;
+
+  padding:
+    clamp(3rem, 6vw, 5rem)
+    clamp(1rem, 4vw, 3rem)
+    clamp(3.5rem, 6vw, 5.5rem);
 
   background:
     linear-gradient(
@@ -121,10 +128,16 @@ onMounted(async () => {
     );
 }
 
+
+/* ========================================
+   SECTION DIVIDER
+======================================== */
+
 .instagram-section::before {
   content: '';
 
   position: absolute;
+
   top: 0;
   left: 0;
 
@@ -142,24 +155,49 @@ onMounted(async () => {
   opacity: 0.75;
 }
 
+
+/* ========================================
+   CONTAINER
+======================================== */
+
 .instagram-container {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1400px;
+
   margin: 0 auto;
 }
+
 
 /* ========================================
    HEADING
 ======================================== */
 
 .instagram-container h2 {
-  margin: 0 0 2rem;
+  margin:
+    0
+    0
+    clamp(1.75rem, 3vw, 2.5rem);
+
   color: #703795;
-  font-family: 'Fredoka', sans-serif;
-    font-size: 3.5rem;
-    line-height: 2.5rem;
-    font-weight: 600;
+
+  font-family:
+    'Fredoka',
+    sans-serif;
+
+  font-size:
+    clamp(
+      2rem,
+      4vw,
+      3.5rem
+    );
+
+  font-weight: 600;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.02em;
 }
+
 
 /* ========================================
    GRID
@@ -169,7 +207,10 @@ onMounted(async () => {
   display: grid;
 
   grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
 
   gap: 1.25rem;
 
@@ -178,15 +219,18 @@ onMounted(async () => {
   align-items: start;
 }
 
+
 /* ========================================
    CARD
 ======================================== */
 
 .instagram-card {
   min-width: 0;
+
   overflow: hidden;
 
-  border: 1px solid
+  border:
+    1px solid
     rgba(112, 55, 149, 0.14);
 
   border-radius: 18px;
@@ -194,8 +238,15 @@ onMounted(async () => {
   background: #ffffff;
 
   box-shadow:
-    0 8px 25px
-    rgba(77, 48, 99, 0.08);
+    0
+    8px
+    25px
+    rgba(
+      77,
+      48,
+      99,
+      0.08
+    );
 
   transition:
     transform 0.2s ease,
@@ -203,12 +254,25 @@ onMounted(async () => {
 }
 
 .instagram-card:hover {
-  transform: translateY(-4px);
+  transform:
+    translateY(-4px);
 
   box-shadow:
-    0 14px 32px
-    rgba(77, 48, 99, 0.14);
+    0
+    14px
+    32px
+    rgba(
+      77,
+      48,
+      99,
+      0.14
+    );
 }
+
+
+/* ========================================
+   CARD ACCENT
+======================================== */
 
 .instagram-card-accent {
   height: 6px;
@@ -222,20 +286,25 @@ onMounted(async () => {
     );
 }
 
+
 /* ========================================
    EMBEDS
 ======================================== */
 
 .instagram-embed-wrapper {
   width: 100%;
+
   min-width: 0;
+
   overflow: hidden;
 }
 
 .instagram-embed-wrapper
 :deep(.instagram-media) {
   width: 100% !important;
+
   min-width: 0 !important;
+
   max-width: 100% !important;
 
   margin: 0 !important;
@@ -250,40 +319,55 @@ onMounted(async () => {
   display: block !important;
 
   width: 100% !important;
+
   min-width: 0 !important;
+
   max-width: 100% !important;
 
   margin: 0 !important;
 }
+
 
 /* ========================================
    TABLET
 ======================================== */
 
 @media (max-width: 1000px) {
+
   .instagram-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
+
 }
+
 
 /* ========================================
    MOBILE
 ======================================== */
 
 @media (max-width: 600px) {
+
   .instagram-section {
-    padding: 2.5rem 0.75rem 2rem;
+    padding:
+      2.75rem
+      0.75rem
+      3rem;
   }
 
   .instagram-container h2 {
     margin-bottom: 1.5rem;
-    font-size: 1.75rem;
   }
 
   .instagram-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
 
     gap: 0.65rem;
   }
@@ -295,5 +379,6 @@ onMounted(async () => {
   .instagram-card-accent {
     height: 4px;
   }
+
 }
 </style>
