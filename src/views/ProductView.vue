@@ -6,7 +6,6 @@ import {
 } from 'vue'
 
 import {
-  RouterLink,
   useRoute
 } from 'vue-router'
 
@@ -18,6 +17,7 @@ const selectedImage = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
+
 /* ========================================
    PRODUCT ID
 ======================================== */
@@ -25,6 +25,7 @@ const errorMessage = ref('')
 const productId = computed(() => {
   return route.params.id
 })
+
 
 /* ========================================
    PRODUCT IMAGE
@@ -39,6 +40,7 @@ const getProductImageUrl = (imageKey) => {
     imageKey
   )}`
 }
+
 
 /* ========================================
    LOAD PRODUCT
@@ -87,6 +89,7 @@ const loadProduct = async () => {
   }
 }
 
+
 /* ========================================
    IMAGE SELECTION
 ======================================== */
@@ -94,6 +97,7 @@ const loadProduct = async () => {
 const selectImage = (imageKey) => {
   selectedImage.value = imageKey
 }
+
 
 /* ========================================
    PRODUCT ID CHANGE
@@ -111,29 +115,13 @@ watch(
 </script>
 
 <template>
-  <div class="individual-product-page">
+  <main class="individual-product-page">
 
     <div class="product-page-content">
 
-      <div class="product-breadcrumb">
-        <RouterLink
-          to="/products"
-          class="breadcrumb-link"
-        >
-          Products
-        </RouterLink>
-
-        <span
-          class="breadcrumb-arrow"
-          aria-hidden="true"
-        >
-          &gt;
-        </span>
-
-        <span v-if="product">
-          {{ product.name }}
-        </span>
-      </div>
+      <!-- ========================================
+           LOADING
+      ========================================= -->
 
       <div
         v-if="isLoading"
@@ -142,6 +130,11 @@ watch(
         Loading product...
       </div>
 
+
+      <!-- ========================================
+           ERROR
+      ========================================= -->
+
       <div
         v-else-if="errorMessage"
         class="product-state-message product-error-message"
@@ -149,14 +142,24 @@ watch(
         {{ errorMessage }}
       </div>
 
+
+      <!-- ========================================
+           PRODUCT
+      ========================================= -->
+
       <article
         v-else-if="product"
         class="individual-product-card"
       >
 
+        <!-- ========================================
+             IMAGES
+        ========================================= -->
+
         <section class="product-images-section">
 
           <div class="main-product-image-container">
+
             <img
               v-if="selectedImage"
               class="main-product-image"
@@ -170,12 +173,17 @@ watch(
             >
               Image coming soon
             </div>
+
           </div>
+
+
+          <!-- Thumbnails -->
 
           <div
             v-if="product.images?.length > 1"
             class="individual-product-thumbnails"
           >
+
             <button
               v-for="image in product.images"
               :key="image.id"
@@ -186,6 +194,9 @@ watch(
                   selectedImage === image.image_key
               }"
               :aria-label="`View another image of ${product.name}`"
+              :aria-pressed="
+                selectedImage === image.image_key
+              "
               @click="selectImage(image.image_key)"
             >
               <img
@@ -193,15 +204,30 @@ watch(
                 :alt="`${product.name} thumbnail`"
               >
             </button>
+
           </div>
 
         </section>
 
+
+        <!-- ========================================
+             PRODUCT INFORMATION
+        ========================================= -->
+
         <section class="product-information-section">
 
-          <h1 class="individual-product-name">
-            {{ product.name }}
-          </h1>
+          <div class="product-heading-group">
+
+            <h1 class="individual-product-name">
+              {{ product.name }}
+            </h1>
+
+            <div class="individual-product-number">
+              Item # {{ product.item_number }}
+            </div>
+
+          </div>
+
 
           <p
             v-if="product.description"
@@ -210,9 +236,6 @@ watch(
             {{ product.description }}
           </p>
 
-          <div class="individual-product-number">
-            Item # {{ product.item_number }}
-          </div>
 
           <a
             v-if="product.amazon_link"
@@ -230,66 +253,62 @@ watch(
 
     </div>
 
-  </div>
+  </main>
 </template>
 
 <style scoped>
+/* ========================================
+   PAGE
+======================================== */
+
 .individual-product-page {
   width: 100%;
   min-height: 70vh;
-  background: #e6f7fc;
+
+  font-family:
+    'Fredoka',
+    sans-serif;
+
+  background:
+    linear-gradient(
+      180deg,
+      #eef9fd 0%,
+      #e6f7fc 50%,
+      #f7fcfe 100%
+    );
 }
+
+
+/* ========================================
+   PAGE CONTENT
+======================================== */
 
 .product-page-content {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
+
   margin: 0 auto;
-  padding: 1.25rem 1rem 3rem;
+
+  padding:
+    clamp(2rem, 5vw, 4.5rem)
+    clamp(1rem, 4vw, 3rem)
+    clamp(3rem, 6vw, 6rem);
 }
 
 
-/* ------------------------
-   Breadcrumb
-------------------------- */
-
-.product-breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-
-  margin-bottom: 1.5rem;
-
-  color: #078fc9;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.breadcrumb-link {
-  color: #078fc9;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.breadcrumb-link:hover {
-  text-decoration: underline;
-}
-
-.breadcrumb-arrow {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-
-/* ------------------------
-   Loading / errors
-------------------------- */
+/* ========================================
+   LOADING / ERROR
+======================================== */
 
 .product-state-message {
-  padding: 3rem 1rem;
+  padding:
+    4rem
+    1rem;
+
   text-align: center;
 
   color: #078fc9;
+
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -299,45 +318,113 @@ watch(
 }
 
 
-/* ------------------------
-   Product container
-------------------------- */
+/* ========================================
+   PRODUCT CARD
+======================================== */
 
 .individual-product-card {
   display: flex;
+
   flex-direction: column;
-  gap: 2rem;
+
+  gap:
+    clamp(
+      2rem,
+      5vw,
+      4rem
+    );
 
   width: 100%;
-  padding: 1rem;
+
+  padding:
+    clamp(
+      1rem,
+      4vw,
+      3rem
+    );
 
   background: #ffffff;
-  border-radius: 1rem;
+
+  border:
+    1px solid
+    rgba(112, 55, 149, 0.08);
+
+  border-radius: 1.5rem;
+
+  box-shadow:
+    0
+    14px
+    36px
+    rgba(
+      53,
+      36,
+      84,
+      0.09
+    );
 }
 
 
-/* ------------------------
-   Images
-------------------------- */
+/* ========================================
+   IMAGE SECTION
+======================================== */
 
 .product-images-section {
   width: 100%;
 }
 
+
+/* ========================================
+   MAIN PRODUCT IMAGE
+======================================== */
+
 .main-product-image-container {
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   width: 100%;
+
   aspect-ratio: 1 / 1;
 
-  padding: 1.5rem;
+  padding:
+    clamp(
+      1.25rem,
+      4vw,
+      2.5rem
+    );
 
-  background: #e6f7fc;
-  border-radius: 1rem;
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(112, 55, 149, 0.12);
+
+  border-radius: 1.25rem;
 
   overflow: hidden;
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    1px
+    rgba(
+      255,
+      255,
+      255,
+      0.6
+    ),
+    0
+    6px
+    18px
+    rgba(
+      53,
+      36,
+      84,
+      0.05
+    );
 }
 
 .main-product-image {
@@ -349,45 +436,146 @@ watch(
   object-fit: contain;
 }
 
+
+/* ========================================
+   NO IMAGE
+======================================== */
+
 .no-product-image {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
   color: #078fc9;
+
+  font-size: 1rem;
+
   font-weight: 600;
+
+  text-align: center;
 }
+
+
+/* ========================================
+   THUMBNAILS
+======================================== */
 
 .individual-product-thumbnails {
   display: flex;
+
   flex-wrap: wrap;
+
   gap: 0.75rem;
 
   margin-top: 1rem;
 }
 
+
+/* ========================================
+   THUMBNAIL BUTTON
+======================================== */
+
 .individual-product-thumbnail {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
   width: 72px;
   height: 72px;
 
-  padding: 0.35rem;
+  padding: 0.4rem;
 
-  border: 2px solid transparent;
-  border-radius: 0.5rem;
+  border:
+    2px solid
+    rgba(112, 55, 149, 0.1);
 
-  background: #e6f7fc;
+  border-radius: 0.75rem;
+
+  background: #ffffff;
 
   cursor: pointer;
+
   overflow: hidden;
 
+  box-shadow:
+    0
+    3px
+    8px
+    rgba(
+      53,
+      36,
+      84,
+      0.05
+    );
+
   transition:
-    border-color 0.15s ease,
-    transform 0.15s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .individual-product-thumbnail:hover {
-  transform: translateY(-2px);
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(1, 174, 240, 0.5);
+
+  box-shadow:
+    0
+    6px
+    12px
+    rgba(
+      53,
+      36,
+      84,
+      0.1
+    );
+}
+
+.individual-product-thumbnail:active {
+  transform:
+    translateY(0);
 }
 
 .individual-product-thumbnail.selected-thumbnail {
   border-color: #01aef0;
+
+  box-shadow:
+    0
+    0
+    0
+    2px
+    rgba(
+      1,
+      174,
+      240,
+      0.12
+    );
 }
+
+.individual-product-thumbnail:focus-visible {
+  outline:
+    3px solid
+    rgba(
+      112,
+      55,
+      149,
+      0.35
+    );
+
+  outline-offset: 3px;
+}
+
+
+/* ========================================
+   THUMBNAIL IMAGE
+======================================== */
 
 .individual-product-thumbnail img {
   display: block;
@@ -399,143 +587,301 @@ watch(
 }
 
 
-/* ------------------------
-   Product text
-------------------------- */
+/* ========================================
+   PRODUCT INFORMATION
+======================================== */
 
 .product-information-section {
   display: flex;
+
   flex-direction: column;
 
   width: 100%;
 }
 
-.individual-product-name {
-  margin: 0 0 1rem;
 
-  color: #078fc9;
+/* ========================================
+   PRODUCT HEADING GROUP
+======================================== */
 
-  font-size: clamp(1.8rem, 7vw, 2.6rem);
-  line-height: 1.1;
-  font-weight: 700;
+.product-heading-group {
+  padding-bottom: 1.5rem;
+
+  margin-bottom: 1.5rem;
+
+  border-bottom:
+    1px solid
+    rgba(
+      112,
+      55,
+      149,
+      0.1
+    );
 }
 
-.individual-product-description {
+
+/* ========================================
+   PRODUCT NAME
+======================================== */
+
+.individual-product-name {
   margin: 0;
 
   color: #078fc9;
 
-  font-size: clamp(1rem, 4.5vw, 1.3rem);
-  line-height: 1.5;
+  font-size:
+    clamp(
+      2rem,
+      6vw,
+      3rem
+    );
+
+  line-height: 1.05;
+
+  font-weight: 600;
+
+  letter-spacing: -0.025em;
+}
+
+
+/* ========================================
+   ITEM NUMBER
+======================================== */
+
+.individual-product-number {
+  margin-top: 0.7rem;
+
+  color:
+    rgba(
+      53,
+      36,
+      84,
+      0.65
+    );
+
+  font-size: 0.95rem;
+
+  font-weight: 500;
+}
+
+
+/* ========================================
+   DESCRIPTION
+======================================== */
+
+.individual-product-description {
+  margin: 0;
+
+  max-width: 42rem;
+
+  color: #352454;
+
+  font-size:
+    clamp(
+      1rem,
+      1.6vw,
+      1.25rem
+    );
+
+  line-height: 1.65;
+
+  font-weight: 300;
+
   white-space: pre-line;
 }
 
-.individual-product-number {
-  margin-top: 2rem;
 
-  color: #078fc9;
-
-  font-size: 1.1rem;
-  font-weight: 700;
-}
+/* ========================================
+   AMAZON BUTTON
+======================================== */
 
 .individual-product-amazon-link {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
   align-self: flex-start;
 
-  margin-top: 1.5rem;
-  padding: 0.8rem 1.4rem;
+  margin-top: 2rem;
+
+  padding:
+    0.9rem
+    1.5rem;
 
   color: #ffffff;
-  background: #078fc9;
 
-  border-radius: 0.55rem;
+  background:
+    linear-gradient(
+      90deg,
+      #703795 0%,
+      #4f5eab 45%,
+      #01aef0 100%
+    );
+
+  border-radius: 0.85rem;
 
   text-decoration: none;
-  font-weight: 600;
+
+  font-size: 1.05rem;
+
+  font-weight: 500;
+
+  box-shadow:
+    0
+    5px
+    14px
+    rgba(
+      53,
+      36,
+      84,
+      0.18
+    );
 
   transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 
 .individual-product-amazon-link:hover {
-  transform: translateY(-2px);
-  opacity: 0.9;
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0
+    8px
+    18px
+    rgba(
+      53,
+      36,
+      84,
+      0.24
+    );
+
+  filter:
+    brightness(1.03);
+}
+
+.individual-product-amazon-link:active {
+  transform:
+    translateY(0);
+
+  box-shadow:
+    0
+    3px
+    8px
+    rgba(
+      53,
+      36,
+      84,
+      0.18
+    );
+}
+
+.individual-product-amazon-link:focus-visible {
+  outline:
+    4px solid
+    rgba(
+      250,
+      209,
+      65,
+      0.85
+    );
+
+  outline-offset: 3px;
 }
 
 
-/* ------------------------
-   Tablet
-------------------------- */
+/* ========================================
+   TABLET
+======================================== */
 
 @media (min-width: 600px) {
-  .product-page-content {
-    padding: 1.5rem 2rem 4rem;
-  }
-
-  .individual-product-card {
-    padding: 2rem;
-  }
 
   .individual-product-thumbnail {
     width: 86px;
     height: 86px;
   }
+
 }
 
 
-/* ------------------------
-   Desktop
-------------------------- */
+/* ========================================
+   DESKTOP
+======================================== */
 
 @media (min-width: 900px) {
-  .product-page-content {
-    padding-top: 1.25rem;
-    padding-bottom: 6rem;
-  }
-
-  .product-breadcrumb {
-    margin-bottom: 3rem;
-    font-size: 1rem;
-  }
 
   .individual-product-card {
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
-    gap: 3rem;
 
-    padding: 4rem;
+    grid-template-columns:
+      minmax(0, 1.05fr)
+      minmax(320px, 0.95fr);
+
+    align-items: start;
+
+    gap:
+      clamp(
+        3rem,
+        5vw,
+        5rem
+      );
   }
 
   .product-information-section {
     justify-content: flex-start;
-    padding-top: 0.25rem;
+
+    padding-top: 0.5rem;
   }
 
   .individual-product-name {
-    margin-bottom: 1.5rem;
-    font-size: clamp(2rem, 3vw, 3rem);
+    font-size:
+      clamp(
+        2.25rem,
+        3vw,
+        3.25rem
+      );
   }
 
-  .individual-product-description {
-    font-size: clamp(1.1rem, 1.8vw, 1.45rem);
-    line-height: 1.5;
+  .individual-product-amazon-link {
+    margin-top: 2.5rem;
   }
 
-  .individual-product-number {
-    margin-top: 3rem;
-    font-size: 1.25rem;
-  }
 }
 
 
-/* ------------------------
-   Large Desktop
-------------------------- */
+/* ========================================
+   LARGE DESKTOP
+======================================== */
 
 @media (min-width: 1200px) {
+
   .individual-product-card {
-    gap: 4rem;
+    padding: 3.5rem;
   }
+
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 599px) {
+
+  .individual-product-card {
+    border-radius: 1.25rem;
+  }
+
+  .main-product-image-container {
+    border-radius: 1rem;
+  }
+
+  .individual-product-amazon-link {
+    width: 100%;
+  }
+
 }
 </style>
