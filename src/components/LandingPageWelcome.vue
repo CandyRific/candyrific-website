@@ -393,3 +393,4 @@ import { RouterLink } from 'vue-router'
     width: 100%;
   }
 }
+</style>
