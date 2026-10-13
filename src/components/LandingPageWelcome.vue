@@ -5,14 +5,14 @@
       class="se-design"
       alt=""
       aria-hidden="true"
-    />
+    >
 
     <div class="landing-hello-container">
       <div class="landing-hello-image">
         <img
           src="../assets/hello_page_image.webp"
           alt="CandyRific candy products"
-        />
+        >
       </div>
 
       <div class="landing-hello-message">
@@ -23,15 +23,20 @@
 
         <div class="landing-hello-text">
           <p>
-            We <em>love</em> what we do, and we think it shows in every
-            product we make. Our team is always exploring new ideas, new
-            flavors, and new ways to create candy that's a little different
-            from everything else on the shelf.
+            We love making candy more fun.
           </p>
 
           <p>
-            At the end of the day, we think candy should always be fun.
+            From playful products to iconic brands, CandyRific is always
+            finding new ways to bring a little more excitement to the candy aisle.
           </p>
+
+          <RouterLink
+            to="/products"
+            class="hero-button"
+          >
+            Explore Products
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -39,6 +44,7 @@
 </template>
 
 <script setup>
+import { RouterLink } from 'vue-router'
 </script>
 
 <style scoped>
@@ -62,10 +68,6 @@
 
   padding: 2.5rem 1.25rem 3rem;
 
-  /*
-    Gives the section a subtle, intentional
-    boundary from the section below.
-  */
   box-shadow:
     inset 0 -1px 0 rgba(255, 255, 255, 0.25),
     0 8px 24px rgba(53, 36, 84, 0.08);
@@ -180,10 +182,11 @@
 
 .landing-hello-text {
   width: 100%;
+  max-width: 40rem;
 
   margin-top: 1.5rem;
 
-  padding: 1.35rem 1.5rem;
+  padding: 1.5rem;
 
   background: rgba(255, 255, 255, 0.98);
 
@@ -193,30 +196,95 @@
 
   box-shadow:
     0 14px 30px rgba(53, 36, 84, 0.15);
-
-  /*
-    Prevents the copy block from becoming
-    excessively wide on large screens.
-  */
-  max-width: 42rem;
 }
 
 .landing-hello-text p {
   margin: 0;
 
   font-family: 'Fredoka', sans-serif;
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
   font-weight: 400;
 
-  line-height: 1.6;
+  line-height: 1.55;
+}
+
+.landing-hello-text p:first-child {
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 600;
+
+  color: #703795;
 }
 
 .landing-hello-text p + p {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
-.landing-hello-text em {
-  font-weight: 600;
+
+/* ========================================
+   CTA BUTTON
+======================================== */
+
+.hero-button {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 1.5rem;
+
+  padding:
+    0.9rem
+    1.5rem;
+
+  border-radius: 0.85rem;
+
+  background: linear-gradient(
+    90deg,
+    #703795 0%,
+    #4f5eab 45%,
+    #01aef0 100%
+  );
+
+  color: white;
+
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+
+  line-height: 1.2;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 5px 14px rgba(53, 36, 84, 0.18);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.hero-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 18px rgba(53, 36, 84, 0.24);
+
+  filter: brightness(1.03);
+}
+
+.hero-button:active {
+  transform: translateY(0);
+
+  box-shadow:
+    0 3px 8px rgba(53, 36, 84, 0.18);
+}
+
+.hero-button:focus-visible {
+  outline:
+    4px solid rgba(250, 209, 65, 0.85);
+
+  outline-offset: 3px;
 }
 
 
@@ -320,5 +388,8 @@
 
     border-radius: 1rem;
   }
+
+  .hero-button {
+    width: 100%;
+  }
 }
-</style>
