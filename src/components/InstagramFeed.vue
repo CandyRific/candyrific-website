@@ -3,7 +3,7 @@
     <div class="instagram-container">
 
       <h2 class="title">
-        Follow Us on Instagram
+        See What’s Happening
       </h2>
 
       <div class="instagram-grid">
