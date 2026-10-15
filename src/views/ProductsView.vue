@@ -1,6 +1,7 @@
 <script setup>
 import {
   onMounted,
+  onUnmounted,
   ref,
   watch
 } from 'vue'
@@ -20,6 +21,9 @@ const brands = ref([])
 const seasons = ref([])
 
 const selectedImages = ref({})
+const loadedImageKeys = ref({})
+let imageLoadRun = 0
+let productLoadRun = 0
 const selectedBrandIds = ref([])
 const selectedSeasonIds = ref([])
 
@@ -90,10 +94,81 @@ const getProductImageUrl = (imageKey) => {
 
 
 /* ========================================
+   TWO-PHASE IMAGE LOADING
+======================================== */
+
+const isImageLoaded = (imageKey) =>
+  Boolean(loadedImageKeys.value[imageKey])
+
+
+const preloadImage = (imageKey, run) => {
+  return new Promise((resolve) => {
+    const image = new Image()
+
+    image.onload = () => {
+      if (run === imageLoadRun) {
+        loadedImageKeys.value[imageKey] = true
+      }
+      resolve()
+    }
+
+    image.onerror = () => {
+      // A failed image should not prevent phase two.
+      resolve()
+    }
+
+    image.src = getProductImageUrl(imageKey)
+  })
+}
+
+
+const loadProductImages = async (productList) => {
+  const run = ++imageLoadRun
+  loadedImageKeys.value = {}
+
+  const primaryKeys = []
+  const secondaryKeys = []
+
+  for (const product of productList) {
+    const images = product.images || []
+
+    if (images.length > 0) {
+      primaryKeys.push(images[0].image_key)
+
+      for (const image of images.slice(1)) {
+        secondaryKeys.push(image.image_key)
+      }
+    }
+  }
+
+  // Make every product's primary image available first.
+  await Promise.allSettled(
+    [...new Set(primaryKeys)]
+      .filter(Boolean)
+      .map((key) => preloadImage(key, run))
+  )
+
+  // Filters may have changed while the first phase loaded.
+  if (run !== imageLoadRun) {
+    return
+  }
+
+  // Only now start loading additional product images.
+  await Promise.allSettled(
+    [...new Set(secondaryKeys)]
+      .filter(Boolean)
+      .map((key) => preloadImage(key, run))
+  )
+}
+
+
+/* ========================================
    LOAD PRODUCTS
 ======================================== */
 
 const loadProducts = async () => {
+  const requestRun = ++productLoadRun
+  ++imageLoadRun // Invalidate previous image loading runs.
   isLoading.value = true
   loadError.value = ''
 
@@ -142,8 +217,26 @@ const loadProducts = async () => {
       )
     }
 
-    products.value = data
+    if (requestRun !== productLoadRun) {
+      return
+    }
+
+    // Keep display order deterministic, even for ties.
+    products.value = data.map((product) => ({
+      ...product,
+      images: [...(product.images || [])].sort((a, b) =>
+        (Number(a.display_order) || 0) - (Number(b.display_order) || 0) ||
+        Number(a.id) - Number(b.id)
+      )
+    }))
+
+    selectedImages.value = {}
+    void loadProductImages(products.value)
   } catch (error) {
+    if (requestRun !== productLoadRun) {
+      return
+    }
+
     console.error(
       'Unable to load products:',
       error
@@ -153,7 +246,9 @@ const loadProducts = async () => {
       error.message ||
       'Unable to load products.'
   } finally {
-    isLoading.value = false
+    if (requestRun === productLoadRun) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -284,8 +379,9 @@ const selectImage = (
   productId,
   imageKey
 ) => {
-  selectedImages.value[productId] =
-    imageKey
+  if (isImageLoaded(imageKey)) {
+    selectedImages.value[productId] = imageKey
+  }
 }
 
 
@@ -426,6 +522,11 @@ watch(
 onMounted(() => {
   loadBrands()
   loadSeasons()
+})
+
+onUnmounted(() => {
+  ++imageLoadRun
+  ++productLoadRun
 })
 </script>
 
@@ -724,7 +825,7 @@ onMounted(() => {
               <div class="product-card">
 
                 <img
-                  v-if="product.images?.length"
+                  v-if="product.images?.length && isImageLoaded(getSelectedImage(product))"
                   :src="
                     getProductImageUrl(
                       getSelectedImage(product)
@@ -738,7 +839,7 @@ onMounted(() => {
                   v-else
                   class="product-image-placeholder"
                 >
-                  Image coming soon
+                  {{ product.images?.length ? 'Loading image...' : 'Image coming soon' }}
                 </div>
 
               </div>
@@ -749,7 +850,7 @@ onMounted(() => {
               >
 
                 <button
-                  v-for="image in product.images"
+                  v-for="image in product.images.filter((image) => isImageLoaded(image.image_key))"
                   :key="image.id"
                   type="button"
                   class="product-thumbnail"
