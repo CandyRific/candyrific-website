@@ -1,3 +1,4 @@
+
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
@@ -5,6 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import ProductManagement from '../components/CMS/ProductManagement.vue'
 import BrandManagement from '../components/CMS/BrandManagement.vue'
 import SeasonManagement from '../components/CMS/SeasonManagement.vue'
+import InstagramManagement from '../components/CMS/InstagramManagement.vue'
 
 const authStore = useAuthStore()
 
@@ -54,6 +56,15 @@ const setActiveSection = (section) => {
         >
           Seasons
         </button>
+
+        <button
+          type="button"
+          class="cms-nav-button"
+          :class="{ active: activeSection === 'instagram' }"
+          @click="setActiveSection('instagram')"
+        >
+          Instagram
+        </button>
       </nav>
 
       <div class="dashboard-card">
@@ -77,12 +88,17 @@ const setActiveSection = (section) => {
           v-if="activeSection === 'seasons'"
         />
 
+        <InstagramManagement
+          v-if="activeSection === 'instagram'"
+        />
+
       </div>
 
     </div>
 
   </div>
 </template>
+
 
 <style scoped>
 .content-management-page {
