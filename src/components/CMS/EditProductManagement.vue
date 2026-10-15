@@ -1,5 +1,6 @@
 <script setup>
 import {
+  computed,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -72,6 +73,44 @@ const newImages = ref([])
 const newImagePreviews = ref([])
 
 const imageInput = ref(null)
+
+// Keep the original database order so position changes can be detected.
+const originalImageIds = ref([])
+
+// Native drag-and-drop state for existing images.
+const draggedImageId = ref(null)
+const dropTargetImageId = ref(null)
+
+const activeExistingImages = computed(() =>
+  existingImages.value.filter(
+    (image) => !deleteImageIds.value.includes(Number(image.id))
+  )
+)
+
+const hasImageOrderChanges = computed(() => {
+  const activeIds = activeExistingImages.value.map(
+    (image) => Number(image.id)
+  )
+
+  const originalActiveIds = originalImageIds.value.filter(
+    (id) => !deleteImageIds.value.includes(id)
+  )
+
+  // A reorder counts, as do old 0/null/nonconsecutive display_order values.
+  return (
+    activeIds.length !== originalActiveIds.length ||
+    activeIds.some((id, index) => id !== originalActiveIds[index]) ||
+    activeExistingImages.value.some(
+      (image, index) => Number(image.display_order) !== index + 1
+    )
+  )
+})
+
+const hasPendingImageChanges = computed(() =>
+  deleteImageIds.value.length > 0 ||
+  newImages.value.length > 0 ||
+  hasImageOrderChanges.value
+)
 
 /* ========================================
    LOADING STATE
@@ -316,41 +355,50 @@ const getProductImageUrl = (
 }
 
 /* ========================================
-   LOAD PRODUCT IMAGES
+   FETCH / LOAD PRODUCT IMAGES
 ======================================== */
+
+const fetchProductImageList = async () => {
+  const response = await fetch(
+    `/.netlify/functions/product-images-update?productId=${encodeURIComponent(
+      props.productId
+    )}`
+  )
+
+  const data = await readResponse(
+    response,
+    'Unable to load product images.'
+  )
+
+  if (!Array.isArray(data)) {
+    throw new Error('Invalid product image response.')
+  }
+
+  return [...data].sort((a, b) =>
+    Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
+    Number(a.id) - Number(b.id)
+  )
+}
 
 const loadProductImages = async () => {
   isLoadingImages.value = true
   imagesMessage.value = ''
 
   try {
-    const response = await fetch(
-      `/.netlify/functions/product-images-update?productId=${encodeURIComponent(
-        props.productId
-      )}`
-    )
+    const images = await fetchProductImageList()
 
-    const data = await readResponse(
-      response,
-      'Unable to load product images.'
-    )
-
-    existingImages.value =
-      Array.isArray(data)
-        ? data
-        : []
-
+    existingImages.value = images
+    originalImageIds.value = images.map((image) => Number(image.id))
     deleteImageIds.value = []
+    draggedImageId.value = null
+    dropTargetImageId.value = null
 
     clearNewImages()
+    return true
   } catch (error) {
-    console.error(
-      'Unable to load product images:',
-      error
-    )
-
-    imagesMessage.value =
-      error.message
+    console.error('Unable to load product images:', error)
+    imagesMessage.value = error.message
+    return false
   } finally {
     isLoadingImages.value = false
   }
@@ -471,125 +519,196 @@ const isImageMarkedForDelete = (
 }
 
 /* ========================================
-   SAVE IMAGES
+   REORDER EXISTING IMAGES
+======================================== */
+
+const getActiveImagePosition = (imageId) =>
+  activeExistingImages.value.findIndex(
+    (image) => Number(image.id) === Number(imageId)
+  ) + 1
+
+const reorderExistingImage = (sourceId, destinationId) => {
+  if (isSavingImages.value ||
+      isImageMarkedForDelete(sourceId) ||
+      isImageMarkedForDelete(destinationId)) {
+    return
+  }
+
+  const active = [...activeExistingImages.value]
+  const sourceIndex = active.findIndex(
+    (image) => Number(image.id) === Number(sourceId)
+  )
+  const destinationIndex = active.findIndex(
+    (image) => Number(image.id) === Number(destinationId)
+  )
+
+  if (sourceIndex < 0 || destinationIndex < 0 ||
+      sourceIndex === destinationIndex) {
+    return
+  }
+
+  const [movedImage] = active.splice(sourceIndex, 1)
+  active.splice(destinationIndex, 0, movedImage)
+
+  // Leave images marked for removal visible, but after active images.
+  const removed = existingImages.value.filter(
+    (image) => isImageMarkedForDelete(image.id)
+  )
+  existingImages.value = [...active, ...removed]
+  imagesMessage.value = ''
+}
+
+const moveExistingImage = (imageId, direction) => {
+  const currentIndex = getActiveImagePosition(imageId) - 1
+  const destination = activeExistingImages.value[currentIndex + direction]
+  if (destination) {
+    reorderExistingImage(imageId, destination.id)
+  }
+}
+
+const startExistingImageDrag = (event, imageId) => {
+  if (isSavingImages.value || isImageMarkedForDelete(imageId)) {
+    event.preventDefault()
+    return
+  }
+
+  draggedImageId.value = Number(imageId)
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(imageId))
+}
+
+const handleExistingImageDragOver = (event, imageId) => {
+  if (draggedImageId.value === null ||
+      isImageMarkedForDelete(imageId)) {
+    return
+  }
+
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+  dropTargetImageId.value = Number(imageId)
+}
+
+const dropExistingImage = (event, destinationId) => {
+  event.preventDefault()
+  if (draggedImageId.value !== null) {
+    reorderExistingImage(draggedImageId.value, destinationId)
+  }
+  endExistingImageDrag()
+}
+
+const endExistingImageDrag = () => {
+  draggedImageId.value = null
+  dropTargetImageId.value = null
+}
+
+/* ========================================
+   SAVE IMAGES + THEIR DISPLAY ORDER
 ======================================== */
 
 const saveImages = async () => {
   imagesMessage.value = ''
 
-  if (
-    deleteImageIds.value.length === 0 &&
-    newImages.value.length === 0
-  ) {
-    imagesMessage.value =
-      'No image changes to save.'
-
+  if (!hasPendingImageChanges.value) {
+    imagesMessage.value = 'No image changes to save.'
     return
   }
 
   isSavingImages.value = true
 
+  // Capture the user's current ordering before any server calls/reloads.
+  const preferredExistingIds = activeExistingImages.value.map(
+    (image) => Number(image.id)
+  )
+  const knownExistingIds = new Set(
+    existingImages.value.map((image) => Number(image.id))
+  )
+
   try {
-
-    /* ========================================
-       DELETE EXISTING IMAGES
-    ======================================== */
-
-    if (
-      deleteImageIds.value.length > 0
-    ) {
-      const deleteResponse =
-        await fetch(
-          '/.netlify/functions/product-images-update',
-          {
-            method: 'DELETE',
-
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-
-            body: JSON.stringify({
-              productId:
-                props.productId,
-
-              imageIds:
-                deleteImageIds.value
-            })
-          }
-        )
-
-      await readResponse(
-        deleteResponse,
-        'Unable to remove images.'
+    /* DELETE EXISTING IMAGES */
+    if (deleteImageIds.value.length > 0) {
+      const deleteResponse = await fetch(
+        '/.netlify/functions/product-images-update',
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: props.productId,
+            imageIds: deleteImageIds.value
+          })
+        }
       )
+
+      await readResponse(deleteResponse, 'Unable to remove images.')
     }
 
-    /* ========================================
-       ADD NEW IMAGES
-    ======================================== */
+    /* UPLOAD NEW IMAGES (appended in selection order) */
+    if (newImages.value.length > 0) {
+      const formData = new FormData()
+      formData.append('productId', props.productId)
 
-    if (
-      newImages.value.length > 0
-    ) {
-      const formData =
-        new FormData()
-
-      formData.append(
-        'productId',
-        props.productId
-      )
-
-      for (
-        const image of newImages.value
-      ) {
-        formData.append(
-          'images',
-          image
-        )
+      for (const image of newImages.value) {
+        formData.append('images', image)
       }
 
-      const postResponse =
-        await fetch(
-          '/.netlify/functions/product-images-update',
-          {
-            method: 'POST',
-            body: formData
-          }
-        )
-
-      await readResponse(
-        postResponse,
-        'Unable to add images.'
+      const postResponse = await fetch(
+        '/.netlify/functions/product-images-update',
+        {
+          method: 'POST',
+          body: formData
+        }
       )
+
+      await readResponse(postResponse, 'Unable to add images.')
     }
 
-    await loadProductImages()
-
-    imagesMessage.value =
-      'Images updated successfully.'
-  } catch (error) {
-    console.error(
-      'Unable to update product images:',
-      error
+    /* RE-FETCH TO INCLUDE DATABASE IDS OF NEW IMAGES */
+    const currentImages = await fetchProductImageList()
+    const currentIds = new Set(
+      currentImages.map((image) => Number(image.id))
     )
 
-    /*
-     * As with brands/seasons, one request
-     * could succeed while another fails.
-     * Reload actual DB state.
-     */
-    try {
-      await loadProductImages()
-    } catch (reloadError) {
-      console.error(
-        'Unable to reload product images:',
-        reloadError
-      )
+    const survivingExistingIds = preferredExistingIds.filter(
+      (id) => currentIds.has(id)
+    )
+
+    const addedIds = currentImages
+      .filter((image) => !knownExistingIds.has(Number(image.id)))
+      .map((image) => Number(image.id))
+
+    const orderedImageIds = [...survivingExistingIds, ...addedIds]
+
+    if (orderedImageIds.length !== currentImages.length ||
+        new Set(orderedImageIds).size !== currentImages.length) {
+      throw new Error('The image list changed while saving. Reload and try again.')
     }
 
-    imagesMessage.value =
-      error.message
+    /* PERSIST CONTIGUOUS DISPLAY ORDER: 1, 2, 3, ... */
+    const reorderResponse = await fetch(
+      '/.netlify/functions/product-images-update',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: props.productId,
+          imageIds: orderedImageIds
+        })
+      }
+    )
+
+    await readResponse(reorderResponse, 'Unable to save image positions.')
+
+    if (!(await loadProductImages())) {
+      throw new Error('Images were saved, but the updated list could not be loaded.')
+    }
+
+    imagesMessage.value = 'Images and their display order saved successfully.'
+  } catch (error) {
+    console.error('Unable to update product images:', error)
+
+    // DELETE/POST/PATCH are separate requests; reflect the actual DB state
+    // if a later step fails, instead of keeping misleading pending changes.
+    await loadProductImages()
+    imagesMessage.value = error.message
   } finally {
     isSavingImages.value = false
   }
@@ -1739,9 +1858,10 @@ onMounted(() => {
         </div>
 
         <p class="image-help-text">
-          Add new product images or mark
-          existing images for removal, then
-          save your changes.
+          Drag the current images into the order you want, or use the
+          move buttons. Image 1 becomes the main product image.
+          You can also add or remove images before saving everything
+          with the same Save Images button.
         </p>
 
         <p
@@ -1752,9 +1872,7 @@ onMounted(() => {
         </p>
 
         <template v-else>
-
           <!-- EXISTING IMAGES -->
-
           <div
             v-if="existingImages.length > 0"
             class="image-section"
@@ -1767,58 +1885,76 @@ onMounted(() => {
               <div
                 v-for="image in existingImages"
                 :key="image.id"
-                class="image-card"
+                class="image-card image-sortable-card"
                 :class="{
-                  'marked-for-delete':
-                    isImageMarkedForDelete(
-                      image.id
-                    )
+                  'marked-for-delete': isImageMarkedForDelete(image.id),
+                  'image-is-dragging': draggedImageId === Number(image.id),
+                  'image-drop-target': dropTargetImageId === Number(image.id)
                 }"
+                :draggable="!isSavingImages && !isImageMarkedForDelete(image.id)"
+                @dragstart="startExistingImageDrag($event, image.id)"
+                @dragover="handleExistingImageDragOver($event, image.id)"
+                @drop="dropExistingImage($event, image.id)"
+                @dragend="endExistingImageDrag"
               >
                 <div class="image-preview">
                   <img
-                    :src="
-                      getProductImageUrl(
-                        image.image_key
-                      )
-                    "
-                    alt="Product image"
+                    :src="getProductImageUrl(image.image_key)"
+                    :alt="isImageMarkedForDelete(image.id)
+                      ? 'Product image marked for removal'
+                      : `Product image ${getActiveImagePosition(image.id)}`"
+                    draggable="false"
                   >
 
+                  <span
+                    v-if="!isImageMarkedForDelete(image.id)"
+                    class="image-position-badge"
+                  >
+                    #{{ getActiveImagePosition(image.id) }}
+                    {{ getActiveImagePosition(image.id) === 1 ? 'Main' : '' }}
+                  </span>
+
                   <div
-                    v-if="
-                      isImageMarkedForDelete(
-                        image.id
-                      )
-                    "
+                    v-if="isImageMarkedForDelete(image.id)"
                     class="delete-overlay"
                   >
                     Will be removed
                   </div>
                 </div>
 
+                <div
+                  v-if="!isImageMarkedForDelete(image.id)"
+                  class="image-order-controls"
+                >
+                  <button
+                    type="button"
+                    class="image-order-button"
+                    :disabled="isSavingImages || getActiveImagePosition(image.id) === 1"
+                    :aria-label="`Move image ${getActiveImagePosition(image.id)} earlier`"
+                    @click="moveExistingImage(image.id, -1)"
+                  >
+                    ← Earlier
+                  </button>
+
+                  <button
+                    type="button"
+                    class="image-order-button"
+                    :disabled="isSavingImages || getActiveImagePosition(image.id) === activeExistingImages.length"
+                    :aria-label="`Move image ${getActiveImagePosition(image.id)} later`"
+                    @click="moveExistingImage(image.id, 1)"
+                  >
+                    Later →
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   class="image-delete-button"
-                  :class="{
-                    restore:
-                      isImageMarkedForDelete(
-                        image.id
-                      )
-                  }"
-                  @click="
-                    toggleExistingImageDelete(
-                      image.id
-                    )
-                  "
+                  :disabled="isSavingImages"
+                  :class="{ restore: isImageMarkedForDelete(image.id) }"
+                  @click="toggleExistingImageDelete(image.id)"
                 >
-                  {{
-                    isImageMarkedForDelete(
-                      image.id
-                    )
-                      ? 'Keep Image'
-                      : 'Remove'
-                  }}
+                  {{ isImageMarkedForDelete(image.id) ? 'Keep Image' : 'Remove' }}
                 </button>
               </div>
             </div>
@@ -1828,12 +1964,10 @@ onMounted(() => {
             v-else
             class="image-empty-state"
           >
-            No product images are currently
-            associated with this product.
+            No product images are currently associated with this product.
           </div>
 
           <!-- NEW IMAGE UPLOAD -->
-
           <div class="image-upload-section">
             <div class="image-section-title">
               Add Images
@@ -1843,19 +1977,11 @@ onMounted(() => {
               class="image-upload-box"
               for="product-image-upload"
             >
-              <span
-                class="image-upload-icon"
-                aria-hidden="true"
-              >
-                +
-              </span>
-
-              <span class="image-upload-title">
-                Choose product images
-              </span>
-
+              <span class="image-upload-icon" aria-hidden="true">+</span>
+              <span class="image-upload-title">Choose product images</span>
               <span class="image-upload-subtitle">
-                Select one or multiple files
+                Select one or multiple files. New images are added after the
+                current images; once saved, you can move them anywhere.
               </span>
             </label>
 
@@ -1866,16 +1992,14 @@ onMounted(() => {
               accept="image/*"
               multiple
               class="image-file-input"
+              :disabled="isSavingImages"
               @change="handleImageSelection"
             >
           </div>
 
           <!-- NEW IMAGE PREVIEWS -->
-
           <div
-            v-if="
-              newImagePreviews.length > 0
-            "
+            v-if="newImagePreviews.length > 0"
             class="image-section new-image-section"
           >
             <div class="image-section-title">
@@ -1884,10 +2008,7 @@ onMounted(() => {
 
             <div class="image-grid">
               <div
-                v-for="(
-                  preview,
-                  index
-                ) in newImagePreviews"
+                v-for="(preview, index) in newImagePreviews"
                 :key="preview.url"
                 class="image-card new-image-card"
               >
@@ -1896,10 +2017,7 @@ onMounted(() => {
                     :src="preview.url"
                     :alt="preview.name"
                   >
-
-                  <span class="new-image-badge">
-                    New
-                  </span>
+                  <span class="new-image-badge">New</span>
                 </div>
 
                 <div class="new-image-name">
@@ -1909,11 +2027,8 @@ onMounted(() => {
                 <button
                   type="button"
                   class="image-delete-button"
-                  @click="
-                    removeNewImage(
-                      index
-                    )
-                  "
+                  :disabled="isSavingImages"
+                  @click="removeNewImage(index)"
                 >
                   Remove
                 </button>
@@ -1922,33 +2037,18 @@ onMounted(() => {
           </div>
 
           <!-- IMAGE SAVE SUMMARY -->
-
           <div class="image-save-row">
             <div class="image-change-summary">
-              <span
-                v-if="
-                  newImages.length > 0
-                "
-              >
-                {{ newImages.length }}
-                new
+              <span v-if="newImages.length > 0">
+                {{ newImages.length }} new
               </span>
-
-              <span
-                v-if="
-                  deleteImageIds.length > 0
-                "
-              >
-                {{ deleteImageIds.length }}
-                to remove
+              <span v-if="deleteImageIds.length > 0">
+                {{ deleteImageIds.length }} to remove
               </span>
-
-              <span
-                v-if="
-                  newImages.length === 0 &&
-                  deleteImageIds.length === 0
-                "
-              >
+              <span v-if="hasImageOrderChanges">
+                Image positions to save
+              </span>
+              <span v-if="!hasPendingImageChanges">
                 No unsaved image changes
               </span>
             </div>
@@ -1956,17 +2056,12 @@ onMounted(() => {
             <button
               type="button"
               class="save-button"
-              :disabled="isSavingImages"
+              :disabled="isSavingImages || isLoadingImages"
               @click="saveImages"
             >
-              {{
-                isSavingImages
-                  ? 'Saving...'
-                  : 'Save Images'
-              }}
+              {{ isSavingImages ? 'Saving...' : 'Save Images' }}
             </button>
           </div>
-
         </template>
 
         <p
@@ -1981,703 +2076,90 @@ onMounted(() => {
 
   </section>
 </template>
-
 <style scoped>
-.edit-product-management {
-  width: 100%;
-
-  padding: clamp(1rem, 3vw, 2rem);
-
-  background: white;
-
-  border-radius: 10px;
-
-  box-sizing: border-box;
-
-  font-family: 'Fredoka', sans-serif;
-}
-
-/* ========================================
-   HEADER
-======================================== */
-
-.edit-product-header {
-  margin-bottom: 1.5rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 1rem;
-}
-
-.edit-label {
-  margin: 0 0 0.2rem;
-
-  color: #777;
-
-  font-size: 0.85rem;
-}
-
-.edit-product-title {
-  margin: 0;
-
-  color: #703795;
-
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
-.back-button {
-  padding: 0.6rem 1rem;
-
-  background: white;
-
-  color: #703795;
-
-  border: 2px solid #703795;
-  border-radius: 6px;
-
-  font: inherit;
-  font-weight: 500;
-
-  cursor: pointer;
-}
-
-.back-button:hover {
-  background: #f5eff8;
-}
-
-/* ========================================
-   FIELD LIST
-======================================== */
-
-.product-fields {
-  display: flex;
-  flex-direction: column;
-
-  gap: 1rem;
-}
-
-.product-field-card {
-  padding: 1.25rem;
-
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-
-.field-heading {
-  margin-bottom: 0.65rem;
-
-  color: #703795;
-
-  font-weight: 600;
-}
-
-/* ========================================
-   STANDARD FIELD
-======================================== */
-
-.field-editor {
-  display: flex;
-  align-items: center;
-
-  gap: 0.75rem;
-}
-
-.field-input {
-  min-width: 0;
-  flex: 1;
-
-  padding: 0.75rem;
-
-  border: 1px solid #ccc;
-  border-radius: 6px;
-
-  box-sizing: border-box;
-
-  font: inherit;
-}
-
-/* ========================================
-   DESCRIPTION
-======================================== */
-
-.description-editor {
-  display: flex;
-  align-items: flex-start;
-
-  gap: 0.75rem;
-}
-
-.field-textarea {
-  min-width: 0;
-  flex: 1;
-
-  padding: 0.75rem;
-
-  border: 1px solid #ccc;
-  border-radius: 6px;
-
-  box-sizing: border-box;
-
-  resize: vertical;
-
-  font: inherit;
-}
-
-/* ========================================
-   BRANDS / SEASONS
-======================================== */
-
-.association-editor {
-  display: flex;
-  align-items: flex-start;
-
-  gap: 0.75rem;
-}
-
-.association-dropdown {
-  position: relative;
-
-  min-width: 0;
-  flex: 1;
-}
-
-.association-dropdown-button {
-  width: 100%;
-
-  padding: 0.75rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  background: white;
-
-  color: #333;
-
-  border: 1px solid #ccc;
-  border-radius: 6px;
-
-  font: inherit;
-  text-align: left;
-
-  cursor: pointer;
-}
-
-.association-dropdown-button:hover {
-  border-color: #703795;
-}
-
-.association-arrow {
-  margin-left: 1rem;
-
-  color: #703795;
-
-  font-size: 0.75rem;
-
-  transition: transform 0.2s ease;
-}
-
-.association-arrow.open {
-  transform: rotate(180deg);
-}
-
-.association-menu {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  left: 0;
-
-  width: 100%;
-  max-height: 250px;
-
-  overflow-y: auto;
-
-  padding: 0.4rem;
-
-  background: white;
-
-  border: 1px solid #ccc;
-  border-radius: 6px;
-
-  box-sizing: border-box;
-
-  box-shadow:
-    0 6px 18px
-    rgba(0, 0, 0, 0.12);
-
-  z-index: 20;
-}
-
-.association-option {
-  padding: 0.65rem;
-
-  display: flex;
-  align-items: center;
-
-  gap: 0.6rem;
-
-  border-radius: 5px;
-
-  cursor: pointer;
-}
-
-.association-option:hover {
-  background: #f5eff8;
-}
-
-.association-option input {
-  width: 17px;
-  height: 17px;
-
-  accent-color: #703795;
-
-  cursor: pointer;
-}
-
-.association-pill-list {
-  margin-top: 0.8rem;
-
-  display: flex;
-  flex-wrap: wrap;
-
-  gap: 0.45rem;
-}
-
-.association-pill {
-  padding: 0.35rem 0.65rem;
-
-  background: #f5eff8;
-
-  color: #703795;
-
-  border-radius: 999px;
-
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.association-loading {
-  margin: 0;
-
-  color: #777;
-
-  font-size: 0.9rem;
-}
-
-/* ========================================
-   IMAGES
-======================================== */
-
-.image-help-text {
-  margin:
-    -0.2rem
-    0
-    1.25rem;
-
-  color: #777;
-
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.image-section {
-  margin-bottom: 1.5rem;
-}
-
-.image-section-title {
-  margin-bottom: 0.75rem;
-
-  color: #444;
-
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.image-grid {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      auto-fill,
-      minmax(150px, 1fr)
-    );
-
-  gap: 0.9rem;
-}
-
-.image-card {
-  min-width: 0;
-
-  padding: 0.6rem;
-
-  background: #fafafa;
-
-  border: 1px solid #ddd;
-  border-radius: 8px;
-
-  transition:
-    opacity 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.image-card.marked-for-delete {
-  opacity: 0.55;
-
-  border-color: #c62828;
-}
-
+/* Additions only: keep the existing global product-manager styling. */
 .image-preview {
   position: relative;
-
-  width: 100%;
-  aspect-ratio: 1 / 1;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  overflow: hidden;
-
-  background: white;
-
-  border-radius: 6px;
 }
 
-.image-preview img {
-  width: 100%;
-  height: 100%;
-
-  object-fit: contain;
+.image-sortable-card {
+  cursor: grab;
+  transition: opacity 150ms ease, outline-color 150ms ease;
 }
 
-.delete-overlay {
+.image-sortable-card:active {
+  cursor: grabbing;
+}
+
+.image-sortable-card.marked-for-delete {
+  cursor: default;
+}
+
+.image-is-dragging {
+  opacity: 0.45;
+}
+
+.image-drop-target {
+  outline: 2px dashed #703795;
+  outline-offset: 3px;
+}
+
+.image-position-badge {
   position: absolute;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0.5rem;
-
-  background:
-    rgba(198, 40, 40, 0.78);
-
-  color: white;
-
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.image-delete-button {
-  width: 100%;
-
-  margin-top: 0.55rem;
-  padding: 0.5rem;
-
-  background: white;
-
-  color: #c62828;
-
-  border: 1px solid #c62828;
-  border-radius: 5px;
-
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 500;
-
-  cursor: pointer;
-}
-
-.image-delete-button:hover {
-  background: #fff1f1;
-}
-
-.image-delete-button.restore {
-  color: #703795;
-
-  border-color: #703795;
-}
-
-.image-delete-button.restore:hover {
-  background: #f5eff8;
-}
-
-/* ========================================
-   IMAGE UPLOAD
-======================================== */
-
-.image-upload-section {
-  margin-top: 1rem;
-}
-
-.image-file-input {
-  position: absolute;
-
-  width: 1px;
-  height: 1px;
-
-  overflow: hidden;
-
-  opacity: 0;
-
+  z-index: 2;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #703795;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
   pointer-events: none;
 }
 
-.image-upload-box {
-  min-height: 125px;
-
-  padding: 1.25rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-
-  gap: 0.3rem;
-
-  background: #faf7fc;
-
-  border: 2px dashed #b99acb;
-  border-radius: 8px;
-
-  box-sizing: border-box;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.image-upload-box:hover {
-  background: #f5eff8;
-
-  border-color: #703795;
-}
-
-.image-upload-icon {
-  width: 34px;
-  height: 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: #703795;
-
-  color: white;
-
-  border-radius: 50%;
-
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.image-upload-title {
-  margin-top: 0.25rem;
-
-  color: #703795;
-
-  font-weight: 600;
-}
-
-.image-upload-subtitle {
-  color: #777;
-
-  font-size: 0.85rem;
-}
-
-/* ========================================
-   NEW IMAGE
-======================================== */
-
-.new-image-section {
-  margin-top: 1.4rem;
-}
-
-.new-image-card {
-  border-color: #b99acb;
-}
-
-.new-image-badge {
-  position: absolute;
-  top: 0.45rem;
-  right: 0.45rem;
-
-  padding: 0.25rem 0.45rem;
-
-  background: #703795;
-
-  color: white;
-
-  border-radius: 999px;
-
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.new-image-name {
-  margin-top: 0.45rem;
-
-  overflow: hidden;
-
-  color: #666;
-
-  font-size: 0.78rem;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ========================================
-   IMAGE SAVE ROW
-======================================== */
-
-.image-save-row {
-  margin-top: 1.4rem;
-  padding-top: 1rem;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 1rem;
-
-  border-top: 1px solid #eee;
-}
-
-.image-change-summary {
-  display: flex;
-  flex-wrap: wrap;
-
+.image-order-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
-
-  color: #777;
-
-  font-size: 0.85rem;
+  width: 100%;
+  margin: 0.65rem 0;
 }
 
-.image-change-summary span {
-  padding: 0.3rem 0.55rem;
-
-  background: #f4f4f4;
-
-  border-radius: 999px;
-}
-
-.image-empty-state {
-  margin-bottom: 1.25rem;
-  padding: 1rem;
-
-  background: #fafafa;
-
-  color: #777;
-
-  border: 1px dashed #ccc;
-  border-radius: 6px;
-
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-/* ========================================
-   SAVE BUTTON
-======================================== */
-
-.save-button {
-  flex-shrink: 0;
-
-  padding: 0.7rem 1.1rem;
-
-  background: #703795;
-
-  color: white;
-
-  border: none;
-  border-radius: 6px;
-
+.image-order-button {
+  min-width: 0;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid #703795;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #703795;
   font: inherit;
-  font-weight: 500;
-
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.save-button:hover {
-  opacity: 0.9;
+.image-order-button:hover:not(:disabled) {
+  background: #703795;
+  color: #fff;
 }
 
-.save-button:disabled {
-  opacity: 0.6;
+.image-order-button:focus-visible {
+  outline: 3px solid #01aef0;
+  outline-offset: 2px;
+}
 
+.image-order-button:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
-/* ========================================
-   MESSAGES
-======================================== */
-
-.field-message {
-  margin: 0.65rem 0 0;
-
-  color: #703795;
-
-  font-size: 0.9rem;
-}
-
-.product-status {
-  margin: 0;
-
-  color: #703795;
-}
-
-.product-error {
-  margin: 0;
-
-  color: #c62828;
-}
-
-/* ========================================
-   MOBILE
-======================================== */
-
-@media (max-width: 600px) {
-  .edit-product-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .field-editor,
-  .description-editor,
-  .association-editor {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .save-button {
-    width: 100%;
-  }
-
-  .image-grid {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
-  }
-
-  .image-save-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 400px) {
-  .image-grid {
-    grid-template-columns: 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .image-sortable-card,
+  .image-order-button {
+    transition: none;
   }
 }
 </style>

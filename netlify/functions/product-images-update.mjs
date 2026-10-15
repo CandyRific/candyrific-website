@@ -426,6 +426,107 @@ export default async (req) => {
     }
   }
 
+  
+if (req.method === 'PATCH') {
+  let body
+
+  try {
+    body = await req.json()
+  } catch {
+    return Response.json(
+      { error: 'Request body must be valid JSON.' },
+      { status: 400 }
+    )
+  }
+
+  const productId = Number(body?.productId)
+  const imageIds = body?.imageIds
+
+  if (
+    !Number.isSafeInteger(productId) ||
+    productId <= 0 ||
+    !Array.isArray(imageIds) ||
+    !imageIds.every((id) => Number.isSafeInteger(id) && id > 0) ||
+    new Set(imageIds).size !== imageIds.length
+  ) {
+    return Response.json(
+      { error: 'Invalid product ID or duplicate/invalid image IDs.' },
+      { status: 400 }
+    )
+  }
+
+  const db = getDatabase()
+  const client = await db.pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    // Lock the parent product so its image set cannot change during
+    // validation and the update.
+    const productResult = await client.query(
+      'SELECT id FROM products WHERE id = $1 FOR UPDATE',
+      [productId]
+    )
+
+    if (productResult.rowCount === 0) {
+      await client.query('ROLLBACK')
+      return Response.json(
+        { error: 'Product not found.' },
+        { status: 404 }
+      )
+    }
+
+    const result = await client.query(
+      'SELECT id FROM product_images WHERE product_id = $1 ORDER BY id FOR UPDATE',
+      [productId]
+    )
+
+    const actualIds = result.rows.map((row) => Number(row.id))
+    const requestedSet = new Set(imageIds)
+
+    if (
+      actualIds.length !== imageIds.length ||
+      actualIds.some((id) => !requestedSet.has(id))
+    ) {
+      await client.query('ROLLBACK')
+      return Response.json(
+        { error: 'The product image list has changed. Reload and try again.' },
+        { status: 409 }
+      )
+    }
+
+    // The first ID gets display_order 1, the second gets 2, etc.
+    await client.query(
+      `UPDATE product_images AS pi
+       SET display_order = ordered.position::integer
+       FROM unnest($2::bigint[]) WITH ORDINALITY AS ordered(image_id, position)
+       WHERE pi.product_id = $1 AND pi.id = ordered.image_id`,
+      [productId, imageIds]
+    )
+
+    await client.query('COMMIT')
+
+    return Response.json({
+      message: 'Image display order updated successfully.',
+      imageIds
+    })
+  } catch (error) {
+    try {
+      await client.query('ROLLBACK')
+    } catch (rollbackError) {
+      console.error('Unable to roll back image order update:', rollbackError)
+    }
+
+    console.error('Unable to update image display order:', error)
+    return Response.json(
+      { error: 'Unable to update image display order.' },
+      { status: 500 }
+    )
+  } finally {
+    client.release()
+  }
+}
+
   /* ========================================
      METHOD NOT ALLOWED
   ======================================== */
