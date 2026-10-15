@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps({
   productId: {
@@ -13,6 +13,26 @@ const props = defineProps({
 ======================================== */
 
 const existingImages = ref([])
+const originalImageSnapshot = ref([])
+const draggedImageId = ref(null)
+
+// The position in existingImages is the proposed display order.
+const remainingImages = computed(() =>
+  existingImages.value.filter(
+    (image) => !deleteImageIds.value.includes(Number(image.id))
+  )
+)
+
+const hasOrderChanges = computed(() => {
+  const remaining = remainingImages.value
+  return remaining.some((image, index) => {
+    const original = originalImageSnapshot.value.find(
+      (item) => Number(item.id) === Number(image.id)
+    )
+    return !original || Number(original.display_order) !== index + 1
+  })
+})
+
 
 const deleteImageIds = ref([])
 
@@ -88,10 +108,11 @@ const loadProductImages = async () => {
       'Unable to load product images.'
     )
 
-    existingImages.value =
-      Array.isArray(data)
-        ? data
-        : []
+    existingImages.value = Array.isArray(data) ? data : []
+    originalImageSnapshot.value = existingImages.value.map(
+      (image) => ({ ...image })
+    )
+    draggedImageId.value = null
 
     deleteImageIds.value = []
 
@@ -224,6 +245,64 @@ const isImageMarkedForDelete = (
 }
 
 /* ========================================
+   REORDER EXISTING IMAGES
+======================================== */
+
+const onImageDragStart = (event, imageId) => {
+  if (isSavingImages.value || isImageMarkedForDelete(imageId)) {
+    event.preventDefault()
+    return
+  }
+
+  draggedImageId.value = Number(imageId)
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(imageId))
+}
+
+const onImageDrop = (event, targetId) => {
+  event.preventDefault()
+
+  const sourceId = draggedImageId.value
+  draggedImageId.value = null
+
+  if (
+    sourceId === null ||
+    sourceId === Number(targetId) ||
+    isImageMarkedForDelete(targetId)
+  ) return
+
+  const images = [...existingImages.value]
+  const from = images.findIndex((image) => Number(image.id) === sourceId)
+  const to = images.findIndex((image) => Number(image.id) === Number(targetId))
+
+  if (from < 0 || to < 0) return
+
+  const [moved] = images.splice(from, 1)
+  images.splice(to, 0, moved)
+  existingImages.value = images
+}
+
+const moveImage = (imageId, direction) => {
+  if (isSavingImages.value || isImageMarkedForDelete(imageId)) return
+
+  const ordered = remainingImages.value
+  const index = ordered.findIndex((image) => Number(image.id) === Number(imageId))
+  const swapIndex = index + direction
+
+  if (index < 0 || swapIndex < 0 || swapIndex >= ordered.length) return
+
+  const firstIndex = existingImages.value.findIndex(
+    (image) => Number(image.id) === Number(ordered[index].id)
+  )
+  const secondIndex = existingImages.value.findIndex(
+    (image) => Number(image.id) === Number(ordered[swapIndex].id)
+  )
+  const images = [...existingImages.value]
+  ;[images[firstIndex], images[secondIndex]] = [images[secondIndex], images[firstIndex]]
+  existingImages.value = images
+}
+
+/* ========================================
    SAVE IMAGES
 ======================================== */
 
@@ -232,117 +311,73 @@ const saveImages = async () => {
 
   if (
     deleteImageIds.value.length === 0 &&
-    newImages.value.length === 0
+    newImages.value.length === 0 &&
+    !hasOrderChanges.value
   ) {
-    imagesMessage.value =
-      'No image changes to save.'
-
+    imagesMessage.value = 'No image changes to save.'
     return
   }
 
   isSavingImages.value = true
 
   try {
+    // Keep the UI order, excluding images marked for deletion.
+    const orderedIds = remainingImages.value.map((image) => Number(image.id))
 
-    /* ========================================
-       DELETE EXISTING IMAGES
-    ======================================== */
-
-    if (
-      deleteImageIds.value.length > 0
-    ) {
-      const deleteResponse =
-        await fetch(
-          '/.netlify/functions/product-images-update',
-          {
-            method: 'DELETE',
-
-            headers: {
-              'Content-Type':
-                'application/json'
-            },
-
-            body: JSON.stringify({
-              productId:
-                props.productId,
-
-              imageIds:
-                deleteImageIds.value
-            })
-          }
-        )
-
-      await readResponse(
-        deleteResponse,
-        'Unable to remove images.'
-      )
+    if (deleteImageIds.value.length > 0) {
+      const response = await fetch('/.netlify/functions/product-images-update', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: props.productId,
+          imageIds: deleteImageIds.value
+        })
+      })
+      await readResponse(response, 'Unable to remove images.')
     }
 
-    /* ========================================
-       ADD NEW IMAGES
-    ======================================== */
-
-    if (
-      newImages.value.length > 0
-    ) {
-      const formData =
-        new FormData()
-
-      formData.append(
-        'productId',
-        props.productId
-      )
-
-      for (
-        const image of newImages.value
-      ) {
-        formData.append(
-          'images',
-          image
-        )
+    if (newImages.value.length > 0) {
+      const formData = new FormData()
+      formData.append('productId', props.productId)
+      for (const image of newImages.value) {
+        formData.append('images', image)
       }
 
-      const postResponse =
-        await fetch(
-          '/.netlify/functions/product-images-update',
-          {
-            method: 'POST',
-            body: formData
-          }
-        )
+      const response = await fetch('/.netlify/functions/product-images-update', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await readResponse(response, 'Unable to add images.')
 
-      await readResponse(
-        postResponse,
-        'Unable to add images.'
-      )
+      // New images receive their IDs from the server and go after existing ones.
+      const currentIds = new Set(orderedIds)
+      for (const image of data.images || []) {
+        const id = Number(image.id)
+        if (!currentIds.has(id)) {
+          orderedIds.push(id)
+          currentIds.add(id)
+        }
+      }
     }
+
+    // Always normalize positions to 1..N after a save, even if old values were 0.
+    const patchResponse = await fetch('/.netlify/functions/product-images-update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: props.productId,
+        imageIds: orderedIds
+      })
+    })
+    await readResponse(patchResponse, 'Unable to update image order.')
 
     await loadProductImages()
-
-    imagesMessage.value =
-      'Images updated successfully.'
+    imagesMessage.value = 'Images updated successfully.'
   } catch (error) {
-    console.error(
-      'Unable to update product images:',
-      error
-    )
-
-    /*
-     * As with brands/seasons, one request
-     * could succeed while another fails.
-     * Reload actual DB state.
-     */
-    try {
-      await loadProductImages()
-    } catch (reloadError) {
-      console.error(
-        'Unable to reload product images:',
-        reloadError
-      )
-    }
-
-    imagesMessage.value =
-      error.message
+    console.error('Unable to update product images:', error)
+    // A DELETE or POST may already have succeeded; reload real persisted state.
+    await loadProductImages()
+    imagesMessage.value = error.message
   } finally {
     isSavingImages.value = false
   }
@@ -356,6 +391,7 @@ watch(
   () => {
     clearNewImages()
     existingImages.value = []
+    originalImageSnapshot.value = []
     deleteImageIds.value = []
     loadProductImages()
   },
@@ -374,9 +410,9 @@ onBeforeUnmount(() => {
         </div>
 
         <p class="image-help-text">
-          Add new product images or mark
-          existing images for removal, then
-          save your changes.
+          Drag existing images into the order you want, or use the arrow
+          buttons. The first image becomes the main image when you save.
+          You can also add or remove images.
         </p>
 
         <p
@@ -395,7 +431,7 @@ onBeforeUnmount(() => {
             class="image-section"
           >
             <div class="image-section-title">
-              Current Images
+              Current Images — drag to rearrange
             </div>
 
             <div class="image-grid">
@@ -404,12 +440,23 @@ onBeforeUnmount(() => {
                 :key="image.id"
                 class="image-card"
                 :class="{
-                  'marked-for-delete':
-                    isImageMarkedForDelete(
-                      image.id
-                    )
+                  'marked-for-delete': isImageMarkedForDelete(image.id),
+                  'is-dragging': draggedImageId === Number(image.id)
                 }"
+                :draggable="!isSavingImages && !isImageMarkedForDelete(image.id)"
+                @dragstart="onImageDragStart($event, image.id)"
+                @dragover.prevent
+                @drop="onImageDrop($event, image.id)"
+                @dragend="draggedImageId = null"
               >
+                <div class="image-position">
+                  <span>
+                    {{ isImageMarkedForDelete(image.id)
+                      ? 'Removing'
+                      : `Position ${remainingImages.findIndex(item => Number(item.id) === Number(image.id)) + 1}` }}
+                  </span>
+                  <span v-if="!isImageMarkedForDelete(image.id) && remainingImages[0]?.id === image.id" class="main-image-label">Main image</span>
+                </div>
                 <div class="image-preview">
                   <img
                     :src="
@@ -432,6 +479,10 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
 
+                <div v-if="!isImageMarkedForDelete(image.id)" class="image-move-controls">
+                  <button type="button" :disabled="isSavingImages || remainingImages[0]?.id === image.id" @click="moveImage(image.id, -1)" aria-label="Move image earlier">← Earlier</button>
+                  <button type="button" :disabled="isSavingImages || remainingImages[remainingImages.length - 1]?.id === image.id" @click="moveImage(image.id, 1)" aria-label="Move image later">Later →</button>
+                </div>
                 <button
                   type="button"
                   class="image-delete-button"
@@ -578,10 +629,13 @@ onBeforeUnmount(() => {
                 to remove
               </span>
 
+              <span v-if="hasOrderChanges">Image positions to save</span>
+
               <span
                 v-if="
                   newImages.length === 0 &&
-                  deleteImageIds.length === 0
+                  deleteImageIds.length === 0 &&
+                  !hasOrderChanges
                 "
               >
                 No unsaved image changes
@@ -772,6 +826,19 @@ onBeforeUnmount(() => {
 .image-delete-button.restore:hover {
   background: #f5eff8;
 }
+
+/* ========================================
+   IMAGE ORDER CONTROLS
+======================================== */
+
+.image-card:not(.marked-for-delete) { cursor: grab; }
+.image-card.is-dragging { opacity: 0.45; }
+.image-position { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .35rem; margin-bottom: .55rem; color: #703795; font-size: .85rem; font-weight: 600; }
+.main-image-label { color: #168047; }
+.image-move-controls { display: flex; gap: .4rem; margin-top: .55rem; }
+.image-move-controls button { flex: 1; min-width: 0; padding: .45rem .2rem; border: 1px solid #b99acb; border-radius: 5px; background: white; color: #703795; font: inherit; font-size: .78rem; cursor: pointer; }
+.image-move-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.image-move-controls button:not(:disabled):hover { background: #f5eff8; }
 
 /* ========================================
    IMAGE UPLOAD

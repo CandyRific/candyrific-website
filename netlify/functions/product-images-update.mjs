@@ -9,439 +9,238 @@ import { requireAuth } from './utils/requireAuth.mjs'
    GET PRODUCT IMAGES
 ======================================== */
 
-const getProductImages = async (
-  db,
-  productId
-) => {
+const getProductImages = async (db, productId) => {
   return await db.sql`
-    SELECT
-      id,
-      product_id,
-      image_key,
-      display_order
+    SELECT id, product_id, image_key, display_order
     FROM product_images
     WHERE product_id = ${productId}
-    ORDER BY
-      display_order ASC,
-      id ASC
+    ORDER BY display_order ASC, id ASC
   `
 }
+
+const validProductId = (value) =>
+  Number.isSafeInteger(Number(value)) && Number(value) > 0 &&
+  value !== null && value !== undefined && String(value).trim() !== ''
 
 /* ========================================
    FUNCTION
 ======================================== */
 
 export default async (req) => {
-
   /* ========================================
      GET (PUBLIC)
   ======================================== */
-
   if (req.method === 'GET') {
     try {
       const db = getDatabase()
+      const productId = new URL(req.url).searchParams.get('productId')
 
-      const url = new URL(req.url)
+      if (!validProductId(productId)) {
+        return Response.json({ error: 'A valid product ID is required.' }, { status: 400 })
+      }
 
-      const productId =
-        url.searchParams.get('productId')
+      return Response.json(await getProductImages(db, Number(productId)))
+    } catch (error) {
+      console.error('Unable to load product images:', error)
+      return Response.json(
+        { error: error.message || 'Unable to load product images.' },
+        { status: 500 }
+      )
+    }
+  }
 
-      if (!productId) {
+  /* ========================================
+     AUTHORIZATION FOR WRITE METHODS
+  ======================================== */
+  if (!['POST', 'PATCH', 'DELETE'].includes(req.method)) {
+    return Response.json(
+      { error: 'Method not allowed.' },
+      { status: 405, headers: { Allow: 'GET, POST, PATCH, DELETE' } }
+    )
+  }
+
+  const { response } = await requireAuth()
+  if (response) return response
+  verifyRequestOrigin(req)
+
+  /* ========================================
+     PATCH (ADMIN ONLY)
+
+     imageIds must contain ALL remaining images
+     for this product, in desired UI order.
+     Values are normalized to 1..N.
+  ======================================== */
+  if (req.method === 'PATCH') {
+    try {
+      const db = getDatabase()
+      const body = await req.json()
+      const { productId, imageIds } = body || {}
+
+      if (!validProductId(productId)) {
+        return Response.json({ error: 'A valid product ID is required.' }, { status: 400 })
+      }
+
+      if (!Array.isArray(imageIds) ||
+          imageIds.some((id) => !Number.isSafeInteger(Number(id)) || Number(id) <= 0) ||
+          new Set(imageIds.map(Number)).size !== imageIds.length) {
+        return Response.json({ error: 'Invalid or duplicate image IDs.' }, { status: 400 })
+      }
+
+      const current = await getProductImages(db, Number(productId))
+      const currentIds = new Set(current.map((image) => Number(image.id)))
+      const requestedIds = imageIds.map(Number)
+
+      // Exact-set comparison prevents dropping IDs or editing another product.
+      if (requestedIds.length !== currentIds.size ||
+          requestedIds.some((id) => !currentIds.has(id))) {
         return Response.json(
-          {
-            error:
-              'Product ID is required.'
-          },
-          {
-            status: 400
-          }
+          { error: 'Image list does not match this product. Reload and try again.' },
+          { status: 409 }
         )
       }
 
-      const images =
-        await getProductImages(
-          db,
-          productId
-        )
+      for (let index = 0; index < requestedIds.length; index += 1) {
+        const imageId = requestedIds[index]
+        const position = index + 1
 
-      return Response.json(images)
+        await db.sql`
+          UPDATE product_images
+          SET display_order = ${position}
+          WHERE id = ${imageId} AND product_id = ${Number(productId)}
+        `
+      }
+
+      const images = await getProductImages(db, Number(productId))
+      return Response.json({ message: 'Image order updated successfully.', images })
     } catch (error) {
-      console.error(
-        'Unable to load product images:',
-        error
-      )
-
+      console.error('Unable to update image order:', error)
       return Response.json(
-        {
-          error:
-            error.message ||
-            'Unable to load product images.'
-        },
-        {
-          status: 500
-        }
+        { error: error.message || 'Unable to update image order.' },
+        { status: 500 }
       )
     }
   }
 
   /* ========================================
      POST (ADMIN ONLY)
-
      Add new images.
   ======================================== */
-
   if (req.method === 'POST') {
-
-    /* ========================================
-       AUTHORIZATION
-    ======================================== */
-
-    const { response } = await requireAuth()
-
-    if (response) {
-      return response
-    }
-
-    verifyRequestOrigin(req)
-
     const uploadedBlobKeys = []
 
     try {
       const db = getDatabase()
+      const formData = await req.formData()
+      const productId = formData.get('productId')
+      const images = formData.getAll('images')
 
-      const formData =
-        await req.formData()
-
-      const productId =
-        formData.get('productId')
-
-      const images =
-        formData.getAll('images')
-
-      if (!productId) {
-        return Response.json(
-          {
-            error:
-              'Product ID is required.'
-          },
-          {
-            status: 400
-          }
-        )
+      if (!validProductId(productId)) {
+        return Response.json({ error: 'A valid product ID is required.' }, { status: 400 })
       }
 
-      const validImages =
-        images.filter(
-          (image) =>
-            image &&
-            image.size > 0
-        )
-
+      const validImages = images.filter((image) => image && image.size > 0)
       if (validImages.length === 0) {
-        const productImages =
-          await getProductImages(
-            db,
-            productId
-          )
-
         return Response.json({
-          message:
-            'No new images to add.',
-          images: productImages
+          message: 'No new images to add.',
+          images: await getProductImages(db, Number(productId))
         })
       }
 
-      /*
-       * Find the current highest
-       * display order.
-       */
-      const orderResult =
-        await db.sql`
-          SELECT
-            COALESCE(
-              MAX(display_order),
-              0
-            ) AS max_order
-          FROM product_images
-          WHERE product_id = ${productId}
-        `
+      const orderResult = await db.sql`
+        SELECT COALESCE(MAX(display_order), 0) AS max_order
+        FROM product_images
+        WHERE product_id = ${Number(productId)}
+      `
+      let displayOrder = Number(orderResult[0]?.max_order ?? 0)
+      const imageStore = getStore('product-images')
 
-      let displayOrder =
-        Number(
-          orderResult[0]?.max_order ?? 0
-        )
+      for (const image of validImages) {
+        const extension = image.name?.split('.').pop()?.toLowerCase() || 'webp'
+        const imageKey = `${crypto.randomUUID()}.${extension}`
 
-      const imageStore =
-        getStore('product-images')
-
-      for (
-        const image of validImages
-      ) {
-        const originalExtension =
-          image.name
-            ?.split('.')
-            .pop()
-            ?.toLowerCase()
-
-        const extension =
-          originalExtension ||
-          'webp'
-
-        const imageKey =
-          `${crypto.randomUUID()}.${extension}`
-
-        /*
-         * Upload blob first.
-         */
-        await imageStore.set(
-          imageKey,
-          image
-        )
-
-        uploadedBlobKeys.push(
-          imageKey
-        )
-
+        await imageStore.set(imageKey, image)
+        uploadedBlobKeys.push(imageKey)
         displayOrder += 1
 
-        /*
-         * Then create DB relationship.
-         */
         await db.sql`
-          INSERT INTO product_images (
-            product_id,
-            image_key,
-            display_order
-          )
-          VALUES (
-            ${productId},
-            ${imageKey},
-            ${displayOrder}
-          )
+          INSERT INTO product_images (product_id, image_key, display_order)
+          VALUES (${Number(productId)}, ${imageKey}, ${displayOrder})
         `
       }
 
-      const productImages =
-        await getProductImages(
-          db,
-          productId
-        )
-
-      return Response.json(
-        {
-          message:
-            'Images added successfully.',
-          images: productImages
-        },
-        {
-          status: 201
-        }
-      )
+      return Response.json({
+        message: 'Images added successfully.',
+        images: await getProductImages(db, Number(productId))
+      }, { status: 201 })
     } catch (error) {
-      console.error(
-        'Unable to add product images:',
-        error
-      )
-
-      /*
-       * Remove newly uploaded blobs
-       * that aren't safe to leave around.
-       */
-      const imageStore =
-        getStore('product-images')
-
-      for (
-        const imageKey
-        of uploadedBlobKeys
-      ) {
+      console.error('Unable to add product images:', error)
+      // Preserve the original endpoint's cleanup behavior.
+      const imageStore = getStore('product-images')
+      for (const imageKey of uploadedBlobKeys) {
         try {
-          await imageStore.delete(
-            imageKey
-          )
+          await imageStore.delete(imageKey)
         } catch (cleanupError) {
-          console.error(
-            'Unable to clean up image blob:',
-            cleanupError
-          )
+          console.error('Unable to clean up image blob:', cleanupError)
         }
       }
-
-      return Response.json(
-        {
-          error:
-            error.message ||
-            'Unable to add product images.'
-        },
-        {
-          status: 500
-        }
-      )
+      return Response.json({ error: error.message || 'Unable to add product images.' }, { status: 500 })
     }
   }
 
   /* ========================================
      DELETE (ADMIN ONLY)
-
      Remove existing images.
   ======================================== */
-
   if (req.method === 'DELETE') {
-
-    /* ========================================
-       AUTHORIZATION
-    ======================================== */
-
-    const { response } = await requireAuth()
-
-    if (response) {
-      return response
-    }
-
-    verifyRequestOrigin(req)
-
     try {
       const db = getDatabase()
+      const body = await req.json()
+      const productId = body?.productId
+      const imageIds = Array.isArray(body?.imageIds) ? body.imageIds : []
 
-      const body =
-        await req.json()
-
-      const productId =
-        body.productId
-
-      const imageIds =
-        Array.isArray(body.imageIds)
-          ? body.imageIds
-          : []
-
-      if (!productId) {
-        return Response.json(
-          {
-            error:
-              'Product ID is required.'
-          },
-          {
-            status: 400
-          }
-        )
+      if (!validProductId(productId)) {
+        return Response.json({ error: 'A valid product ID is required.' }, { status: 400 })
       }
 
       if (imageIds.length === 0) {
-        const images =
-          await getProductImages(
-            db,
-            productId
-          )
-
         return Response.json({
-          message:
-            'No images needed to be removed.',
-          images
+          message: 'No images needed to be removed.',
+          images: await getProductImages(db, Number(productId))
         })
       }
 
-      const imageStore =
-        getStore('product-images')
+      const imageStore = getStore('product-images')
+      for (const imageId of imageIds) {
+        const imageRows = await db.sql`
+          SELECT id, image_key
+          FROM product_images
+          WHERE id = ${imageId} AND product_id = ${Number(productId)}
+          LIMIT 1
+        `
+        if (imageRows.length === 0) continue
+        const image = imageRows[0]
 
-      for (
-        const imageId of imageIds
-      ) {
-        /*
-         * Make sure this image belongs
-         * to this product and get its
-         * blob key before deleting it.
-         */
-        const imageRows =
-          await db.sql`
-            SELECT
-              id,
-              image_key
-            FROM product_images
-            WHERE id = ${imageId}
-              AND product_id = ${productId}
-            LIMIT 1
-          `
-
-        if (
-          imageRows.length === 0
-        ) {
-          continue
-        }
-
-        const image =
-          imageRows[0]
-
-        /*
-         * Remove DB record first.
-         */
         await db.sql`
           DELETE FROM product_images
-          WHERE id = ${imageId}
-            AND product_id = ${productId}
+          WHERE id = ${imageId} AND product_id = ${Number(productId)}
         `
 
-        /*
-         * Then remove blob.
-         */
         if (image.image_key) {
           try {
-            await imageStore.delete(
-              image.image_key
-            )
+            await imageStore.delete(image.image_key)
           } catch (blobError) {
-            console.error(
-              'Database image removed, but blob cleanup failed:',
-              blobError
-            )
+            console.error('Database image removed, but blob cleanup failed:', blobError)
           }
         }
       }
 
-      const images =
-        await getProductImages(
-          db,
-          productId
-        )
-
       return Response.json({
-        message:
-          'Images removed successfully.',
-        images
+        message: 'Images removed successfully.',
+        images: await getProductImages(db, Number(productId))
       })
     } catch (error) {
-      console.error(
-        'Unable to remove product images:',
-        error
-      )
-
-      return Response.json(
-        {
-          error:
-            error.message ||
-            'Unable to remove product images.'
-        },
-        {
-          status: 500
-        }
-      )
+      console.error('Unable to remove product images:', error)
+      return Response.json({ error: error.message || 'Unable to remove product images.' }, { status: 500 })
     }
   }
-
-  
-
-  /* ========================================
-     METHOD NOT ALLOWED
-  ======================================== */
-
-  return Response.json(
-    {
-      error:
-        'Method not allowed.'
-    },
-    {
-      status: 405,
-      headers: {
-        Allow: 'GET, POST, DELETE'
-      }
-    }
-  )
 }
