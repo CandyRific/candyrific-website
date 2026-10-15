@@ -1,3 +1,4 @@
+
 <template>
   <section class="instagram-section">
     <div class="instagram-container">
@@ -9,7 +10,7 @@
       <div class="instagram-grid">
         <article
           v-for="post in posts"
-          :key="post.url"
+          :key="post.id"
           class="instagram-card"
         >
           <div class="instagram-card-accent"></div>
@@ -17,11 +18,11 @@
           <div class="instagram-embed-wrapper">
             <blockquote
               class="instagram-media"
-              :data-instgrm-permalink="post.url"
+              :data-instgrm-permalink="post.instagram_link"
               data-instgrm-version="14"
             >
               <a
-                :href="post.url"
+                :href="post.instagram_link"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -38,36 +39,31 @@
 
 <script setup>
 import {
+  ref,
   nextTick,
   onMounted
 } from 'vue'
 
-const posts = [
-  {
-    url: 'https://www.instagram.com/p/DeARJiMJ4pO/'
-  },
-  {
-    url: 'https://www.instagram.com/p/DaNrKnnRFJG/'
-  },
-  {
-    url: 'https://www.instagram.com/p/DZIDnxikfMt/'
-  },
-  {
-    url: 'https://www.instagram.com/p/DY4omjqDbeo/'
-  }
-]
+/* ========================================
+   INSTAGRAM STATE
+======================================== */
+
+const posts = ref([])
+
+/* ========================================
+   PROCESS INSTAGRAM EMBEDS
+======================================== */
 
 const processInstagramEmbeds = () => {
   window.instgrm?.Embeds?.process()
 }
 
-onMounted(async () => {
-  await nextTick()
+/* ========================================
+   LOAD INSTAGRAM SCRIPT
+======================================== */
 
-  if (
-    window.instgrm &&
-    window.instgrm.Embeds
-  ) {
+const loadInstagramScript = () => {
+  if (window.instgrm?.Embeds) {
     processInstagramEmbeds()
     return
   }
@@ -101,8 +97,61 @@ onMounted(async () => {
     processInstagramEmbeds
 
   document.body.appendChild(script)
+}
+
+/* ========================================
+   LOAD INSTAGRAM POSTS
+======================================== */
+
+const loadInstagramPosts = async () => {
+  try {
+    const response = await fetch(
+      '/.netlify/functions/instagram-posts'
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        'Failed to load Instagram posts.'
+      )
+    }
+
+    const data = await response.json()
+
+    posts.value = data
+      .filter(
+        (post) => post.instagram_link
+      )
+      .sort(
+        (a, b) => a.id - b.id
+      )
+
+    if (posts.value.length === 0) {
+      return
+    }
+
+    // Wait for Vue to render the new posts.
+    await nextTick()
+
+    // Process the newly rendered embeds.
+    loadInstagramScript()
+
+  } catch (error) {
+    console.error(
+      'Error loading Instagram posts:',
+      error
+    )
+  }
+}
+
+/* ========================================
+   INITIAL LOAD
+======================================== */
+
+onMounted(() => {
+  loadInstagramPosts()
 })
 </script>
+
 
 <style scoped>
 /* ========================================
