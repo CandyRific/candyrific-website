@@ -12,6 +12,7 @@ import {
 } from 'vue-router'
 
 import sideArt from '../assets/se_long_design.png'
+import LollipopLoader from '../components/LollipopLoader.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,7 @@ const seasons = ref([])
 
 const selectedImages = ref({})
 const loadedImageKeys = ref({})
+const failedImageKeys = ref({})
 let imageLoadRun = 0
 let productLoadRun = 0
 const selectedBrandIds = ref([])
@@ -100,6 +102,9 @@ const getProductImageUrl = (imageKey) => {
 const isImageLoaded = (imageKey) =>
   Boolean(loadedImageKeys.value[imageKey])
 
+const isImageFailed = (imageKey) =>
+  Boolean(failedImageKeys.value[imageKey])
+
 
 const preloadImage = (imageKey, run) => {
   return new Promise((resolve) => {
@@ -113,6 +118,9 @@ const preloadImage = (imageKey, run) => {
     }
 
     image.onerror = () => {
+      if (run === imageLoadRun) {
+        failedImageKeys.value[imageKey] = true
+      }
       // A failed image should not prevent phase two.
       resolve()
     }
@@ -125,6 +133,7 @@ const preloadImage = (imageKey, run) => {
 const loadProductImages = async (productList) => {
   const run = ++imageLoadRun
   loadedImageKeys.value = {}
+  failedImageKeys.value = {}
 
   const primaryKeys = []
   const secondaryKeys = []
@@ -835,11 +844,18 @@ onUnmounted(() => {
                   class="product-main-image"
                 >
 
+                <LollipopLoader
+                  v-else-if="
+                    product.images?.length &&
+                    !isImageFailed(getSelectedImage(product))
+                  "
+                />
+
                 <div
                   v-else
                   class="product-image-placeholder"
                 >
-                  {{ product.images?.length ? 'Loading image...' : 'Image coming soon' }}
+                  {{ product.images?.length ? 'Image unavailable' : 'Image coming soon' }}
                 </div>
 
               </div>
