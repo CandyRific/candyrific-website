@@ -7,6 +7,7 @@ import ProductManagement from '../components/CMS/ProductManagement.vue'
 import BrandManagement from '../components/CMS/BrandManagement.vue'
 import SeasonManagement from '../components/CMS/SeasonManagement.vue'
 import InstagramManagement from '../components/CMS/InstagramManagement.vue'
+import CarouselManagement from '../components/CMS/CarouselManagement.vue'
 
 const authStore = useAuthStore()
 
@@ -65,6 +66,15 @@ const setActiveSection = (section) => {
         >
           Instagram
         </button>
+
+        <button
+          type="button"
+          class="cms-nav-button"
+          :class="{ active: activeSection === 'carousel' }"
+          @click="setActiveSection('carousel')"
+        >
+          Carousel
+        </button>
       </nav>
 
       <div class="dashboard-card">
@@ -90,6 +100,10 @@ const setActiveSection = (section) => {
 
         <InstagramManagement
           v-if="activeSection === 'instagram'"
+        />
+
+        <CarouselManagement
+          v-if="activeSection === 'carousel'"
         />
 
       </div>
