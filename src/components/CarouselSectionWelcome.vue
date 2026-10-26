@@ -166,13 +166,7 @@ onUnmounted(() => {
   >
     <div class="carousel-container">
 
-      <!-- SECTION HEADING -->
-      <h2
-        id="carousel-section-title"
-        class="carousel-title"
-      >
-        In The Spotlight
-      </h2>
+      
 
       <!-- MOBILE VERSION -->
       <CarouselMobileCard
