@@ -171,7 +171,7 @@ onUnmounted(() => {
         id="carousel-section-title"
         class="carousel-title"
       >
-        Check This Out
+        In The Spotlight
       </h2>
 
       <!-- MOBILE VERSION -->
@@ -197,14 +197,17 @@ onUnmounted(() => {
               @click="handleBackArrowClick"
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 640"
-                aria-hidden="true"
-              >
-                <path
-                  d="M201.4 297.4C188.9 309.9 188.9 330.2 201.4 342.7L361.4 502.7C373.9 515.2 394.2 515.2 406.7 502.7C419.2 490.2 419.2 469.9 406.7 457.4L269.3 320L406.6 182.6C419.1 170.1 419.1 149.8 406.6 137.3L201.3 297.3z"
-                />
-              </svg>
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="m15 18-6-6 6-6" />
+</svg>
             </button>
           </div>
 
@@ -268,15 +271,18 @@ onUnmounted(() => {
               :disabled="desktopItems.length <= 1"
               @click="handleForwardArrowClick"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 640"
-                aria-hidden="true"
-              >
-                <path
-                  d="M439.1 297.4C451.6 309.9 451.6 330.2 439.1 342.7L279.1 502.7C266.6 515.2 246.3 515.2 233.8 502.7L439.2 297.3z"
-                />
-              </svg>
+             <svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg>
             </button>
           </div>
 
@@ -353,14 +359,27 @@ onUnmounted(() => {
 ======================================== */
 
 .carousel-title {
-  font-family: 'Fredoka', sans-serif;
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 600;
-  color: #703795;
-  text-align: center;
-  line-height: 1.15;
+  margin:
+    0
+    0
+    clamp(1.75rem, 3vw, 2.5rem);
 
-  margin: 0 0 clamp(1.75rem, 3vw, 2.75rem);
+  color: #703795;
+
+  font-family:
+    'Fredoka',
+    sans-serif;
+
+  font-size:
+    clamp(2rem, 4vw, 3.5rem);
+
+  font-weight: 600;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.02em;
+
+  text-align: left;
 }
 
 /* ========================================
@@ -484,17 +503,22 @@ onUnmounted(() => {
     opacity 0.2s ease;
 }
 
+/* ========================================
+   ARROW ICONS
+======================================== */
+
 .carousel-arrow svg {
-  width: 70%;
-  height: 70%;
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
-.back-arrow svg {
-  fill: #703795;
+.back-arrow {
+  color: #703795;
 }
 
-.forward-arrow svg {
-  fill: #01aef0;
+.forward-arrow {
+  color: #01aef0;
 }
 
 .carousel-arrow:hover:not(:disabled) {
