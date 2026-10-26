@@ -354,33 +354,7 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-/* ========================================
-   SECTION TITLE
-======================================== */
 
-.carousel-title {
-  margin:
-    0
-    0
-    clamp(1.75rem, 3vw, 2.5rem);
-
-  color: #703795;
-
-  font-family:
-    'Fredoka',
-    sans-serif;
-
-  font-size:
-    clamp(2rem, 4vw, 3.5rem);
-
-  font-weight: 600;
-
-  line-height: 1.1;
-
-  letter-spacing: -0.02em;
-
-  text-align: left;
-}
 
 /* ========================================
    DESKTOP CAROUSEL
