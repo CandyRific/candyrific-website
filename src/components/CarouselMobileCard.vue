@@ -1,12 +1,6 @@
 
 <script setup>
-import {
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  watch
-} from 'vue'
+import { computed } from 'vue'
 
 /* ========================================
    PROPS
@@ -24,16 +18,6 @@ const props = defineProps({
 ======================================== */
 
 const MOBILE_VIEWPORT_ID = 1
-
-/* ========================================
-   STATE
-======================================== */
-
-const sliderRef = ref(null)
-const currentIndex = ref(0)
-
-let scrollTimer = null
-let isAdjusting = false
 
 /* ========================================
    MOBILE ITEMS
@@ -60,31 +44,6 @@ const mobileItems = computed(() => {
 })
 
 /* ========================================
-   LOOPED ITEMS
-======================================== */
-
-const loopedItems = computed(() => {
-  const items = mobileItems.value
-
-  if (items.length <= 1) return items
-
-  return [
-    {
-      ...items[items.length - 1],
-      loopKey: 'clone-last'
-    },
-    ...items.map((item) => ({
-      ...item,
-      loopKey: `item-${item.id}`
-    })),
-    {
-      ...items[0],
-      loopKey: 'clone-first'
-    }
-  ]
-})
-
-/* ========================================
    IMAGE URL
 ======================================== */
 
@@ -94,170 +53,19 @@ const getImageUrl = (key) => {
     encodeURIComponent(key)
   )
 }
-
-/* ========================================
-   GET CARD CENTER POSITION
-======================================== */
-
-const getCardPosition = (index) => {
-  const slider = sliderRef.value
-
-  if (!slider) return 0
-
-  const card = slider.children[index]
-
-  if (!card) return 0
-
-  return (
-    card.offsetLeft -
-    slider.offsetLeft -
-    (slider.clientWidth - card.clientWidth) / 2
-  )
-}
-
-/* ========================================
-   SCROLL TO CARD
-======================================== */
-
-const scrollToCard = (
-  index,
-  behavior = 'smooth'
-) => {
-  const slider = sliderRef.value
-
-  if (!slider) return
-
-  slider.scrollTo({
-    left: getCardPosition(index),
-    behavior
-  })
-}
-
-/* ========================================
-   INITIAL POSITION
-======================================== */
-
-const initializeSlider = async () => {
-  await nextTick()
-
-  if (!sliderRef.value) return
-
-  currentIndex.value = 0
-
-  if (mobileItems.value.length > 1) {
-    scrollToCard(1, 'instant')
-  } else {
-    scrollToCard(0, 'instant')
-  }
-}
-
-/* ========================================
-   HANDLE INFINITE SCROLL
-======================================== */
-
-const handleScrollEnd = () => {
-  const slider = sliderRef.value
-
-  if (
-    !slider ||
-    isAdjusting ||
-    mobileItems.value.length <= 1
-  ) {
-    return
-  }
-
-  const scrollCenter =
-    slider.scrollLeft + slider.clientWidth / 2
-
-  let closestIndex = 0
-  let closestDistance = Infinity
-
-  Array.from(slider.children).forEach(
-    (card, index) => {
-      const cardCenter =
-        card.offsetLeft -
-        slider.offsetLeft +
-        card.clientWidth / 2
-
-      const distance = Math.abs(
-        scrollCenter - cardCenter
-      )
-
-      if (distance < closestDistance) {
-        closestDistance = distance
-        closestIndex = index
-      }
-    }
-  )
-
-  const count = mobileItems.value.length
-
-  if (closestIndex === 0) {
-    isAdjusting = true
-    scrollToCard(count, 'instant')
-    currentIndex.value = count - 1
-    requestAnimationFrame(() => {
-      isAdjusting = false
-    })
-  } else if (closestIndex === count + 1) {
-    isAdjusting = true
-    scrollToCard(1, 'instant')
-    currentIndex.value = 0
-    requestAnimationFrame(() => {
-      isAdjusting = false
-    })
-  } else {
-    currentIndex.value = closestIndex - 1
-  }
-}
-
-/* ========================================
-   SCROLL EVENT
-======================================== */
-
-const handleScroll = () => {
-  if (isAdjusting) return
-
-  clearTimeout(scrollTimer)
-
-  scrollTimer = setTimeout(() => {
-    handleScrollEnd()
-  }, 120)
-}
-
-/* ========================================
-   WATCH FOR CMS ITEMS
-======================================== */
-
-watch(
-  mobileItems,
-  () => {
-    initializeSlider()
-  },
-  { flush: 'post' }
-)
-
-onMounted(initializeSlider)
 </script>
 
 <template>
   <div
     v-if="mobileItems.length > 0"
-    ref="sliderRef"
     class="carousel-mobile-slider"
+    role="region"
     aria-label="Featured CandyRific content"
-    @scroll.passive="handleScroll"
   >
     <article
-      v-for="(item, index) in loopedItems"
-      :key="item.loopKey || item.id"
+      v-for="(item, index) in mobileItems"
+      :key="item.id"
       class="carousel-mobile-card"
-      :aria-hidden="
-        loopedItems.length > mobileItems.length &&
-        (index === 0 || index === loopedItems.length - 1)
-          ? 'true'
-          : undefined
-      "
     >
       <!-- CLICKABLE IMAGE -->
       <a
@@ -265,19 +73,13 @@ onMounted(initializeSlider)
         :href="item.hyperlink"
         target="_blank"
         rel="noopener noreferrer"
-        :tabindex="
-          loopedItems.length > mobileItems.length &&
-          (index === 0 || index === loopedItems.length - 1)
-            ? -1
-            : 0
-        "
-        :aria-label="`View featured CandyRific content ${item.id}`"
+        :aria-label="`View featured CandyRific content ${index + 1}`"
       >
         <img
           :src="getImageUrl(item.imageKey)"
-          :alt="`CandyRific featured content ${item.id}`"
-          :loading="index <= 2 ? 'eager' : 'lazy'"
-          :fetchpriority="index === 1 ? 'high' : 'auto'"
+          :alt="`CandyRific featured content ${index + 1}`"
+          :loading="index === 0 ? 'eager' : 'lazy'"
+          :fetchpriority="index === 0 ? 'high' : 'auto'"
         />
       </a>
 
@@ -288,8 +90,8 @@ onMounted(initializeSlider)
       >
         <img
           :src="getImageUrl(item.imageKey)"
-          :alt="`CandyRific featured content ${item.id}`"
-          :loading="index <= 2 ? 'eager' : 'lazy'"
+          :alt="`CandyRific featured content ${index + 1}`"
+          :loading="index === 0 ? 'eager' : 'lazy'"
         />
       </div>
     </article>
@@ -312,17 +114,19 @@ onMounted(initializeSlider)
   padding:
     0
     max(
-      1rem,
-      calc((100vw - 34rem) / 2)
+      0px,
+      calc((100% - min(82vw, 22rem)) / 2)
     )
     1rem;
 
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 1rem;
+  scroll-padding-inline: 0;
+
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 
-  /* No added shadows */
+  overscroll-behavior-x: contain;
+
   box-shadow: none;
 }
 
@@ -342,9 +146,9 @@ onMounted(initializeSlider)
   border-radius: 1.25rem;
 
   scroll-snap-align: center;
-  background: #ffffff;
+  scroll-snap-stop: always;
 
-  /* Designer artwork has its own shadow */
+  background: #ffffff;
   box-shadow: none;
 
   transition: transform 0.2s ease;
