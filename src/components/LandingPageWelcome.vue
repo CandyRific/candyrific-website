@@ -1,3 +1,4 @@
+
 <template>
   <section class="landing-hello">
     <img
@@ -5,6 +6,8 @@
       class="se-design"
       alt=""
       aria-hidden="true"
+      loading="lazy"
+      decoding="async"
     >
 
     <div class="landing-hello-container">
@@ -12,6 +15,9 @@
         <img
           src="../assets/hello_page_image.webp"
           alt="CandyRific candy products"
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
         >
       </div>
 
@@ -43,9 +49,11 @@
   </section>
 </template>
 
+
 <script setup>
 import { RouterLink } from 'vue-router'
 </script>
+
 
 <style scoped>
 /* ========================================
@@ -73,7 +81,6 @@ import { RouterLink } from 'vue-router'
     0 8px 24px rgba(53, 36, 84, 0.08);
 }
 
-
 /* ========================================
    DECORATIVE BACKGROUND
 ======================================== */
@@ -94,7 +101,6 @@ import { RouterLink } from 'vue-router'
   user-select: none;
 }
 
-
 /* ========================================
    CONTENT CONTAINER
 ======================================== */
@@ -111,29 +117,38 @@ import { RouterLink } from 'vue-router'
   gap: 2rem;
 }
 
-
 /* ========================================
-   PRODUCT IMAGE
+   PRODUCT IMAGE - CLS OPTIMIZED
 ======================================== */
 
 .landing-hello-image {
+  position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
   width: 100%;
+  aspect-ratio: 4 / 3;
+
+  max-height: 27rem;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
 }
 
 .landing-hello-image img {
+  position: absolute;
+  inset: 0;
+
   display: block;
 
   width: 100%;
-  max-width: 36rem;
-  max-height: 27rem;
+  height: 100%;
 
   object-fit: contain;
 }
-
 
 /* ========================================
    HERO MESSAGE
@@ -145,11 +160,11 @@ import { RouterLink } from 'vue-router'
   align-items: flex-start;
 
   width: 100%;
+  min-width: 0;
 
   font-family: 'Fredoka', sans-serif;
   color: white;
 }
-
 
 /* ========================================
    HERO TITLE
@@ -175,7 +190,6 @@ import { RouterLink } from 'vue-router'
   display: block;
 }
 
-
 /* ========================================
    DESCRIPTION CARD
 ======================================== */
@@ -183,6 +197,7 @@ import { RouterLink } from 'vue-router'
 .landing-hello-text {
   width: 100%;
   max-width: 40rem;
+  box-sizing: border-box;
 
   margin-top: 1.5rem;
 
@@ -218,7 +233,6 @@ import { RouterLink } from 'vue-router'
 .landing-hello-text p + p {
   margin-top: 0.75rem;
 }
-
 
 /* ========================================
    CTA BUTTON
@@ -287,7 +301,6 @@ import { RouterLink } from 'vue-router'
   outline-offset: 3px;
 }
 
-
 /* ========================================
    TABLET
 ======================================== */
@@ -305,7 +318,6 @@ import { RouterLink } from 'vue-router'
 
   .landing-hello-container {
     flex-direction: row;
-
     align-items: center;
 
     gap: clamp(2rem, 4vw, 5rem);
@@ -313,15 +325,13 @@ import { RouterLink } from 'vue-router'
 
   .landing-hello-image {
     width: 52%;
+    max-height: 34rem;
+
+    flex-shrink: 1;
   }
 
   .landing-hello-message {
     width: 48%;
-  }
-
-  .landing-hello-image img {
-    max-width: 40rem;
-    max-height: 34rem;
   }
 
   .landing-hello-title {
@@ -336,7 +346,6 @@ import { RouterLink } from 'vue-router'
     border-radius: 1.75rem;
   }
 }
-
 
 /* ========================================
    LARGE DESKTOP
@@ -356,7 +365,6 @@ import { RouterLink } from 'vue-router'
   }
 }
 
-
 /* ========================================
    SMALL MOBILE
 ======================================== */
@@ -373,7 +381,7 @@ import { RouterLink } from 'vue-router'
     gap: 1.5rem;
   }
 
-  .landing-hello-image img {
+  .landing-hello-image {
     max-height: 22rem;
   }
 
@@ -391,6 +399,17 @@ import { RouterLink } from 'vue-router'
 
   .hero-button {
     width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-button {
+    transition: none;
   }
 }
 </style>
