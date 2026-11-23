@@ -375,6 +375,149 @@ export default async (req) => {
   }
 
   // ========================================
+  // DELETE PRODUCT (ADMIN ONLY)
+  // ========================================
+
+  if (req.method === 'DELETE') {
+    const { response } = await requireAuth()
+
+    if (response) {
+      return response
+    }
+
+    verifyRequestOrigin(req)
+
+    let productId
+
+    try {
+      const body = await req.json()
+      productId = Number(body?.productId)
+    } catch {
+      return Response.json(
+        { error: 'A valid JSON body is required.' },
+        { status: 400 }
+      )
+    }
+
+    if (
+      !Number.isSafeInteger(productId) ||
+      productId <= 0
+    ) {
+      return Response.json(
+        { error: 'A valid product ID is required.' },
+        { status: 400 }
+      )
+    }
+
+    const db = getDatabase()
+    let client
+    let imageKeys = []
+    let productName = ''
+
+    try {
+      client = await db.pool.connect()
+      await client.query('BEGIN')
+
+      const productResult = await client.query(
+        `SELECT id, name
+         FROM products
+         WHERE id = $1
+         FOR UPDATE`,
+        [productId]
+      )
+
+      if (productResult.rows.length === 0) {
+        await client.query('ROLLBACK')
+
+        return Response.json(
+          { error: 'Product not found.' },
+          { status: 404 }
+        )
+      }
+
+      productName = productResult.rows[0].name
+
+      const imageResult = await client.query(
+        `SELECT image_key
+         FROM product_images
+         WHERE product_id = $1`,
+        [productId]
+      )
+
+      imageKeys = [...new Set(
+        imageResult.rows
+          .map((image) => image.image_key)
+          .filter(Boolean)
+      )]
+
+      await client.query(
+        'DELETE FROM product_brands WHERE product_id = $1',
+        [productId]
+      )
+
+      await client.query(
+        'DELETE FROM product_seasons WHERE product_id = $1',
+        [productId]
+      )
+
+      await client.query(
+        'DELETE FROM product_images WHERE product_id = $1',
+        [productId]
+      )
+
+      await client.query(
+        'DELETE FROM products WHERE id = $1',
+        [productId]
+      )
+
+      await client.query('COMMIT')
+    } catch (error) {
+      if (client) {
+        try {
+          await client.query('ROLLBACK')
+        } catch (rollbackError) {
+          console.error('Unable to roll back deletion:', rollbackError)
+        }
+      }
+
+      console.error('Unable to delete product:', error)
+
+      return Response.json(
+        { error: 'Unable to delete product.' },
+        { status: 500 }
+      )
+    } finally {
+      client?.release()
+    }
+
+    // Blobs are deleted only after the database transaction commits.
+    const imageStore = getStore('product-images')
+    let blobCleanupFailed = 0
+
+    for (const imageKey of imageKeys) {
+      try {
+        await imageStore.delete(imageKey)
+      } catch (error) {
+        blobCleanupFailed++
+        console.error(
+          `Unable to delete image blob ${imageKey}:`,
+          error
+        )
+      }
+    }
+
+    console.log(`Deleted product ${productId} (${productName}).`)
+
+    return Response.json({
+      message: blobCleanupFailed === 0
+        ? 'Product deleted successfully.'
+        : 'Product deleted, but some image files could not be removed.',
+      deletedProductId: productId,
+      blobCleanupFailed
+    })
+  }
+
+  // ========================================
   // UNSUPPORTED METHODS
   // ========================================
 
@@ -385,7 +528,7 @@ export default async (req) => {
     {
       status: 405,
       headers: {
-        Allow: 'GET, POST'
+        Allow: 'GET, POST, DELETE'
       }
     }
   )
