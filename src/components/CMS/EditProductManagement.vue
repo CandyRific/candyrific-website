@@ -89,6 +89,10 @@ const isSavingSeasons = ref(false)
 
 const isDeleteModalOpen = ref(false)
 const deleteModalElement = ref(null)
+const isDeletingProduct = ref(false)
+const isProductDeleted = ref(false)
+const deleteProductMessage = ref('')
+const deleteProductError = ref('')
 
 /* ========================================
    MESSAGES
@@ -937,13 +941,60 @@ const saveSeasons = async () => {
 ======================================== */
 
 const openDeleteModal = async () => {
+  if (isDeletingProduct.value || isProductDeleted.value) {
+    return
+  }
+
+  deleteProductError.value = ''
   isDeleteModalOpen.value = true
   await nextTick()
   deleteModalElement.value?.focus()
 }
 
 const closeDeleteModal = () => {
+  if (isDeletingProduct.value) {
+    return
+  }
+
   isDeleteModalOpen.value = false
+}
+
+const deleteProduct = async () => {
+  if (isDeletingProduct.value || isProductDeleted.value) {
+    return
+  }
+
+  isDeletingProduct.value = true
+  deleteProductError.value = ''
+
+  try {
+    const response = await fetch(
+      '/.netlify/functions/products',
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId: props.productId
+        })
+      }
+    )
+
+    const data = await readResponse(
+      response,
+      'Unable to delete product.'
+    )
+
+    isProductDeleted.value = true
+    deleteProductMessage.value = data?.message ||
+      'Product deleted successfully.'
+  } catch (error) {
+    console.error('Unable to delete product:', error)
+    deleteProductError.value = error.message
+  } finally {
+    isDeletingProduct.value = false
+  }
 }
 
 /* ========================================
@@ -961,6 +1012,10 @@ const closeEditor = () => {
 watch(
   () => props.productId,
   () => {
+    isProductDeleted.value = false
+    isDeleteModalOpen.value = false
+    deleteProductMessage.value = ''
+    deleteProductError.value = ''
     isBrandDropdownOpen.value = false
     isSeasonDropdownOpen.value = false
 
@@ -1038,7 +1093,7 @@ onMounted(() => {
     ========================================= -->
 
     <div
-      v-else-if="product"
+      v-else-if="product && !isProductDeleted"
       class="product-fields"
     >
 
@@ -1463,6 +1518,15 @@ onMounted(() => {
 
     </div>
 
+    <p
+      v-if="isProductDeleted"
+      class="product-delete-success"
+      role="status"
+    >
+      {{ deleteProductMessage }}
+      You can return to the product list using the button above.
+    </p>
+
     <!-- ========================================
          DELETE CONFIRMATION MODAL
     ========================================= -->
@@ -1486,35 +1550,50 @@ onMounted(() => {
           id="delete-modal-title"
           class="delete-modal-title"
         >
-          Delete Product?
+          {{ isProductDeleted ? 'Product Deleted' : 'Delete Product?' }}
         </h3>
 
         <p
           id="delete-modal-description"
           class="delete-modal-description"
         >
-          Are you sure you want to permanently delete
-          <strong>{{ product?.name || 'this product' }}</strong>?
-          All associated images, brands, and seasons will be removed.
-          This action cannot be undone.
+          <template v-if="isProductDeleted">
+            {{ deleteProductMessage }}
+          </template>
+          <template v-else>
+            Are you sure you want to permanently delete
+            <strong>{{ product?.name || 'this product' }}</strong>?
+            Its image records and brand and season associations
+            will be removed. This action cannot be undone.
+          </template>
+        </p>
+
+        <p
+          v-if="deleteProductError"
+          class="delete-modal-error"
+          role="alert"
+        >
+          {{ deleteProductError }}
         </p>
 
         <div class="delete-modal-actions">
           <button
             type="button"
             class="delete-modal-cancel"
+            :disabled="isDeletingProduct"
             @click="closeDeleteModal"
           >
-            Cancel
+            {{ isProductDeleted ? 'Close' : 'Cancel' }}
           </button>
 
           <button
+            v-if="!isProductDeleted"
             type="button"
             class="delete-modal-confirm"
-            disabled
-            title="Deletion will be connected in a later step"
+            :disabled="isDeletingProduct"
+            @click="deleteProduct"
           >
-            Confirm Delete
+            {{ isDeletingProduct ? 'Deleting...' : 'Confirm Delete' }}
           </button>
         </div>
       </div>
@@ -1988,9 +2067,25 @@ onMounted(() => {
   background: #f5eff8;
 }
 
-.delete-modal-confirm:disabled {
+.delete-modal-confirm:disabled,
+.delete-modal-cancel:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.delete-modal-error {
+  margin: 1rem 0 0;
+  color: #c62828;
+  font-size: 0.9rem;
+}
+
+.product-delete-success {
+  margin: 1rem 0;
+  padding: 1rem;
+  color: #237a49;
+  background: #f1faf3;
+  border: 1px solid #c9e7d1;
+  border-radius: 8px;
 }
 
 /* ========================================
