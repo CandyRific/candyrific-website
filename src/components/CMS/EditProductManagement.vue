@@ -1,6 +1,7 @@
 <script setup>
 import {
   onMounted,
+  nextTick,
   ref,
   watch
 } from 'vue'
@@ -81,6 +82,13 @@ const isSavingAmazonLink = ref(false)
 
 const isSavingBrands = ref(false)
 const isSavingSeasons = ref(false)
+
+/* ========================================
+   DELETE MODAL STATE
+======================================== */
+
+const isDeleteModalOpen = ref(false)
+const deleteModalElement = ref(null)
 
 /* ========================================
    MESSAGES
@@ -925,6 +933,20 @@ const saveSeasons = async () => {
 }
 
 /* ========================================
+   DELETE MODAL
+======================================== */
+
+const openDeleteModal = async () => {
+  isDeleteModalOpen.value = true
+  await nextTick()
+  deleteModalElement.value?.focus()
+}
+
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false
+}
+
+/* ========================================
    CLOSE
 ======================================== */
 
@@ -1413,6 +1435,89 @@ onMounted(() => {
 
       <UpdateProductImages :product-id="productId" />
 
+      <!-- ========================================
+           DELETE PRODUCT
+      ========================================= -->
+
+      <div class="delete-product-section">
+        <div class="delete-product-content">
+          <h3 class="delete-product-title">
+            Delete Product
+          </h3>
+
+          <p class="delete-product-description">
+            Permanently remove this product and its associated
+            images, brands, and seasons. This cannot be undone.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="delete-product-button"
+          @click="openDeleteModal"
+        >
+          Delete Product
+        </button>
+      </div>
+
+
+    </div>
+
+    <!-- ========================================
+         DELETE CONFIRMATION MODAL
+    ========================================= -->
+
+    <div
+      v-if="isDeleteModalOpen"
+      class="delete-modal-overlay"
+      @click.self="closeDeleteModal"
+      @keydown.esc="closeDeleteModal"
+    >
+      <div
+        ref="deleteModalElement"
+        class="delete-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-modal-title"
+        aria-describedby="delete-modal-description"
+        tabindex="-1"
+      >
+        <h3
+          id="delete-modal-title"
+          class="delete-modal-title"
+        >
+          Delete Product?
+        </h3>
+
+        <p
+          id="delete-modal-description"
+          class="delete-modal-description"
+        >
+          Are you sure you want to permanently delete
+          <strong>{{ product?.name || 'this product' }}</strong>?
+          All associated images, brands, and seasons will be removed.
+          This action cannot be undone.
+        </p>
+
+        <div class="delete-modal-actions">
+          <button
+            type="button"
+            class="delete-modal-cancel"
+            @click="closeDeleteModal"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="delete-modal-confirm"
+            disabled
+            title="Deletion will be connected in a later step"
+          >
+            Confirm Delete
+          </button>
+        </div>
+      </div>
     </div>
 
   </section>
@@ -1759,6 +1864,136 @@ onMounted(() => {
 }
 
 /* ========================================
+   DELETE PRODUCT
+======================================== */
+
+.delete-product-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+
+  background: #fff8f8;
+  border: 1px solid #f1d0d0;
+  border-radius: 10px;
+}
+
+.delete-product-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.delete-product-title {
+  margin: 0 0 0.5rem;
+
+  color: #c62828;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.delete-product-description {
+  margin: 0;
+
+  color: #765858;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.delete-product-button,
+.delete-modal-confirm {
+  flex-shrink: 0;
+  padding: 0.75rem 1.25rem;
+
+  background: #c62828;
+  color: white;
+  border: none;
+  border-radius: 6px;
+
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-product-button:hover {
+  background: #a91f1f;
+}
+
+/* ========================================
+   DELETE MODAL
+======================================== */
+
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.delete-modal {
+  width: 100%;
+  max-width: 28rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+
+  background: white;
+  border-radius: 12px;
+  box-sizing: border-box;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.delete-modal-title {
+  margin: 0 0 0.75rem;
+
+  color: #c62828;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.delete-modal-description {
+  margin: 0;
+
+  color: #444;
+  line-height: 1.6;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.delete-modal-cancel {
+  padding: 0.75rem 1.25rem;
+
+  background: white;
+  color: #703795;
+  border: 1px solid #703795;
+  border-radius: 6px;
+
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-modal-cancel:hover {
+  background: #f5eff8;
+}
+
+.delete-modal-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
    MOBILE
 ======================================== */
 
@@ -1776,6 +2011,24 @@ onMounted(() => {
   }
 
   .save-button {
+    width: 100%;
+  }
+
+  .delete-product-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .delete-product-button {
+    width: 100%;
+  }
+
+  .delete-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .delete-modal-cancel,
+  .delete-modal-confirm {
     width: 100%;
   }
 
