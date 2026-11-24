@@ -44,6 +44,43 @@ const imageInput = ref(null)
 const isLoadingImages = ref(false)
 const isSavingImages = ref(false)
 const imagesMessage = ref('')
+const uploadError = ref('')
+const MAX_IMAGE_SIZE = 150 * 1024
+const existingImageSizes = ref({})
+let imageSizeRequestId = 0
+
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+
+const loadExistingImageSizes = async (images) => {
+  const requestId = ++imageSizeRequestId
+  existingImageSizes.value = {}
+
+  await Promise.all(images.map(async (image) => {
+    try {
+      const response = await fetch(getProductImageUrl(image.image_key))
+      if (!response.ok) throw new Error('Unable to load image size.')
+
+      const blob = await response.blob()
+      if (requestId !== imageSizeRequestId) return
+
+      existingImageSizes.value = {
+        ...existingImageSizes.value,
+        [image.id]: formatFileSize(blob.size)
+      }
+    } catch (error) {
+      if (requestId !== imageSizeRequestId) return
+      console.error('Unable to read image size:', error)
+      existingImageSizes.value = {
+        ...existingImageSizes.value,
+        [image.id]: 'Size unavailable'
+      }
+    }
+  }))
+}
 
 /* ========================================
    RESPONSE HELPER
@@ -95,6 +132,8 @@ const getProductImageUrl = (
 const loadProductImages = async () => {
   isLoadingImages.value = true
   imagesMessage.value = ''
+  ++imageSizeRequestId
+  existingImageSizes.value = {}
 
   try {
     const response = await fetch(
@@ -113,6 +152,10 @@ const loadProductImages = async () => {
       (image) => ({ ...image })
     )
     draggedImageId.value = null
+
+    // Read actual file sizes from the existing image URLs.
+    // These requests may reuse images already cached by the browser.
+    void loadExistingImageSizes(existingImages.value)
 
     deleteImageIds.value = []
 
@@ -146,6 +189,7 @@ const clearNewImages = () => {
 
   newImages.value = []
   newImagePreviews.value = []
+  uploadError.value = ''
 
   if (imageInput.value) {
     imageInput.value.value = ''
@@ -164,11 +208,24 @@ const handleImageSelection = (
       event.target.files || []
     )
 
+  uploadError.value = ''
+  const rejectedFiles = files.filter((file) => file.size > MAX_IMAGE_SIZE)
+
+  if (rejectedFiles.length > 0) {
+    uploadError.value =
+      `Images must be 150 KB or smaller for optimized performance on the Product page. ` +
+      `The following ${rejectedFiles.length === 1 ? 'file was' : 'files were'} not added: ` +
+      rejectedFiles.map((file) => `${file.name} (${formatFileSize(file.size)})`).join(', ')
+  }
+
   for (const file of files) {
+    if (file.size > MAX_IMAGE_SIZE) continue
+
     newImages.value.push(file)
 
     newImagePreviews.value.push({
       name: file.name,
+      size: formatFileSize(file.size),
       url:
         URL.createObjectURL(file)
     })
@@ -309,6 +366,11 @@ const moveImage = (imageId, direction) => {
 const saveImages = async () => {
   imagesMessage.value = ''
 
+  if (newImages.value.some((file) => file.size > MAX_IMAGE_SIZE)) {
+    uploadError.value = 'Images must be 150 KB or smaller for optimized performance on the Product page.'
+    return
+  }
+
   if (
     deleteImageIds.value.length === 0 &&
     newImages.value.length === 0 &&
@@ -393,12 +455,15 @@ watch(
     existingImages.value = []
     originalImageSnapshot.value = []
     deleteImageIds.value = []
+    ++imageSizeRequestId
+    existingImageSizes.value = {}
     loadProductImages()
   },
   { immediate: true }
 )
 
 onBeforeUnmount(() => {
+  ++imageSizeRequestId
   clearNewImages()
 })
 </script>
@@ -479,6 +544,10 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
 
+                <div class="image-file-size">
+                  {{ existingImageSizes[image.id] || 'Loading size...' }}
+                </div>
+
                 <div v-if="!isImageMarkedForDelete(image.id)" class="image-move-controls">
                   <button type="button" :disabled="isSavingImages || remainingImages[0]?.id === image.id" @click="moveImage(image.id, -1)" aria-label="Move image earlier">← Earlier</button>
                   <button type="button" :disabled="isSavingImages || remainingImages[remainingImages.length - 1]?.id === image.id" @click="moveImage(image.id, 1)" aria-label="Move image later">Later →</button>
@@ -541,7 +610,7 @@ onBeforeUnmount(() => {
               </span>
 
               <span class="image-upload-subtitle">
-                Select one or multiple files
+                Select one or multiple files (150 KB maximum per image)
               </span>
             </label>
 
@@ -554,6 +623,10 @@ onBeforeUnmount(() => {
               class="image-file-input"
               @change="handleImageSelection"
             >
+
+            <p v-if="uploadError" class="image-upload-error" role="alert">
+              {{ uploadError }}
+            </p>
           </div>
 
           <!-- NEW IMAGE PREVIEWS -->
@@ -590,6 +663,10 @@ onBeforeUnmount(() => {
 
                 <div class="new-image-name">
                   {{ preview.name }}
+                </div>
+
+                <div class="image-file-size">
+                  {{ preview.size }}
                 </div>
 
                 <button
@@ -793,6 +870,13 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
+.image-file-size {
+  margin-top: 0.45rem;
+  color: #777;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 .image-delete-button {
   width: 100%;
 
@@ -923,6 +1007,14 @@ onBeforeUnmount(() => {
   color: #777;
 
   font-size: 0.85rem;
+}
+
+.image-upload-error {
+  margin: 0.75rem 0 0;
+  color: #c62828;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 /* ========================================
